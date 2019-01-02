@@ -166,7 +166,7 @@ def get_type_avg_w2v(type_name):
 def get_query_avg_w2v(q_body):
     INDEX_TYPE = "dbpedia_2015_10_types"
     # tokens = es.getTokens(INDEX_TYPE, q_body)
-    tokens = q_body.split("")
+    tokens = q_body.split(" ")
     q_avg_w2v = get_average_w2v(tokens)
     return q_avg_w2v
 
@@ -240,7 +240,7 @@ def types_avgw2v_generator():
     '''
 
 # w2v_train_set_generator()
-types_avg_w2v_generator()
+# types_avg_w2v_generator()
 quries_avg_w2v_generator()
 
 # print("eiffel")
