@@ -1,0 +1,18 @@
+{% extends "index.html" %} {% block result_container %}
+
+    <div id="resultsContainerService">
+        {% include 'pills.html' %}
+
+        <script>
+            activateTTITab();
+        </script>
+
+        <div class="results-header">
+            <h4>Results from the collection <span>{{ human_readable_collection }}</span></h4>
+        </div>
+
+    </div>
+
+    {% include 'results_TTI_inner.html' %}
+
+{% endblock %}

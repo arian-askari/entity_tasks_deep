@@ -1,0 +1,13 @@
+{ 
+      "method": "tc",
+      "num_docs": 10,
+      "model": "lm",
+      "first_pass": {
+          "num_docs": 50
+      },
+      "smoothing_method": "dirichlet",
+      "smoothing_param": 2000,
+      "ec_cutoff": 20,
+	  "query_file": "path/to/queries.json",
+	  "output_file": "path/to/output.txt",
+}

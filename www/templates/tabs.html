@@ -1,0 +1,19 @@
+<ul class="nav nav-tabs nav-justified" id="serviceTabs">
+  <li role="presentation" id="erTab" class="active my-tab">
+      <a id="entityRetrievalTabLink" href="#" data-toggle="tooltip" data-placement="top"
+      onclick="requestERService('{{ query }}');">
+      Entity Search</a>
+  </li>
+  <li role="presentation" id="elTab" class="my-tab">
+      <a id="entityLinkingTabLink" href="#" data-toggle="tooltip" data-placement="top"
+      onclick="requestELService('{{ query }}');">
+      Entity Linking</a>
+  </li>
+  <li role="presentation" id="ttiTab" class="my-tab">
+      <a id="ttiTabLink" href="#" data-toggle="tooltip" data-placement="top"
+      onclick="requestTTIService('{{ query }}');">
+      Target Type Identification</a>
+  </li>
+</ul>
+
+

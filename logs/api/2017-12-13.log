@@ -1,0 +1,97 @@
+[2017-12-13 10:17:03] 127.0.0.1 GET http /? 200 OK
+[2017-12-13 10:17:03] 127.0.0.1 GET http /robots.txt? 404 NOT FOUND
+[2017-12-13 10:17:03] 127.0.0.1 GET http /favicon.ico? 404 NOT FOUND
+[2017-12-13 10:17:16] 127.0.0.1 GET http /ec/lookup_id/<dbpedia:Eduard_Einstein>? 200 OK
+[2017-12-13 15:38:40] 127.0.0.1 GET http /gui? 404 NOT FOUND
+[2017-12-13 15:38:40] 127.0.0.1 GET http /robots.txt? 404 NOT FOUND
+[2017-12-13 15:39:09] 127.0.0.1 GET http /el? 200 OK
+[2017-12-13 15:39:56] 127.0.0.1 GET http /el?q=sea 5xx INTERNAL SERVER ERROR
+Traceback (most recent call last):
+  File "/Library/Frameworks/Python.framework/Versions/3.6/lib/python3.6/site-packages/flask/app.py", line 1612, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/Library/Frameworks/Python.framework/Versions/3.6/lib/python3.6/site-packages/flask/app.py", line 1598, in dispatch_request
+    return self.view_functions[rule.endpoint](**req.view_args)
+  File "/Users/arashdn/Desktop/nordlys/nordlys/services/api.py", line 121, in entity_linking
+    el = EL(config, __entity, __elastic, __fcache)
+  File "/Users/arashdn/Desktop/nordlys/nordlys/services/el.py", line 90, in __init__
+    load_kb_snapshot(self.__config["kb_snapshot"])
+  File "/Users/arashdn/Desktop/nordlys/nordlys/logic/el/el_utils.py", line 18, in load_kb_snapshot
+    with open(kb_file, "r") as f:
+FileNotFoundError: [Errno 2] No such file or directory: 'data/el/snapshot_2015_10.txt'
+
+[2017-12-13 15:45:46] 127.0.0.1 GET http /er?q=sea 5xx INTERNAL SERVER ERROR
+Traceback (most recent call last):
+  File "/Library/Frameworks/Python.framework/Versions/3.6/lib/python3.6/site-packages/flask/app.py", line 1612, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/Library/Frameworks/Python.framework/Versions/3.6/lib/python3.6/site-packages/flask/app.py", line 1598, in dispatch_request
+    return self.view_functions[rule.endpoint](**req.view_args)
+  File "/Users/arashdn/Desktop/nordlys/nordlys/services/api.py", line 107, in retrieval
+    res = er.retrieve(query)
+  File "/Users/arashdn/Desktop/nordlys/nordlys/services/er.py", line 111, in retrieve
+    scorer = self.__get_scorer(query)
+  File "/Users/arashdn/Desktop/nordlys/nordlys/services/er.py", line 106, in __get_scorer
+    scorer = Scorer.get_scorer(self.__elastic, query, self.__config)
+  File "/Users/arashdn/Desktop/nordlys/nordlys/core/retrieval/scorer.py", line 53, in get_scorer
+    return ScorerLM(elastic, query, config)
+  File "/Users/arashdn/Desktop/nordlys/nordlys/core/retrieval/scorer.py", line 75, in __init__
+    super(ScorerLM, self).__init__(elastic, query, params)
+  File "/Users/arashdn/Desktop/nordlys/nordlys/core/retrieval/scorer.py", line 30, in __init__
+    self._query_terms = elastic.analyze_query(self._query).split()
+  File "/Users/arashdn/Desktop/nordlys/nordlys/core/retrieval/elastic.py", line 116, in analyze_query
+    tokens = self.__es.indices.analyze(index=self.__index_name, body=query, analyzer=analyzer)["tokens"]
+  File "/Library/Frameworks/Python.framework/Versions/3.6/lib/python3.6/site-packages/elasticsearch/client/utils.py", line 76, in _wrapped
+    return func(*args, params=params, **kwargs)
+TypeError: analyze() got an unexpected keyword argument 'analyzer'
+
+[2017-12-13 15:49:05] 127.0.0.1 GET http /er?q=sea 5xx INTERNAL SERVER ERROR
+Traceback (most recent call last):
+  File "/Library/Frameworks/Python.framework/Versions/3.6/lib/python3.6/site-packages/flask/app.py", line 1612, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/Library/Frameworks/Python.framework/Versions/3.6/lib/python3.6/site-packages/flask/app.py", line 1598, in dispatch_request
+    return self.view_functions[rule.endpoint](**req.view_args)
+  File "/Users/arashdn/Desktop/nordlys/nordlys/services/api.py", line 107, in retrieval
+    res = er.retrieve(query)
+  File "/Users/arashdn/Desktop/nordlys/nordlys/services/er.py", line 111, in retrieve
+    scorer = self.__get_scorer(query)
+  File "/Users/arashdn/Desktop/nordlys/nordlys/services/er.py", line 106, in __get_scorer
+    scorer = Scorer.get_scorer(self.__elastic, query, self.__config)
+  File "/Users/arashdn/Desktop/nordlys/nordlys/core/retrieval/scorer.py", line 53, in get_scorer
+    return ScorerLM(elastic, query, config)
+  File "/Users/arashdn/Desktop/nordlys/nordlys/core/retrieval/scorer.py", line 75, in __init__
+    super(ScorerLM, self).__init__(elastic, query, params)
+  File "/Users/arashdn/Desktop/nordlys/nordlys/core/retrieval/scorer.py", line 30, in __init__
+    self._query_terms = elastic.analyze_query(self._query).split()
+  File "/Users/arashdn/Desktop/nordlys/nordlys/core/retrieval/elastic.py", line 116, in analyze_query
+    tokens = self.__es.indices.analyze(index=self.__index_name, body=query, analyzer=analyzer)["tokens"]
+  File "/Library/Frameworks/Python.framework/Versions/3.6/lib/python3.6/site-packages/elasticsearch/client/utils.py", line 76, in _wrapped
+    return func(*args, params=params, **kwargs)
+TypeError: analyze() got an unexpected keyword argument 'analyzer'
+
+[2017-12-13 15:53:10] 127.0.0.1 GET http /el?q=sea 5xx INTERNAL SERVER ERROR
+Traceback (most recent call last):
+  File "/Library/Frameworks/Python.framework/Versions/3.6/lib/python3.6/site-packages/flask/app.py", line 1612, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/Library/Frameworks/Python.framework/Versions/3.6/lib/python3.6/site-packages/flask/app.py", line 1598, in dispatch_request
+    return self.view_functions[rule.endpoint](**req.view_args)
+  File "/Users/arashdn/Desktop/nordlys/nordlys/services/api.py", line 121, in entity_linking
+    el = EL(config, __entity, __elastic, __fcache)
+  File "/Users/arashdn/Desktop/nordlys/nordlys/services/el.py", line 90, in __init__
+    load_kb_snapshot(self.__config["kb_snapshot"])
+  File "/Users/arashdn/Desktop/nordlys/nordlys/logic/el/el_utils.py", line 18, in load_kb_snapshot
+    with open(kb_file, "r") as f:
+FileNotFoundError: [Errno 2] No such file or directory: 'data/el/snapshot_2015_10.txt'
+
+[2017-12-13 15:59:16] 127.0.0.1 GET http /el?q=sea&method=ltr 5xx INTERNAL SERVER ERROR
+Traceback (most recent call last):
+  File "/Library/Frameworks/Python.framework/Versions/3.6/lib/python3.6/site-packages/flask/app.py", line 1612, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/Library/Frameworks/Python.framework/Versions/3.6/lib/python3.6/site-packages/flask/app.py", line 1598, in dispatch_request
+    return self.view_functions[rule.endpoint](**req.view_args)
+  File "/Users/arashdn/Desktop/nordlys/nordlys/services/api.py", line 121, in entity_linking
+    el = EL(config, __entity, __elastic, __fcache)
+  File "/Users/arashdn/Desktop/nordlys/nordlys/services/el.py", line 90, in __init__
+    load_kb_snapshot(self.__config["kb_snapshot"])
+  File "/Users/arashdn/Desktop/nordlys/nordlys/logic/el/el_utils.py", line 18, in load_kb_snapshot
+    with open(kb_file, "r") as f:
+FileNotFoundError: [Errno 2] No such file or directory: 'data/el/snapshot_2015_10.txt'
+

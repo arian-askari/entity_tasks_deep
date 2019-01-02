@@ -1,0 +1,258 @@
+[2018-01-05 10:33:50] 127.0.0.1 GET http /er?q=In%20which%20U.S.%20state%20is%20Area%2051%20located? 5xx INTERNAL SERVER ERROR
+Traceback (most recent call last):
+  File "/Users/arashdn/Desktop/entity_research/nordlys_system/myenv/lib/python3.6/site-packages/urllib3/connection.py", line 141, in _new_conn
+    (self.host, self.port), self.timeout, **extra_kw)
+  File "/Users/arashdn/Desktop/entity_research/nordlys_system/myenv/lib/python3.6/site-packages/urllib3/util/connection.py", line 83, in create_connection
+    raise err
+  File "/Users/arashdn/Desktop/entity_research/nordlys_system/myenv/lib/python3.6/site-packages/urllib3/util/connection.py", line 73, in create_connection
+    sock.connect(sa)
+ConnectionRefusedError: [Errno 61] Connection refused
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/arashdn/Desktop/entity_research/nordlys_system/myenv/lib/python3.6/site-packages/elasticsearch/connection/http_urllib3.py", line 114, in perform_request
+    response = self.pool.urlopen(method, url, body, retries=False, headers=self.headers, **kw)
+  File "/Users/arashdn/Desktop/entity_research/nordlys_system/myenv/lib/python3.6/site-packages/urllib3/connectionpool.py", line 649, in urlopen
+    _stacktrace=sys.exc_info()[2])
+  File "/Users/arashdn/Desktop/entity_research/nordlys_system/myenv/lib/python3.6/site-packages/urllib3/util/retry.py", line 333, in increment
+    raise six.reraise(type(error), error, _stacktrace)
+  File "/Users/arashdn/Desktop/entity_research/nordlys_system/myenv/lib/python3.6/site-packages/urllib3/packages/six.py", line 686, in reraise
+    raise value
+  File "/Users/arashdn/Desktop/entity_research/nordlys_system/myenv/lib/python3.6/site-packages/urllib3/connectionpool.py", line 600, in urlopen
+    chunked=chunked)
+  File "/Users/arashdn/Desktop/entity_research/nordlys_system/myenv/lib/python3.6/site-packages/urllib3/connectionpool.py", line 356, in _make_request
+    conn.request(method, url, **httplib_request_kw)
+  File "/Library/Frameworks/Python.framework/Versions/3.6/lib/python3.6/http/client.py", line 1239, in request
+    self._send_request(method, url, body, headers, encode_chunked)
+  File "/Library/Frameworks/Python.framework/Versions/3.6/lib/python3.6/http/client.py", line 1285, in _send_request
+    self.endheaders(body, encode_chunked=encode_chunked)
+  File "/Library/Frameworks/Python.framework/Versions/3.6/lib/python3.6/http/client.py", line 1234, in endheaders
+    self._send_output(message_body, encode_chunked=encode_chunked)
+  File "/Library/Frameworks/Python.framework/Versions/3.6/lib/python3.6/http/client.py", line 1026, in _send_output
+    self.send(msg)
+  File "/Library/Frameworks/Python.framework/Versions/3.6/lib/python3.6/http/client.py", line 964, in send
+    self.connect()
+  File "/Users/arashdn/Desktop/entity_research/nordlys_system/myenv/lib/python3.6/site-packages/urllib3/connection.py", line 166, in connect
+    conn = self._new_conn()
+  File "/Users/arashdn/Desktop/entity_research/nordlys_system/myenv/lib/python3.6/site-packages/urllib3/connection.py", line 150, in _new_conn
+    self, "Failed to establish a new connection: %s" % e)
+urllib3.exceptions.NewConnectionError: <urllib3.connection.HTTPConnection object at 0x108e592b0>: Failed to establish a new connection: [Errno 61] Connection refused
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/arashdn/Desktop/entity_research/nordlys_system/myenv/lib/python3.6/site-packages/flask/app.py", line 1612, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/Users/arashdn/Desktop/entity_research/nordlys_system/myenv/lib/python3.6/site-packages/flask/app.py", line 1598, in dispatch_request
+    return self.view_functions[rule.endpoint](**req.view_args)
+  File "/Users/arashdn/Desktop/entity_research/nordlys_system/nordlys/services/api.py", line 111, in retrieval
+    res = er.retrieve(query)
+  File "/Users/arashdn/Desktop/entity_research/nordlys_system/nordlys/services/er.py", line 111, in retrieve
+    scorer = self.__get_scorer(query)
+  File "/Users/arashdn/Desktop/entity_research/nordlys_system/nordlys/services/er.py", line 106, in __get_scorer
+    scorer = Scorer.get_scorer(self.__elastic, query, self.__config)
+  File "/Users/arashdn/Desktop/entity_research/nordlys_system/nordlys/core/retrieval/scorer.py", line 53, in get_scorer
+    return ScorerLM(elastic, query, config)
+  File "/Users/arashdn/Desktop/entity_research/nordlys_system/nordlys/core/retrieval/scorer.py", line 75, in __init__
+    super(ScorerLM, self).__init__(elastic, query, params)
+  File "/Users/arashdn/Desktop/entity_research/nordlys_system/nordlys/core/retrieval/scorer.py", line 30, in __init__
+    self._query_terms = elastic.analyze_query(self._query).split()
+  File "/Users/arashdn/Desktop/entity_research/nordlys_system/nordlys/core/retrieval/elastic.py", line 117, in analyze_query
+    tokens = self.__es.indices.analyze(index=self.__index_name, body={'text': query, 'analyzer': analyzer})["tokens"]
+  File "/Users/arashdn/Desktop/entity_research/nordlys_system/myenv/lib/python3.6/site-packages/elasticsearch/client/utils.py", line 73, in _wrapped
+    return func(*args, params=params, **kwargs)
+  File "/Users/arashdn/Desktop/entity_research/nordlys_system/myenv/lib/python3.6/site-packages/elasticsearch/client/indices.py", line 32, in analyze
+    '_analyze'), params=params, body=body)
+  File "/Users/arashdn/Desktop/entity_research/nordlys_system/myenv/lib/python3.6/site-packages/elasticsearch/transport.py", line 312, in perform_request
+    status, headers, data = connection.perform_request(method, url, params, body, ignore=ignore, timeout=timeout)
+  File "/Users/arashdn/Desktop/entity_research/nordlys_system/myenv/lib/python3.6/site-packages/elasticsearch/connection/http_urllib3.py", line 123, in perform_request
+    raise ConnectionError('N/A', str(e), e)
+elasticsearch.exceptions.ConnectionError: ConnectionError(<urllib3.connection.HTTPConnection object at 0x108e592b0>: Failed to establish a new connection: [Errno 61] Connection refused) caused by: NewConnectionError(<urllib3.connection.HTTPConnection object at 0x108e592b0>: Failed to establish a new connection: [Errno 61] Connection refused)
+
+[2018-01-05 10:33:50] 127.0.0.1 GET http /er?q=In%20which%20U.S.%20state%20is%20Area%2051%20located? 200 OK
+[2018-01-05 10:33:50] 127.0.0.1 GET http /robots.txt? 404 NOT FOUND
+[2018-01-05 10:34:21] 127.0.0.1 GET http /er?q=In%20which%20U.S.%20state%20is%20Area%2051%20located? 5xx INTERNAL SERVER ERROR
+Traceback (most recent call last):
+  File "/Users/arashdn/Desktop/entity_research/nordlys_system/myenv/lib/python3.6/site-packages/urllib3/connection.py", line 141, in _new_conn
+    (self.host, self.port), self.timeout, **extra_kw)
+  File "/Users/arashdn/Desktop/entity_research/nordlys_system/myenv/lib/python3.6/site-packages/urllib3/util/connection.py", line 83, in create_connection
+    raise err
+  File "/Users/arashdn/Desktop/entity_research/nordlys_system/myenv/lib/python3.6/site-packages/urllib3/util/connection.py", line 73, in create_connection
+    sock.connect(sa)
+ConnectionRefusedError: [Errno 61] Connection refused
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/arashdn/Desktop/entity_research/nordlys_system/myenv/lib/python3.6/site-packages/elasticsearch/connection/http_urllib3.py", line 114, in perform_request
+    response = self.pool.urlopen(method, url, body, retries=False, headers=self.headers, **kw)
+  File "/Users/arashdn/Desktop/entity_research/nordlys_system/myenv/lib/python3.6/site-packages/urllib3/connectionpool.py", line 649, in urlopen
+    _stacktrace=sys.exc_info()[2])
+  File "/Users/arashdn/Desktop/entity_research/nordlys_system/myenv/lib/python3.6/site-packages/urllib3/util/retry.py", line 333, in increment
+    raise six.reraise(type(error), error, _stacktrace)
+  File "/Users/arashdn/Desktop/entity_research/nordlys_system/myenv/lib/python3.6/site-packages/urllib3/packages/six.py", line 686, in reraise
+    raise value
+  File "/Users/arashdn/Desktop/entity_research/nordlys_system/myenv/lib/python3.6/site-packages/urllib3/connectionpool.py", line 600, in urlopen
+    chunked=chunked)
+  File "/Users/arashdn/Desktop/entity_research/nordlys_system/myenv/lib/python3.6/site-packages/urllib3/connectionpool.py", line 356, in _make_request
+    conn.request(method, url, **httplib_request_kw)
+  File "/Library/Frameworks/Python.framework/Versions/3.6/lib/python3.6/http/client.py", line 1239, in request
+    self._send_request(method, url, body, headers, encode_chunked)
+  File "/Library/Frameworks/Python.framework/Versions/3.6/lib/python3.6/http/client.py", line 1285, in _send_request
+    self.endheaders(body, encode_chunked=encode_chunked)
+  File "/Library/Frameworks/Python.framework/Versions/3.6/lib/python3.6/http/client.py", line 1234, in endheaders
+    self._send_output(message_body, encode_chunked=encode_chunked)
+  File "/Library/Frameworks/Python.framework/Versions/3.6/lib/python3.6/http/client.py", line 1026, in _send_output
+    self.send(msg)
+  File "/Library/Frameworks/Python.framework/Versions/3.6/lib/python3.6/http/client.py", line 964, in send
+    self.connect()
+  File "/Users/arashdn/Desktop/entity_research/nordlys_system/myenv/lib/python3.6/site-packages/urllib3/connection.py", line 166, in connect
+    conn = self._new_conn()
+  File "/Users/arashdn/Desktop/entity_research/nordlys_system/myenv/lib/python3.6/site-packages/urllib3/connection.py", line 150, in _new_conn
+    self, "Failed to establish a new connection: %s" % e)
+urllib3.exceptions.NewConnectionError: <urllib3.connection.HTTPConnection object at 0x108e5a278>: Failed to establish a new connection: [Errno 61] Connection refused
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/arashdn/Desktop/entity_research/nordlys_system/myenv/lib/python3.6/site-packages/flask/app.py", line 1612, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/Users/arashdn/Desktop/entity_research/nordlys_system/myenv/lib/python3.6/site-packages/flask/app.py", line 1598, in dispatch_request
+    return self.view_functions[rule.endpoint](**req.view_args)
+  File "/Users/arashdn/Desktop/entity_research/nordlys_system/nordlys/services/api.py", line 111, in retrieval
+    res = er.retrieve(query)
+  File "/Users/arashdn/Desktop/entity_research/nordlys_system/nordlys/services/er.py", line 111, in retrieve
+    scorer = self.__get_scorer(query)
+  File "/Users/arashdn/Desktop/entity_research/nordlys_system/nordlys/services/er.py", line 106, in __get_scorer
+    scorer = Scorer.get_scorer(self.__elastic, query, self.__config)
+  File "/Users/arashdn/Desktop/entity_research/nordlys_system/nordlys/core/retrieval/scorer.py", line 53, in get_scorer
+    return ScorerLM(elastic, query, config)
+  File "/Users/arashdn/Desktop/entity_research/nordlys_system/nordlys/core/retrieval/scorer.py", line 75, in __init__
+    super(ScorerLM, self).__init__(elastic, query, params)
+  File "/Users/arashdn/Desktop/entity_research/nordlys_system/nordlys/core/retrieval/scorer.py", line 30, in __init__
+    self._query_terms = elastic.analyze_query(self._query).split()
+  File "/Users/arashdn/Desktop/entity_research/nordlys_system/nordlys/core/retrieval/elastic.py", line 117, in analyze_query
+    tokens = self.__es.indices.analyze(index=self.__index_name, body={'text': query, 'analyzer': analyzer})["tokens"]
+  File "/Users/arashdn/Desktop/entity_research/nordlys_system/myenv/lib/python3.6/site-packages/elasticsearch/client/utils.py", line 73, in _wrapped
+    return func(*args, params=params, **kwargs)
+  File "/Users/arashdn/Desktop/entity_research/nordlys_system/myenv/lib/python3.6/site-packages/elasticsearch/client/indices.py", line 32, in analyze
+    '_analyze'), params=params, body=body)
+  File "/Users/arashdn/Desktop/entity_research/nordlys_system/myenv/lib/python3.6/site-packages/elasticsearch/transport.py", line 312, in perform_request
+    status, headers, data = connection.perform_request(method, url, params, body, ignore=ignore, timeout=timeout)
+  File "/Users/arashdn/Desktop/entity_research/nordlys_system/myenv/lib/python3.6/site-packages/elasticsearch/connection/http_urllib3.py", line 123, in perform_request
+    raise ConnectionError('N/A', str(e), e)
+elasticsearch.exceptions.ConnectionError: ConnectionError(<urllib3.connection.HTTPConnection object at 0x108e5a278>: Failed to establish a new connection: [Errno 61] Connection refused) caused by: NewConnectionError(<urllib3.connection.HTTPConnection object at 0x108e5a278>: Failed to establish a new connection: [Errno 61] Connection refused)
+
+[2018-01-05 10:34:21] 127.0.0.1 GET http /er?q=In%20which%20U.S.%20state%20is%20Area%2051%20located? 200 OK
+[2018-01-05 10:34:23] 127.0.0.1 GET http /er?q=In%20which%20U.S.%20state%20is%20Area%2051%20located? 5xx INTERNAL SERVER ERROR
+Traceback (most recent call last):
+  File "/Users/arashdn/Desktop/entity_research/nordlys_system/myenv/lib/python3.6/site-packages/urllib3/connection.py", line 141, in _new_conn
+    (self.host, self.port), self.timeout, **extra_kw)
+  File "/Users/arashdn/Desktop/entity_research/nordlys_system/myenv/lib/python3.6/site-packages/urllib3/util/connection.py", line 83, in create_connection
+    raise err
+  File "/Users/arashdn/Desktop/entity_research/nordlys_system/myenv/lib/python3.6/site-packages/urllib3/util/connection.py", line 73, in create_connection
+    sock.connect(sa)
+ConnectionRefusedError: [Errno 61] Connection refused
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/arashdn/Desktop/entity_research/nordlys_system/myenv/lib/python3.6/site-packages/elasticsearch/connection/http_urllib3.py", line 114, in perform_request
+    response = self.pool.urlopen(method, url, body, retries=False, headers=self.headers, **kw)
+  File "/Users/arashdn/Desktop/entity_research/nordlys_system/myenv/lib/python3.6/site-packages/urllib3/connectionpool.py", line 649, in urlopen
+    _stacktrace=sys.exc_info()[2])
+  File "/Users/arashdn/Desktop/entity_research/nordlys_system/myenv/lib/python3.6/site-packages/urllib3/util/retry.py", line 333, in increment
+    raise six.reraise(type(error), error, _stacktrace)
+  File "/Users/arashdn/Desktop/entity_research/nordlys_system/myenv/lib/python3.6/site-packages/urllib3/packages/six.py", line 686, in reraise
+    raise value
+  File "/Users/arashdn/Desktop/entity_research/nordlys_system/myenv/lib/python3.6/site-packages/urllib3/connectionpool.py", line 600, in urlopen
+    chunked=chunked)
+  File "/Users/arashdn/Desktop/entity_research/nordlys_system/myenv/lib/python3.6/site-packages/urllib3/connectionpool.py", line 356, in _make_request
+    conn.request(method, url, **httplib_request_kw)
+  File "/Library/Frameworks/Python.framework/Versions/3.6/lib/python3.6/http/client.py", line 1239, in request
+    self._send_request(method, url, body, headers, encode_chunked)
+  File "/Library/Frameworks/Python.framework/Versions/3.6/lib/python3.6/http/client.py", line 1285, in _send_request
+    self.endheaders(body, encode_chunked=encode_chunked)
+  File "/Library/Frameworks/Python.framework/Versions/3.6/lib/python3.6/http/client.py", line 1234, in endheaders
+    self._send_output(message_body, encode_chunked=encode_chunked)
+  File "/Library/Frameworks/Python.framework/Versions/3.6/lib/python3.6/http/client.py", line 1026, in _send_output
+    self.send(msg)
+  File "/Library/Frameworks/Python.framework/Versions/3.6/lib/python3.6/http/client.py", line 964, in send
+    self.connect()
+  File "/Users/arashdn/Desktop/entity_research/nordlys_system/myenv/lib/python3.6/site-packages/urllib3/connection.py", line 166, in connect
+    conn = self._new_conn()
+  File "/Users/arashdn/Desktop/entity_research/nordlys_system/myenv/lib/python3.6/site-packages/urllib3/connection.py", line 150, in _new_conn
+    self, "Failed to establish a new connection: %s" % e)
+urllib3.exceptions.NewConnectionError: <urllib3.connection.HTTPConnection object at 0x108dfcf28>: Failed to establish a new connection: [Errno 61] Connection refused
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/arashdn/Desktop/entity_research/nordlys_system/myenv/lib/python3.6/site-packages/flask/app.py", line 1612, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/Users/arashdn/Desktop/entity_research/nordlys_system/myenv/lib/python3.6/site-packages/flask/app.py", line 1598, in dispatch_request
+    return self.view_functions[rule.endpoint](**req.view_args)
+  File "/Users/arashdn/Desktop/entity_research/nordlys_system/nordlys/services/api.py", line 111, in retrieval
+    res = er.retrieve(query)
+  File "/Users/arashdn/Desktop/entity_research/nordlys_system/nordlys/services/er.py", line 111, in retrieve
+    scorer = self.__get_scorer(query)
+  File "/Users/arashdn/Desktop/entity_research/nordlys_system/nordlys/services/er.py", line 106, in __get_scorer
+    scorer = Scorer.get_scorer(self.__elastic, query, self.__config)
+  File "/Users/arashdn/Desktop/entity_research/nordlys_system/nordlys/core/retrieval/scorer.py", line 53, in get_scorer
+    return ScorerLM(elastic, query, config)
+  File "/Users/arashdn/Desktop/entity_research/nordlys_system/nordlys/core/retrieval/scorer.py", line 75, in __init__
+    super(ScorerLM, self).__init__(elastic, query, params)
+  File "/Users/arashdn/Desktop/entity_research/nordlys_system/nordlys/core/retrieval/scorer.py", line 30, in __init__
+    self._query_terms = elastic.analyze_query(self._query).split()
+  File "/Users/arashdn/Desktop/entity_research/nordlys_system/nordlys/core/retrieval/elastic.py", line 117, in analyze_query
+    tokens = self.__es.indices.analyze(index=self.__index_name, body={'text': query, 'analyzer': analyzer})["tokens"]
+  File "/Users/arashdn/Desktop/entity_research/nordlys_system/myenv/lib/python3.6/site-packages/elasticsearch/client/utils.py", line 73, in _wrapped
+    return func(*args, params=params, **kwargs)
+  File "/Users/arashdn/Desktop/entity_research/nordlys_system/myenv/lib/python3.6/site-packages/elasticsearch/client/indices.py", line 32, in analyze
+    '_analyze'), params=params, body=body)
+  File "/Users/arashdn/Desktop/entity_research/nordlys_system/myenv/lib/python3.6/site-packages/elasticsearch/transport.py", line 312, in perform_request
+    status, headers, data = connection.perform_request(method, url, params, body, ignore=ignore, timeout=timeout)
+  File "/Users/arashdn/Desktop/entity_research/nordlys_system/myenv/lib/python3.6/site-packages/elasticsearch/connection/http_urllib3.py", line 123, in perform_request
+    raise ConnectionError('N/A', str(e), e)
+elasticsearch.exceptions.ConnectionError: ConnectionError(<urllib3.connection.HTTPConnection object at 0x108dfcf28>: Failed to establish a new connection: [Errno 61] Connection refused) caused by: NewConnectionError(<urllib3.connection.HTTPConnection object at 0x108dfcf28>: Failed to establish a new connection: [Errno 61] Connection refused)
+
+[2018-01-05 10:34:23] 127.0.0.1 GET http /er?q=In%20which%20U.S.%20state%20is%20Area%2051%20located? 200 OK
+[2018-01-05 10:36:54] 127.0.0.1 GET http /favicon.ico? 404 NOT FOUND
+[2018-01-05 10:37:03] 127.0.0.1 GET http /er?q=In%20which%20U.S.%20state%20is%20Area%2051%20located? 200 OK
+[2018-01-05 10:37:26] 127.0.0.1 GET http /el?q=In%20which%20U.S.%20state%20is%20Area%2051%20located? 5xx INTERNAL SERVER ERROR
+Traceback (most recent call last):
+  File "/Users/arashdn/Desktop/entity_research/nordlys_system/myenv/lib/python3.6/site-packages/flask/app.py", line 1612, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/Users/arashdn/Desktop/entity_research/nordlys_system/myenv/lib/python3.6/site-packages/flask/app.py", line 1598, in dispatch_request
+    return self.view_functions[rule.endpoint](**req.view_args)
+  File "/Users/arashdn/Desktop/entity_research/nordlys_system/nordlys/services/api.py", line 125, in entity_linking
+    el = EL(config, __entity, __elastic, __fcache)
+  File "/Users/arashdn/Desktop/entity_research/nordlys_system/nordlys/services/el.py", line 90, in __init__
+    load_kb_snapshot(self.__config["kb_snapshot"])
+  File "/Users/arashdn/Desktop/entity_research/nordlys_system/nordlys/logic/el/el_utils.py", line 18, in load_kb_snapshot
+    with open(kb_file, "r") as f:
+FileNotFoundError: [Errno 2] No such file or directory: '/Users/arashdn/Desktop/nordlys_system/data/el/snapshot_2015_10.txt'
+
+[2018-01-05 10:43:27] 127.0.0.1 GET http /el?q=In%20which%20U.S.%20state%20is%20Area%2051%20located? 5xx INTERNAL SERVER ERROR
+Traceback (most recent call last):
+  File "/Users/arashdn/Desktop/entity_research/nordlys_system/myenv/lib/python3.6/site-packages/flask/app.py", line 1612, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/Users/arashdn/Desktop/entity_research/nordlys_system/myenv/lib/python3.6/site-packages/flask/app.py", line 1598, in dispatch_request
+    return self.view_functions[rule.endpoint](**req.view_args)
+  File "/Users/arashdn/Desktop/entity_research/nordlys_system/nordlys/services/api.py", line 125, in entity_linking
+    el = EL(config, __entity, __elastic, __fcache)
+  File "/Users/arashdn/Desktop/entity_research/nordlys_system/nordlys/services/el.py", line 90, in __init__
+    self.__model = None
+  File "/Users/arashdn/Desktop/entity_research/nordlys_system/nordlys/logic/el/el_utils.py", line 18, in load_kb_snapshot
+    with open(kb_file, "r") as f:
+FileNotFoundError: [Errno 2] No such file or directory: '/Users/arashdn/Desktop/nordlys_system/data/el/snapshot_2015_10.txt'
+
+[2018-01-05 10:43:55] 127.0.0.1 GET http /el?q=In%20which%20U.S.%20state%20is%20Area%2051%20located? 200 OK
+[2018-01-05 10:44:09] 127.0.0.1 GET http /er?q=In%20which%20U.S.%20state%20is%20Area%2051%20located? 200 OK
+[2018-01-05 10:44:22] 127.0.0.1 GET http /el?q=In%20which%20U.S.%20state%20is%20Area%2051%20located? 200 OK
+[2018-01-05 12:40:07] 127.0.0.1 GET http /el?q=In%20which%20U.S.%20state%20is%20Area%2051%20located? 200 OK
+[2018-01-06 14:50:17] 192.168.52.33 GET http /? 200 OK
+[2018-01-06 14:50:40] 192.168.52.33 GET http /language/Swedish${IFS}&&ping$IFS-c1$IFS-s41${IFS}192.168.52.33>/dev/null&&tar${IFS}/string.js? 404 NOT FOUND
+[2018-01-06 14:50:40] 192.168.52.33 GET http /language/Swedish${IFS}&&echo${IFS}AVAST-HNS-SCAN-PROBE>test&&tar${IFS}/string.js? 404 NOT FOUND
+[2018-01-06 14:50:41] 192.168.52.33 GET http /system.ini?loginuse&loginpas 404 NOT FOUND

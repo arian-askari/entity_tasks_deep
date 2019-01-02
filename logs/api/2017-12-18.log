@@ -1,0 +1,25 @@
+[2017-12-18 11:14:24] 127.0.0.1 GET http /el?q=sea 200 OK
+[2017-12-18 11:14:29] 127.0.0.1 GET http /er?q=sea 5xx INTERNAL SERVER ERROR
+Traceback (most recent call last):
+  File "/Library/Frameworks/Python.framework/Versions/3.6/lib/python3.6/site-packages/flask/app.py", line 1612, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/Library/Frameworks/Python.framework/Versions/3.6/lib/python3.6/site-packages/flask/app.py", line 1598, in dispatch_request
+    return self.view_functions[rule.endpoint](**req.view_args)
+  File "/Users/arashdn/Desktop/nordlys_system/nordlys/services/api.py", line 109, in retrieval
+    res = er.retrieve(query)
+  File "/Users/arashdn/Desktop/nordlys_system/nordlys/services/er.py", line 111, in retrieve
+    scorer = self.__get_scorer(query)
+  File "/Users/arashdn/Desktop/nordlys_system/nordlys/services/er.py", line 106, in __get_scorer
+    scorer = Scorer.get_scorer(self.__elastic, query, self.__config)
+  File "/Users/arashdn/Desktop/nordlys_system/nordlys/core/retrieval/scorer.py", line 53, in get_scorer
+    return ScorerLM(elastic, query, config)
+  File "/Users/arashdn/Desktop/nordlys_system/nordlys/core/retrieval/scorer.py", line 75, in __init__
+    super(ScorerLM, self).__init__(elastic, query, params)
+  File "/Users/arashdn/Desktop/nordlys_system/nordlys/core/retrieval/scorer.py", line 30, in __init__
+    self._query_terms = elastic.analyze_query(self._query).split()
+  File "/Users/arashdn/Desktop/nordlys_system/nordlys/core/retrieval/elastic.py", line 116, in analyze_query
+    tokens = self.__es.indices.analyze(index=self.__index_name, body=query, analyzer=analyzer)["tokens"]
+  File "/Library/Frameworks/Python.framework/Versions/3.6/lib/python3.6/site-packages/elasticsearch/client/utils.py", line 76, in _wrapped
+    return func(*args, params=params, **kwargs)
+TypeError: analyze() got an unexpected keyword argument 'analyzer'
+
