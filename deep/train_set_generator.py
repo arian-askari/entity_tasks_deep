@@ -1,4 +1,4 @@
-import os, subprocess, json, ast, sys, re, random, csv
+import os, subprocess, json, ast, sys, re, random, csv, json
 import seaborn as sns
 import numpy as np
 np.set_printoptions(threshold=np.inf)
@@ -24,12 +24,16 @@ qrel_types_path = os.path.join(dirname, '../data/types/qrels-tti-dbpedia.txt')
 train_set_row_path = os.path.join(dirname, '../data/types/train_set_row.csv')
 train_set_feature_path = os.path.join(dirname, '../data/types/train_set_feature.csv')
 
+##################################################################################################
 types_unique_raw_path = os.path.join(dirname, '../data/types/types_unique_raw.csv')
 queries_unique_raw_path = os.path.join(dirname, '../data/types/quries_unique_row.csv')
 
 
 types_unique_feature_path = os.path.join(dirname, '../data/types/types_unique_feature.csv')
 queries_unique_feature_path = os.path.join(dirname, '../data/types/quries_unique_feature.csv')
+
+trainset_average_w2v_path = os.path.join(dirname, '../data/types/trainset_average_w2v.txt')
+##################################################################################################
 
 try:
     zzzzz = 0
@@ -40,12 +44,20 @@ except:
 
 word2vec_train_set_path = os.path.join(dirname, '../data/GoogleNews-vectors-negative300.bin')
 # word_vectors = KeyedVectors.load_word2vec_format(word2vec_train_set_path, binary=True, limit=100000) 4
-print("w2v loading...")
-word_vectors = KeyedVectors.load_word2vec_format(word2vec_train_set_path, binary=True)
-print("w2v loaded...")
+
+word_vectors = None
+
 # word_vectors = []
 
+def loadWord2Vec():
+    global word_vectors
+    if word_vectors is None:
+        print("w2v loading...")
+        word_vectors = KeyedVectors.load_word2vec_format(word2vec_train_set_path, binary=True)
+        print("w2v loaded...")
+
 def getVector(word):
+    loadWord2Vec()
     if word in word_vectors:
         vector = word_vectors[word]
         return vector
@@ -239,9 +251,106 @@ def types_avgw2v_generator():
      ounam chandin bar kheyli tul mikeshe!
     '''
 
+
+
+def get_types_feature_dict():
+    types_feature = dict()
+    '''
+    { type_name: t_avg_w2v)}
+    queries_feature['q_id'][1]//get avg w2v of q_id !
+    '''
+    with open(types_unique_feature_path) as tsv:
+        for line in csv.reader(tsv, dialect="excel-tab"):  # can also
+            q_type = str(line[0])
+
+            q_type_avg_w2v = str(line[1])
+            q_type_avg_w2v = ast.literal_eval(q_type_avg_w2v)
+
+            types_feature[q_type] = q_type_avg_w2v
+
+    return types_feature
+
+# queries_unique_feature_path = os.path.join(dirname, '../data/types/quries_unique_feature.csv')
+def get_queries_feature_dict():
+    queries_feature = dict()
+    '''
+    { q_id: (q_body,q_avg_w2v)}
+    queries_feature['q_id'][1]//get avg w2v of q_id !
+    '''
+    with open(queries_unique_feature_path) as tsv:
+        for line in csv.reader(tsv, dialect="excel-tab"):  # can also
+            q_id = str(line[0])
+            q_body = str(line[1])
+
+            q_body_avg_w2v = str(line[2])
+            q_body_avg_w2v = ast.literal_eval(q_body_avg_w2v)
+            queries_feature[q_id] = (q_body,q_body_avg_w2v)
+
+
+    return queries_feature
+
+
+def get_raw_trainset_dict():
+    raw_trainset_dict = dict()
+    '''
+        {q_id: (q_body, q_type, q_type_rel_class)}
+        raw_trainset_dict['q_id'][0]//get q_body of q_id !
+        raw_trainset_dict['q_id'][2]//get q_type_rel_class of q_id !
+    '''
+    with open(train_set_row_path) as tsv:
+        for line in csv.reader(tsv, dialect="excel-tab"):  # can also
+            q_id = str(line[0])
+            q_body = str(line[1])
+            q_type = str(line[2])
+            q_type_rel_class = str(line[3])
+
+            if q_id not in raw_trainset_dict:
+                raw_trainset_dict[q_id] = [(q_body, q_type, q_type_rel_class)]
+            else:
+                raw_trainset_dict[q_id].append((q_body, q_type, q_type_rel_class))
+
+
+    return raw_trainset_dict
+
+def save_trainset_average_w2v():
+    types_feature_dict = get_types_feature_dict()
+    queries_feazture_dict = get_queries_feature_dict()
+    raw_trainset_dict =get_raw_trainset_dict()
+
+    train_set_average_dict = dict()
+    '''
+        {q_id: [(merged_avg_feature, rel_class)]}
+    '''
+    for train_set_key, train_set_value_list  in raw_trainset_dict.items():
+        for train_set_value in train_set_value_list:
+            q_id = train_set_key
+            q_body = train_set_value[0]
+            q_type = train_set_value[1]
+            q_type_rel_class = train_set_value[2]
+
+            q_body_w2v_avg_feature = queries_feazture_dict[q_id][1]
+            q_type_w2v_avg_feature = types_feature_dict[q_type]
+
+            merged_features = q_body_w2v_avg_feature + q_type_w2v_avg_feature
+
+            if  q_id not in train_set_average_dict:
+                train_set_average_dict[q_id] = [(merged_features, q_type_rel_class)]
+            else:
+                train_set_average_dict[q_id].append((merged_features, q_type_rel_class))
+                break
+        break
+    json.dump(train_set_average_dict, fp=open(trainset_average_w2v_path, 'w'))
+    # json.dump(train_set_average_dict, fp=open(trainset_average_w2v_path, 'w'), indent=4, sort_keys=True)
+
+def get_trainset_average_w2v():
+    train_set_average_dict = json.load(open(trainset_average_w2v_path))
+    return train_set_average_dict
+
+
 # w2v_train_set_generator()
 # types_avg_w2v_generator()
-quries_avg_w2v_generator()
+# quries_avg_w2v_generator()
+save_trainset_average_w2v()
 
 # print("eiffel")
 # wrd1 = getVector("eiffel")

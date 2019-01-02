@@ -1,5 +1,6 @@
 import os, subprocess, json, ast, sys, re, random
 
+import csv
 import seaborn as sns
 import numpy as np
 
@@ -14,6 +15,9 @@ from gensim.models import Word2Vec
 from sklearn.decomposition import PCA
 from matplotlib import pyplot
 from gensim.models.keyedvectors import KeyedVectors
+
+import deep.train_set_generator as tsg
+
 
 from elasticsearch import Elasticsearch
 
@@ -33,63 +37,9 @@ word2vec_train_set_path = '/home/arian/workSpaces/entityArticle/entity-attr-reso
 # word_vectors = KeyedVectors.load_word2vec_format(word2vec_train_set_path, binary=True)
 word_vectors = []
 
-import csv
-with open(qrel_types_path) as tsv:
-    for line in csv.reader(tsv, dialect="excel-tab"): # can also use delimiter="\t" rather than giving a dialect.
-        query_id = line[0]
-        query_target_type = line[1]
-        rel_level = line[2]
-        # print(line)
-        if query_id not in qrels_types_dict:
-            qrels_types_dict[query_id] = [(query_target_type, rel_level)]
-        elif query_id in qrels_types_dict:
-            qrels_types_dict[query_id].append((query_target_type, rel_level))
-
 def substrac_dicts(dict1, dict2):
     return dict(set(dict1.items()) - set((dict(dict2)).items()))
 
-def getTokens(text, index):
-    query_tokenied_list = es.indices.analyze(index=index, params={"text": text, "analyzer": ANALYZER_STOP})
-    tokens = []
-    for t in sorted(query_tokenied_list["tokens"], key=lambda x: x["position"]):
-        tokens.append(t["token"])
-    return tokens
-
-def getVector(word):
-    if word in word_vectors:
-        vector = word_vectors[word]
-        return vector
-    else:
-        print(word+ "\t not in w2v google news vocab !")
-        return [];
-
-def get_average_w2v(sentence):#bayad vorodish token bashe ! chon khdoe tolid token vase queries behtare split by space bashe
-    #ama vase text e type shayad behtar bashe az rooye index kolan term vector begiram token haro masalan!
-
-    #bayaad ba elastic inja ba term joda konam !
-    #getTokens(text, index)
-    #ama felan ba space split mikonam ke codo test konam o sade tar bashe !
-
-    tokens = sentence.split(' ')
-    first_token = tokens[0]
-    # print('first_token ', first_token)
-    np_array = None
-    vector = getVector(first_token)
-    
-    if len(vector)>0:
-        np_array = np.array([np.array(vector)])
-
-    for token in tokens[1:]:
-        print('token ', token)
-        vector = getVector(token)
-        if len(vector)>0:
-            tmp_array = np.array(vector)
-            np_array = np.concatenate((np_array, [tmp_array]))
-    
-    # print(np_array)
-    # print('\n\n-----\n\n')
-    vector_mn = np_array.mean(axis=1)     # to take the mean of each row, 300D vec
-    return vector_mn
 
 def model_type_retrieval_v1(train_X, train_Y, test_X, test_Y):
     avg_q_ = [] #baes bani error e dar nahayat!
@@ -144,6 +94,31 @@ def model_type_retrieval_v1(train_X, train_Y, test_X, test_Y):
     print("loss = {:.2f}".format(loss))
 
 
+
+
+
+'''
+    {q_id: (q_body, q_type, q_type_rel_class)}
+    raw_trainset_dict['q_id'][0]//get q_body of q_id !
+    raw_trainset_dict['q_id'][2]//get q_type_rel_class of q_id !
+
+# def model_type_retrieval_v1(train_X, train_Y, test_X, test_Y):
+#
+# train_X = ['q1_type1(600d)','q1_type3(600d)','....','qN_type4(600d)']
+# train_Y = [1, 1, '...', 0]
+#
+# model_type_retrieva_v1.fit(train_X, train_Y, epochs=100, batch_size=1)
+#
+# test_X = ['q1_type1(600d)','q1_type3(600d)','....','qN_type4(600d)']
+# test_Y = [1, 1, '...', 0]
+'''
+
+
+
+
+trainset_average_w2v = tsg.get_trainset_average_w2v()
+
+i = 0
 
 
 '''
