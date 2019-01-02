@@ -1,5 +1,5 @@
 import os, subprocess, json, ast, sys, re, random
-
+import pandas as pd
 import csv
 import seaborn as sns
 import numpy as np
@@ -75,7 +75,8 @@ def model_type_retrieval_v1(train_X, train_Y, test_X, test_Y):
 
 
     # model_type_retrieva_v1.compile(optimizer='rmsprop', loss='mean_squared_error', metrics=["accuracy", keras_metrics.precision(), keras_metrics.recall()])
-    model_type_retrieva_v1.compile(optimizer='rmsprop', loss='categorical_crossentropy', metrics=["accuracy", keras_metrics.precision(), keras_metrics.recall()])
+    # model_type_retrieva_v1.compile(optimizer='rmsprop', loss='categorical_crossentropy', metrics=["accuracy", keras_metrics.precision(), keras_metrics.recall()])
+    model_type_retrieva_v1.compile(optimizer='rmsprop', loss='categorical_crossentropy', metrics=["accuracy"])
 
     # train_X = ['q1_type1(600d)','q1_type3(600d)','....','qN_type4(600d)']
     # train_Y = [1, 1, '...', 0]
@@ -152,14 +153,21 @@ with open(queries_path, 'r') as ff:
                 train_X.append(train_set[0])
                 train_Y.append(train_set[1])
 
+        train_Y = pd.get_dummies(train_Y)
+        train_Y = train_Y.values.tolist()
+
+
         train_X = np.array(train_X)
         train_Y = np.array(train_Y)
 
-        for query_ids_test in queries_for_test_set.keys():
-            q_id_test_set = trainset_average_w2v[query_ids_test]
+        for query_ids_test in queries_for_test_set:
+            q_id_test_set = trainset_average_w2v[query_ids_test[0]]
             for test_set in q_id_test_set:
                 test_X.append(test_set[0])
                 test_Y.append(test_set[1])
+
+        test_Y = pd.get_dummies(test_Y)
+        test_Y = test_Y.values.tolist()
 
         test_X = np.array(test_X)
         test_Y = np.array(test_Y)
