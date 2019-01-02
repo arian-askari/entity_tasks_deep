@@ -337,8 +337,6 @@ def save_trainset_average_w2v():
                 train_set_average_dict[q_id] = [(merged_features, q_type_rel_class)]
             else:
                 train_set_average_dict[q_id].append((merged_features, q_type_rel_class))
-                break
-        break
     json.dump(train_set_average_dict, fp=open(trainset_average_w2v_path, 'w'))
     # json.dump(train_set_average_dict, fp=open(trainset_average_w2v_path, 'w'), indent=4, sort_keys=True)
 
@@ -350,7 +348,7 @@ def get_trainset_average_w2v():
 # w2v_train_set_generator()
 # types_avg_w2v_generator()
 # quries_avg_w2v_generator()
-save_trainset_average_w2v()
+# save_trainset_average_w2v()
 
 # print("eiffel")
 # wrd1 = getVector("eiffel")
