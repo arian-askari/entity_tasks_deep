@@ -45,7 +45,7 @@ def model_type_retrieval_v1(train_X, train_Y, test_X, test_Y):
     avg_q_ = [] #baes bani error e dar nahayat!
 
     model_type_retrieva_v1 = Sequential()
-    model_type_retrieva_v1.add(Dense(20, input_shape=(avg_q_,)))
+    model_type_retrieva_v1.add(Dense(20, input_shape=(600,)))
 
     model_type_retrieva_v1.add(Dense(37))
     model_type_retrieva_v1.add(Activation('relu'))
@@ -77,13 +77,13 @@ def model_type_retrieval_v1(train_X, train_Y, test_X, test_Y):
     # model_type_retrieva_v1.compile(optimizer='rmsprop', loss='mean_squared_error', metrics=["accuracy", keras_metrics.precision(), keras_metrics.recall()])
     model_type_retrieva_v1.compile(optimizer='rmsprop', loss='categorical_crossentropy', metrics=["accuracy", keras_metrics.precision(), keras_metrics.recall()])
 
-    train_X = ['q1_type1(600d)','q1_type3(600d)','....','qN_type4(600d)']
-    train_Y = [1, 1, '...', 0]
+    # train_X = ['q1_type1(600d)','q1_type3(600d)','....','qN_type4(600d)']
+    # train_Y = [1, 1, '...', 0]
 
     model_type_retrieva_v1.fit(train_X, train_Y, epochs=100, batch_size=1)
 
-    test_X = ['q1_type1(600d)','q1_type3(600d)','....','qN_type4(600d)']
-    test_Y = [1, 1, '...', 0]
+    # test_X = ['q1_type1(600d)','q1_type3(600d)','....','qN_type4(600d)']
+    # test_Y = [1, 1, '...', 0]
 
     print(model_type_retrieva_v1.evaluate(test_X, test_Y, verbose=0))
 
@@ -112,38 +112,58 @@ def model_type_retrieval_v1(train_X, train_Y, test_X, test_Y):
 # test_X = ['q1_type1(600d)','q1_type3(600d)','....','qN_type4(600d)']
 # test_Y = [1, 1, '...', 0]
 '''
-
-
-
-
 trainset_average_w2v = tsg.get_trainset_average_w2v()
-
 i = 0
+with open(queries_path, 'r') as ff:
+    # print(q)
+    # avg_q_ = get_average_w2v(q)
+    # print(avg_q_)
 
+    queries_json = json.load(ff)
 
-'''
-# Training Phase, AND, #Test Phase !
-'''
-# with open(queries_path, 'r') as ff:
-#     # print(q)
-#     # avg_q_ = get_average_w2v(q)
-#     # print(avg_q_)
-#
-#     queries_json = json.load(ff)
-#
-#     queries_dict = dict(queries_json)
-#
-#     queries_for_select_test_set = dict(queries_dict)
-#     k_fold = 5
-#     for i in range(k_fold):
-#         fold_size = int(len(queries_dict)/k_fold)  #168/6=28
-#
-#         queries_for_test_set = None
-#         if (i + 1) == k_fold:
-#             queries_for_test_set = list(queries_for_select_test_set.items())
-#         else:
-#             queries_for_test_set = random.sample(list(queries_for_select_test_set.items()), fold_size)
-#
-#         queries_for_select_test_set = substrac_dicts(queries_for_select_test_set, queries_for_test_set)
-#
-#         queries_for_train = substrac_dicts(queries_dict, queries_for_test_set)
+    queries_dict = dict(queries_json)
+
+    queries_for_select_test_set = dict(queries_dict)
+    k_fold = 5
+    for i in range(k_fold):
+        train_X = []
+        train_Y = []
+        test_X = []
+        test_Y = []
+
+        fold_size = int(len(queries_dict)/k_fold)  #168/6=28
+
+        queries_for_test_set = None
+        if (i + 1) == k_fold:
+            queries_for_test_set = list(queries_for_select_test_set.items())
+        else:
+            queries_for_test_set = random.sample(list(queries_for_select_test_set.items()), fold_size)
+
+        queries_for_select_test_set = substrac_dicts(queries_for_select_test_set, queries_for_test_set)
+
+        queries_for_train = substrac_dicts(queries_dict, queries_for_test_set)
+
+        # train_set_average_dict[q_id] = [(merged_features, q_type_rel_class)]
+
+        for query_ids_train in queries_for_train.keys():
+            q_id_train_set = trainset_average_w2v[query_ids_train]
+
+            for train_set in q_id_train_set:
+                train_X.append(train_set[0])
+                train_Y.append(train_set[1])
+
+        train_X = np.array(train_X)
+        train_Y = np.array(train_Y)
+
+        for query_ids_test in queries_for_test_set.keys():
+            q_id_test_set = trainset_average_w2v[query_ids_test]
+            for test_set in q_id_test_set:
+                test_X.append(test_set[0])
+                test_Y.append(test_set[1])
+
+        test_X = np.array(test_X)
+        test_Y = np.array(test_Y)
+
+        print("fold number- ",i)
+        model_type_retrieval_v1(train_X, train_Y, test_X, test_Y)
+        print("\n------------------------------------------------\n\n\n")
