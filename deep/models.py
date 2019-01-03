@@ -81,21 +81,30 @@ def model_type_retrieval_v1(train_X, train_Y, test_X, test_Y):
     # train_X = ['q1_type1(600d)','q1_type3(600d)','....','qN_type4(600d)']
     # train_Y = [1, 1, '...', 0]
 
-    model_type_retrieva_v1.fit(train_X, train_Y, epochs=100, batch_size=1)
+    # model_type_retrieva_v1.fit(train_X, train_Y, epochs=20, batch_size=1)
+    model_type_retrieva_v1.fit(train_X, train_Y, epochs=100, batch_size=1, verbose = 2)
 
     # test_X = ['q1_type1(600d)','q1_type3(600d)','....','qN_type4(600d)']
     # test_Y = [1, 1, '...', 0]
 
-    print(model_type_retrieva_v1.evaluate(test_X, test_Y, verbose=0))
+    # print(model_type_retrieva_v1.evaluate(test_X, test_Y, verbose=0))
+    print(model_type_retrieva_v1.evaluate(test_X, test_Y, verbose=2))
 
-    loss, accuracy, precision, recall = model_type_retrieva_v1.evaluate(test_X, test_Y, verbose=0)
+    # loss, accuracy, precision, recall = model_type_retrieva_v1.evaluate(test_X, test_Y, verbose=0)
+    loss, accuracy = model_type_retrieva_v1.evaluate(test_X, test_Y, verbose=2)
+    predict_classes = model_type_retrieva_v1.predict_classes(test_X)
     print("Accuracy = {:.2f}".format(accuracy))
-    print("precision = {:.2f}".format(accuracy))
-    print("recall = {:.2f}".format(accuracy))
     print("loss = {:.2f}".format(loss))
+    print(predict_classes)
+
+    true_preditc_list = [np.where(r == 1)[0][0] for r in test_Y]
+
+    for true_predict, predicted in zip(true_preditc_list, predict_classes):
+        print("true predict is : ", true_predict,"\t predit by model: ", predicted,"\n")
 
 
-
+    # print("precision = {:.2f}".format(precision))
+    # print("recall = {:.2f}".format(accuracy))
 
 
 '''
@@ -147,11 +156,16 @@ with open(queries_path, 'r') as ff:
         # train_set_average_dict[q_id] = [(merged_features, q_type_rel_class)]
 
         for query_ids_train in queries_for_train.keys():
+            label_zero_count = 0
             q_id_train_set = trainset_average_w2v[query_ids_train]
 
             for train_set in q_id_train_set:
-                train_X.append(train_set[0])
-                train_Y.append(train_set[1])
+                if train_set[1]=="0":
+                    label_zero_count += 1
+
+                if (label_zero_count<=1):
+                    train_X.append(train_set[0])
+                    train_Y.append(train_set[1])
 
         train_Y = pd.get_dummies(train_Y)
         train_Y = train_Y.values.tolist()
@@ -161,10 +175,15 @@ with open(queries_path, 'r') as ff:
         train_Y = np.array(train_Y)
 
         for query_ids_test in queries_for_test_set:
+            label_zero_count = 0
             q_id_test_set = trainset_average_w2v[query_ids_test[0]]
             for test_set in q_id_test_set:
-                test_X.append(test_set[0])
-                test_Y.append(test_set[1])
+                if test_set[1]=="0":
+                    label_zero_count += 1
+
+                if (label_zero_count<=1):
+                    test_X.append(test_set[0])
+                    test_Y.append(test_set[1])
 
         test_Y = pd.get_dummies(test_Y)
         test_Y = test_Y.values.tolist()
@@ -175,3 +194,4 @@ with open(queries_path, 'r') as ff:
         print("fold number- ",i)
         model_type_retrieval_v1(train_X, train_Y, test_X, test_Y)
         print("\n------------------------------------------------\n\n\n")
+        # sys.exit(1)
