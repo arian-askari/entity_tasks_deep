@@ -10,7 +10,7 @@ from keras.optimizers import Adagrad
 from keras.utils import np_utils
 from keras.layers import *
 from keras.models import *
-
+from keras import optimizers
 from gensim.models import Word2Vec
 from sklearn.decomposition import PCA
 from matplotlib import pyplot
@@ -39,6 +39,48 @@ word_vectors = []
 
 def substrac_dicts(dict1, dict2):
     return dict(set(dict1.items()) - set((dict(dict2)).items()))
+
+
+
+
+def model_type_retrieval_v2(train_X, train_Y, test_X, test_Y):
+    model_type_retrieva_v1 = Sequential()
+    model_type_retrieva_v1.add(Dense(1000, input_shape=(600,)))
+
+    model_type_retrieva_v1.add(Dense(800))
+    model_type_retrieva_v1.add(Activation('relu'))
+
+    model_type_retrieva_v1.add(Dense(600))
+    model_type_retrieva_v1.add(Activation('relu'))
+
+    model_type_retrieva_v1.add(Dense(400))
+    model_type_retrieva_v1.add(Activation('relu'))
+
+    model_type_retrieva_v1.add(Dense(200))
+    model_type_retrieva_v1.add(Activation('relu'))
+
+    model_type_retrieva_v1.add(Dense(100))
+    model_type_retrieva_v1.add(Activation('relu'))
+
+    model_type_retrieva_v1.add(Dense(8))  # classes: 0-7
+    model_type_retrieva_v1.add(Activation('softmax'))
+
+
+    sgd = optimizers.RMSprop(lr=0.0001, rho=0.9, epsilon=None, decay=0.0)
+    model_type_retrieva_v1.compile(optimizer=sgd, loss='categorical_crossentropy', metrics=["accuracy"])
+
+    model_type_retrieva_v1.fit(train_X, train_Y, epochs=200, batch_size=1, verbose = 2)
+
+    print(model_type_retrieva_v1.evaluate(test_X, test_Y, verbose=2))
+
+    loss, accuracy = model_type_retrieva_v1.evaluate(test_X, test_Y, verbose=2)
+    predict_classes = model_type_retrieva_v1.predict_classes(test_X)
+    print("Accuracy = {:.2f}".format(accuracy))
+    print("loss = {:.2f}".format(loss))
+    print(predict_classes)
+    true_preditc_list = [np.where(r == 1)[0][0] for r in test_Y]
+    for true_predict, predicted in zip(true_preditc_list, predict_classes):
+       print("true predict is : ", true_predict,"\t predit by model: ", predicted,"\n")
 
 
 def model_type_retrieval_v1(train_X, train_Y, test_X, test_Y):
@@ -82,16 +124,16 @@ def model_type_retrieval_v1(train_X, train_Y, test_X, test_Y):
     # train_Y = [1, 1, '...', 0]
 
     # model_type_retrieva_v1.fit(train_X, train_Y, epochs=20, batch_size=1)
-    model_type_retrieva_v1.fit(train_X, train_Y, epochs=100, batch_size=1, verbose = 2)
+    model_type_retrieva_v1.fit(train_X, train_Y, epochs=100, batch_size=1, verbose = 0)
 
     # test_X = ['q1_type1(600d)','q1_type3(600d)','....','qN_type4(600d)']
     # test_Y = [1, 1, '...', 0]
 
     # print(model_type_retrieva_v1.evaluate(test_X, test_Y, verbose=0))
-    print(model_type_retrieva_v1.evaluate(test_X, test_Y, verbose=2))
+    print(model_type_retrieva_v1.evaluate(test_X, test_Y, verbose=0))
 
     # loss, accuracy, precision, recall = model_type_retrieva_v1.evaluate(test_X, test_Y, verbose=0)
-    loss, accuracy = model_type_retrieva_v1.evaluate(test_X, test_Y, verbose=2)
+    loss, accuracy = model_type_retrieva_v1.evaluate(test_X, test_Y, verbose=0)
     predict_classes = model_type_retrieva_v1.predict_classes(test_X)
     print("Accuracy = {:.2f}".format(accuracy))
     print("loss = {:.2f}".format(loss))
@@ -99,8 +141,8 @@ def model_type_retrieval_v1(train_X, train_Y, test_X, test_Y):
 
     true_preditc_list = [np.where(r == 1)[0][0] for r in test_Y]
 
-    for true_predict, predicted in zip(true_preditc_list, predict_classes):
-        print("true predict is : ", true_predict,"\t predit by model: ", predicted,"\n")
+    #for true_predict, predicted in zip(true_preditc_list, predict_classes):
+    #    print("true predict is : ", true_predict,"\t predit by model: ", predicted,"\n")
 
 
     # print("precision = {:.2f}".format(precision))
@@ -181,9 +223,9 @@ with open(queries_path, 'r') as ff:
                 if test_set[1]=="0":
                     label_zero_count += 1
 
-                if (label_zero_count<=1):
-                    test_X.append(test_set[0])
-                    test_Y.append(test_set[1])
+                #if (label_zero_count<=1):
+                test_X.append(test_set[0])
+                test_Y.append(test_set[1])
 
         test_Y = pd.get_dummies(test_Y)
         test_Y = test_Y.values.tolist()
@@ -192,6 +234,9 @@ with open(queries_path, 'r') as ff:
         test_Y = np.array(test_Y)
 
         print("fold number- ",i)
-        model_type_retrieval_v1(train_X, train_Y, test_X, test_Y)
+        # print("model-v1")
+        # model_type_retrieval_v1(train_X, train_Y, test_X, test_Y)
+        print("model-v2")
+        model_type_retrieval_v2(train_X, train_Y, test_X, test_Y)
         print("\n------------------------------------------------\n\n\n")
-        # sys.exit(1)
+        sys.exit(1)
