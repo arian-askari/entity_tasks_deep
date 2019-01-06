@@ -37,6 +37,8 @@ word2vec_train_set_path = '/home/arian/workSpaces/entityArticle/entity-attr-reso
 # word_vectors = KeyedVectors.load_word2vec_format(word2vec_train_set_path, binary=True)
 word_vectors = []
 
+models_path = os.path.join(dirname, '../data/runs/model_v')
+
 def substrac_dicts(dict1, dict2):
     return dict(set(dict1.items()) - set((dict(dict2)).items()))
 
@@ -71,16 +73,19 @@ def model_type_retrieval_v2(train_X, train_Y, test_X, test_Y):
 
     model_type_retrieva_v1.fit(train_X, train_Y, epochs=200, batch_size=1, verbose = 2)
 
-    print(model_type_retrieva_v1.evaluate(test_X, test_Y, verbose=2))
-
-    loss, accuracy = model_type_retrieva_v1.evaluate(test_X, test_Y, verbose=2)
     predict_classes = model_type_retrieva_v1.predict_classes(test_X)
-    print("Accuracy = {:.2f}".format(accuracy))
-    print("loss = {:.2f}".format(loss))
-    print(predict_classes)
-    true_preditc_list = [np.where(r == 1)[0][0] for r in test_Y]
-    for true_predict, predicted in zip(true_preditc_list, predict_classes):
-       print("true predict is : ", true_predict,"\t predit by model: ", predicted,"\n")
+    predicted_prob = model_type_retrieva_v1.predict_probatest_X()
+
+    # print(model_type_retrieva_v1.evaluate(test_X, test_Y, verbose=2))
+    # loss, accuracy = model_type_retrieva_v1.evaluate(test_X, test_Y, verbose=2)
+    # print("Accuracy = {:.2f}".format(accuracy))
+    # print("loss = {:.2f}".format(loss))
+    # print(predict_classes)
+    # true_preditc_list = [np.where(r == 1)[0][0] for r in test_Y]
+    # for true_predict, predicted in zip(true_preditc_list, predict_classes):
+    #    print("true predict is : ", true_predict,"\t predit by model: ", predicted,"\n")
+
+    return (predict_classes, predicted_prob)
 
 
 def model_type_retrieval_v1(train_X, train_Y, test_X, test_Y):
@@ -130,23 +135,53 @@ def model_type_retrieval_v1(train_X, train_Y, test_X, test_Y):
     # test_Y = [1, 1, '...', 0]
 
     # print(model_type_retrieva_v1.evaluate(test_X, test_Y, verbose=0))
-    print(model_type_retrieva_v1.evaluate(test_X, test_Y, verbose=0))
+    # print(model_type_retrieva_v1.evaluate(test_X, test_Y, verbose=0))
 
-    # loss, accuracy, precision, recall = model_type_retrieva_v1.evaluate(test_X, test_Y, verbose=0)
-    loss, accuracy = model_type_retrieva_v1.evaluate(test_X, test_Y, verbose=0)
     predict_classes = model_type_retrieva_v1.predict_classes(test_X)
-    print("Accuracy = {:.2f}".format(accuracy))
-    print("loss = {:.2f}".format(loss))
-    print(predict_classes)
+    predicted_prob = model_type_retrieva_v1.predict_probatest_X()
 
-    true_preditc_list = [np.where(r == 1)[0][0] for r in test_Y]
+    # loss, accuracy = model_type_retrieva_v1.evaluate(test_X, test_Y, verbose=0)
+    # print("Accuracy = {:.2f}".format(accuracy))
+    # print("loss = {:.2f}".format(loss))
+    # print(predicted_prob)
+    # print(predict_classes)
 
+    # true_preditc_list = [np.where(r == 1)[0][0] for r in test_Y]
     #for true_predict, predicted in zip(true_preditc_list, predict_classes):
     #    print("true predict is : ", true_predict,"\t predit by model: ", predicted,"\n")
 
+    return (predict_classes, predicted_prob)
 
-    # print("precision = {:.2f}".format(precision))
-    # print("recall = {:.2f}".format(accuracy))
+
+def generate_trec_output(q_id_list, test_TYPES, test_Y, predict_classes, predicted_prob, path):
+    trec_output_str = ""
+    for q_id_test, q_candidate_type, true_predict, predict_class, predict_prob \
+            in zip(q_id_list, test_TYPES, test_Y, predict_classes, predicted_prob):
+        # 1
+        query_id = q_id_test
+
+        # 2
+        iter_str = "Q0"
+
+        # 3
+        doc_id = q_candidate_type
+
+        # 4
+        rank_str = "0"  # trec az in estefade nemikone, felan ino nemikhad dorost print konam:)
+
+        # 5
+        sim_score = str(predict_class * predict_prob[(predict_class - 1)])
+
+        # 6
+        run_id = "Model_Deep"
+
+        delimeter = "	"
+
+        trec_output_str += query_id + delimeter + iter_str + delimeter + doc_id + delimeter + rank_str + delimeter + sim_score + delimeter + run_id + "\n"
+    f_train_set_row = open(path, 'w')
+    f_train_set_row.write(trec_output_str)
+    f_train_set_row.close()
+
 
 
 '''
@@ -180,8 +215,10 @@ with open(queries_path, 'r') as ff:
     for i in range(k_fold):
         train_X = []
         train_Y = []
+        train_TYPES = []
         test_X = []
         test_Y = []
+        test_TYPES = []
 
         fold_size = int(len(queries_dict)/k_fold)  #168/6=28
 
@@ -208,6 +245,7 @@ with open(queries_path, 'r') as ff:
                 if (label_zero_count<=1):
                     train_X.append(train_set[0])
                     train_Y.append(train_set[1])
+                    train_TYPES.append(train_set[2])
 
         train_Y = pd.get_dummies(train_Y)
         train_Y = train_Y.values.tolist()
@@ -226,17 +264,30 @@ with open(queries_path, 'r') as ff:
                 #if (label_zero_count<=1):
                 test_X.append(test_set[0])
                 test_Y.append(test_set[1])
+                test_TYPES.append(test_set[2])
 
-        test_Y = pd.get_dummies(test_Y)
-        test_Y = test_Y.values.tolist()
+        test_Y_one_hot = pd.get_dummies(test_Y)
+        test_Y_one_hot = test_Y_one_hot.values.tolist()
 
         test_X = np.array(test_X)
-        test_Y = np.array(test_Y)
+        test_Y_one_hot = np.array(test_Y_one_hot)
 
-        print("fold number- ",i)
+
+
+        # print("fold number- ",i)
         # print("model-v1")
-        # model_type_retrieval_v1(train_X, train_Y, test_X, test_Y)
-        print("model-v2")
-        model_type_retrieval_v2(train_X, train_Y, test_X, test_Y)
+        predict_classes_v1, predicted_prob_v1 = model_type_retrieval_v1(train_X, train_Y, test_X, test_Y)
+        # print("model-v2")
+        predict_classes_v2, predicted_prob_v2 = model_type_retrieval_v2(train_X, train_Y, test_X, test_Y_one_hot)
+
+        ######################## generate trec output for IR measures :) ########################
+        q_id_test_list = [qid_test[0] for qid_test in queries_for_test_set]
+
+        modelv2_path = models_path + "2.run"
+        generate_trec_output(q_id_test_list, test_TYPES, test_Y, predict_classes_v2, predicted_prob_v2, modelv2_path)
+
+        modelv1_path = models_path + "1.run"
+        generate_trec_output(q_id_test_list, test_TYPES, test_Y, predict_classes_v1, predicted_prob_v1, modelv1_path)
+        ######################## generate trec output for IR measures :) ########################
         print("\n------------------------------------------------\n\n\n")
         sys.exit(1)

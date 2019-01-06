@@ -319,7 +319,7 @@ def save_trainset_average_w2v():
 
     train_set_average_dict = dict()
     '''
-        {q_id: [(merged_avg_feature, rel_class)]}
+        {q_id: [(merged_avg_feature, rel_class, type_name)]}
     '''
     for train_set_key, train_set_value_list  in raw_trainset_dict.items():
         for train_set_value in train_set_value_list:
@@ -333,10 +333,10 @@ def save_trainset_average_w2v():
 
             merged_features = q_body_w2v_avg_feature + q_type_w2v_avg_feature
 
-            if  q_id not in train_set_average_dict:
-                train_set_average_dict[q_id] = [(merged_features, q_type_rel_class)]
+            if q_id not in train_set_average_dict:
+                train_set_average_dict[q_id] = [(merged_features, q_type_rel_class, q_type)]
             else:
-                train_set_average_dict[q_id].append((merged_features, q_type_rel_class))
+                train_set_average_dict[q_id].append((merged_features, q_type_rel_class, q_type))
     json.dump(train_set_average_dict, fp=open(trainset_average_w2v_path, 'w'))
     # json.dump(train_set_average_dict, fp=open(trainset_average_w2v_path, 'w'), indent=4, sort_keys=True)
 
