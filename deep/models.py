@@ -153,7 +153,7 @@ def model_type_retrieval_v1(train_X, train_Y, test_X, test_Y):
     return (predict_classes, predicted_prob)
 
 
-def generate_trec_output(q_id_list, test_TYPES, test_Y, predict_classes, predicted_prob, path):
+def get_trec_output(q_id_list, test_TYPES, test_Y, predict_classes, predicted_prob):
     trec_output_str = ""
     for q_id_test, q_candidate_type, true_predict, predict_class, predict_prob \
             in zip(q_id_list, test_TYPES, test_Y, predict_classes, predicted_prob):
@@ -179,9 +179,7 @@ def generate_trec_output(q_id_list, test_TYPES, test_Y, predict_classes, predict
         delimeter = "	"
 
         trec_output_str += query_id + delimeter + iter_str + delimeter + doc_id + delimeter + rank_str + delimeter + sim_score + delimeter + run_id + "\n"
-    f_train_set_row = open(path, 'w')
-    f_train_set_row.write(trec_output_str)
-    f_train_set_row.close()
+    return trec_output_str
 
 
 
@@ -200,12 +198,21 @@ def generate_trec_output(q_id_list, test_TYPES, test_Y, predict_classes, predict
 # test_X = ['q1_type1(600d)','q1_type3(600d)','....','qN_type4(600d)']
 # test_Y = [1, 1, '...', 0]
 '''
+
+def create_file(path, data):
+    f = open(path, 'w')
+    f.write(data)
+    f.close()
+
+
 trainset_average_w2v = tsg.get_trainset_average_w2v()
 i = 0
 with open(queries_path, 'r') as ff:
     # print(q)
     # avg_q_ = get_average_w2v(q)
     # print(avg_q_)
+    trec_output_modelv1 = ""
+    trec_output_modelv2 = ""
 
     queries_json = json.load(ff)
 
@@ -273,8 +280,6 @@ with open(queries_path, 'r') as ff:
         test_X = np.array(test_X)
         test_Y_one_hot = np.array(test_Y_one_hot)
 
-
-
         # print("fold number- ",i)
         # print("model-v1")
         # print("model-v2")
@@ -283,13 +288,21 @@ with open(queries_path, 'r') as ff:
         ######################## generate trec output for IR measures :) ########################
         q_id_test_list = [qid_test[0] for qid_test in queries_for_test_set]
 
-        modelv2_path = models_path + "2.run"
-        generate_trec_output(q_id_test_list, test_TYPES, test_Y, predict_classes_v2, predicted_prob_v2, modelv2_path)
+        trec_output_modelv2 += get_trec_output(q_id_test_list, test_TYPES, test_Y, predict_classes_v2, predicted_prob_v2)
 
         predict_classes_v1, predicted_prob_v1 = model_type_retrieval_v1(train_X, train_Y, test_X, test_Y_one_hot)
 
-        modelv1_path = models_path + "1.run"
-        generate_trec_output(q_id_test_list, test_TYPES, test_Y, predict_classes_v1, predicted_prob_v1, modelv1_path)
+        trec_output_modelv1 += get_trec_output(q_id_test_list, test_TYPES, test_Y, predict_classes_v1, predicted_prob_v1)
         ######################## generate trec output for IR measures :) ########################
         print("\n------------------------------------------------\n\n\n")
-        sys.exit(1)
+
+    trec_output_modelv1 = trec_output_modelv1.rstrip('\n')
+    trec_output_modelv2 = trec_output_modelv2.rstrip('\n')
+
+    modelv2_path = models_path + "2.run"
+    modelv1_path = models_path + "1.run"
+
+    create_file(modelv2_path, trec_output_modelv2)
+    create_file(modelv1_path, trec_output_modelv1)
+
+    # sys.exit(1)
