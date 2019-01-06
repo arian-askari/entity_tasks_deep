@@ -221,12 +221,16 @@ with open(queries_path, 'r') as ff:
     queries_for_select_test_set = dict(queries_dict)
     k_fold = 5
     for i in range(k_fold):
+        q_id_train_list = []
         train_X = []
         train_Y = []
         train_TYPES = []
+
         test_X = []
         test_Y = []
         test_TYPES = []
+        q_id_test_list = []
+
 
         fold_size = int(len(queries_dict)/k_fold)  #168/6=28
 
@@ -254,6 +258,7 @@ with open(queries_path, 'r') as ff:
                     train_X.append(train_set[0])
                     train_Y.append(train_set[1])
                     train_TYPES.append(train_set[2])
+                    q_id_train_list.append(query_ids_train)
 
         train_Y = pd.get_dummies(train_Y)
         train_Y = train_Y.values.tolist()
@@ -273,6 +278,7 @@ with open(queries_path, 'r') as ff:
                 test_X.append(test_set[0])
                 test_Y.append(test_set[1])
                 test_TYPES.append(test_set[2])
+                q_id_test_list.append(query_ids_test[0])
 
         test_Y_one_hot = pd.get_dummies(test_Y)
         test_Y_one_hot = test_Y_one_hot.values.tolist()
@@ -286,7 +292,7 @@ with open(queries_path, 'r') as ff:
         predict_classes_v2, predicted_prob_v2 = model_type_retrieval_v2(train_X, train_Y, test_X, test_Y_one_hot)
 
         ######################## generate trec output for IR measures :) ########################
-        q_id_test_list = [qid_test[0] for qid_test in queries_for_test_set]
+        # q_id_test_list = [qid_test[0] for qid_test in queries_for_test_set]
 
         trec_output_modelv2 += get_trec_output(q_id_test_list, test_TYPES, test_Y, predict_classes_v2, predicted_prob_v2)
 
