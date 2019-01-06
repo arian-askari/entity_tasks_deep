@@ -74,7 +74,7 @@ def model_type_retrieval_v2(train_X, train_Y, test_X, test_Y):
     model_type_retrieva_v1.fit(train_X, train_Y, epochs=200, batch_size=1, verbose = 2)
 
     predict_classes = model_type_retrieva_v1.predict_classes(test_X)
-    predicted_prob = model_type_retrieva_v1.predict_probatest_X()
+    predicted_prob = model_type_retrieva_v1.predict_proba(test_X)
 
     # print(model_type_retrieva_v1.evaluate(test_X, test_Y, verbose=2))
     # loss, accuracy = model_type_retrieva_v1.evaluate(test_X, test_Y, verbose=2)
@@ -138,7 +138,7 @@ def model_type_retrieval_v1(train_X, train_Y, test_X, test_Y):
     # print(model_type_retrieva_v1.evaluate(test_X, test_Y, verbose=0))
 
     predict_classes = model_type_retrieva_v1.predict_classes(test_X)
-    predicted_prob = model_type_retrieva_v1.predict_probatest_X()
+    predicted_prob = model_type_retrieva_v1.predict_proba(test_X)
 
     # loss, accuracy = model_type_retrieva_v1.evaluate(test_X, test_Y, verbose=0)
     # print("Accuracy = {:.2f}".format(accuracy))
@@ -170,7 +170,8 @@ def generate_trec_output(q_id_list, test_TYPES, test_Y, predict_classes, predict
         rank_str = "0"  # trec az in estefade nemikone, felan ino nemikhad dorost print konam:)
 
         # 5
-        sim_score = str(predict_class * predict_prob[(predict_class - 1)])
+        sim_score = (predict_class+1) * predict_prob[predict_class] # (predict_class+1), baraye inke baraye class 0, score e ehtemal sefr nashe, hamaro +1 kardam, dar kol tasiir nadare, vase class 7 ham 1 mishe va score ha relative mishan
+        sim_score = str(sim_score)
 
         # 6
         run_id = "Model_Deep"
@@ -276,7 +277,6 @@ with open(queries_path, 'r') as ff:
 
         # print("fold number- ",i)
         # print("model-v1")
-        predict_classes_v1, predicted_prob_v1 = model_type_retrieval_v1(train_X, train_Y, test_X, test_Y)
         # print("model-v2")
         predict_classes_v2, predicted_prob_v2 = model_type_retrieval_v2(train_X, train_Y, test_X, test_Y_one_hot)
 
@@ -285,6 +285,8 @@ with open(queries_path, 'r') as ff:
 
         modelv2_path = models_path + "2.run"
         generate_trec_output(q_id_test_list, test_TYPES, test_Y, predict_classes_v2, predicted_prob_v2, modelv2_path)
+
+        predict_classes_v1, predicted_prob_v1 = model_type_retrieval_v1(train_X, train_Y, test_X, test_Y_one_hot)
 
         modelv1_path = models_path + "1.run"
         generate_trec_output(q_id_test_list, test_TYPES, test_Y, predict_classes_v1, predicted_prob_v1, modelv1_path)
