@@ -27,7 +27,8 @@ es = Elasticsearch(timeout=10000)
 dirname = os.path.dirname(__file__)
 
 # queries_path = os.path.join(dirname, '../data/dbpedia-v2/queries_stopped_with_type.json')
-queries_path = os.path.join(dirname, '../data/dbpedia-v1/queries_type_retrieval.json')
+# queries_path = os.path.join(dirname, '../data/dbpedia-v1/queries_type_retrieval.json')
+queries_path = os.path.join(dirname, '../data/types/sig17/queries-v1.json')
 # queries_path = os.path.join(dirname, '../data/dbpedia-v2/queries_stopped.json')
 qrel_types_path = os.path.join(dirname, '../data/types/qrels-tti-dbpedia.txt')
 qrels_types_dict = dict()
@@ -37,7 +38,7 @@ word2vec_train_set_path = '/home/arian/workSpaces/entityArticle/entity-attr-reso
 # word_vectors = KeyedVectors.load_word2vec_format(word2vec_train_set_path, binary=True)
 word_vectors = []
 
-models_path = os.path.join(dirname, '../data/runs/model_v')
+models_path = os.path.join(dirname, '../data/runs/sig17/model_v')
 
 def substrac_dicts(dict1, dict2):
     return dict(set(dict1.items()) - set((dict(dict2)).items()))
@@ -358,32 +359,30 @@ with open(queries_path, 'r') as ff:
         # print("model-v1")
         # print("model-v2")
         ######################## generate trec output for IR measures :) ########################
-        # predict_classes_v2, predicted_prob_v2 = model_type_retrieval_v2(train_X, train_Y, test_X, test_Y_one_hot)
-        #
-        # trec_output_modelv2 += get_trec_output(q_id_test_list, test_TYPES, test_Y, predict_classes_v2, predicted_prob_v2)
-        #
+        predict_classes_v2, predicted_prob_v2 = model_type_retrieval_v2(train_X, train_Y, test_X, test_Y_one_hot)
+
+        trec_output_modelv2 += get_trec_output(q_id_test_list, test_TYPES, test_Y, predict_classes_v2, predicted_prob_v2)
+
         # predict_classes_v1, predicted_prob_v1 = model_type_retrieval_v1(train_X, train_Y, test_X, test_Y_one_hot)
         #
         # trec_output_modelv1 += get_trec_output(q_id_test_list, test_TYPES, test_Y, predict_classes_v1, predicted_prob_v1)
         #
-
-
-        predict_classes_v3, predicted_prob_v3 = model_type_retrieval_v3(train_X, train_Y, test_X, test_Y_one_hot)
-        trec_output_modelv3 += get_trec_output(q_id_test_list, test_TYPES, test_Y, predict_classes_v3,
-                                               predicted_prob_v3)
+        # predict_classes_v3, predicted_prob_v3 = model_type_retrieval_v3(train_X, train_Y, test_X, test_Y_one_hot)
+        # trec_output_modelv3 += get_trec_output(q_id_test_list, test_TYPES, test_Y, predict_classes_v3,
+        #                                        predicted_prob_v3)
         ######################## generate trec output for IR measures :) ########################
         print("\n------------------------------------------------\n\n\n")
 
+    trec_output_modelv2 = trec_output_modelv2.rstrip('\n')
     # trec_output_modelv1 = trec_output_modelv1.rstrip('\n')
-    # trec_output_modelv2 = trec_output_modelv2.rstrip('\n')
-    trec_output_modelv3 = trec_output_modelv3.rstrip('\n')
+    # trec_output_modelv3 = trec_output_modelv3.rstrip('\n')
 
-    modelv3_path = models_path + "3_2.run"
     modelv2_path = models_path + "2.run"
-    modelv1_path = models_path + "1.run"
+    # modelv1_path = models_path + "1.run"
+    # modelv3_path = models_path + "3.run"
 
-    # create_file(modelv2_path, trec_output_modelv2)
+    create_file(modelv2_path, trec_output_modelv2)
     # create_file(modelv1_path, trec_output_modelv1)
-    create_file(modelv3_path, trec_output_modelv3)
+    # create_file(modelv3_path, trec_output_modelv3)
 
     # sys.exit(1)
