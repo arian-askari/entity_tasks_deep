@@ -323,7 +323,12 @@ with open(queries_path, 'r') as ff:
                 if train_set[1]=="0":
                     label_zero_count += 1
 
-                if (label_zero_count<=1):
+                    if (label_zero_count<=1):
+                        train_X.append(train_set[0])
+                        train_Y.append(train_set[1])
+                        train_TYPES.append(train_set[2])
+                        q_id_train_list.append(query_ids_train)
+                else:
                     train_X.append(train_set[0])
                     train_Y.append(train_set[1])
                     train_TYPES.append(train_set[2])
