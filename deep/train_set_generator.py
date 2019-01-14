@@ -27,10 +27,10 @@ train_set_row_path = os.path.join(dirname, '../data/types/sig17/train_set_row_si
 train_set_feature_path = os.path.join(dirname, '../data/types/sig17/train_set_feature_sig17.csv')
 
 ##################################################################################################
-types_unique_raw_path = os.path.join(dirname, '../data/types/types_unique_raw.csv')
+types_unique_raw_path = os.path.join(dirname, '../data/types/sig17/types_unique_raw_sig17.csv')
 queries_unique_raw_path = os.path.join(dirname, '../data/types/quries_unique_row.csv')
 
-types_unique_feature_path = os.path.join(dirname, '../data/types/types_unique_feature.csv')
+types_unique_feature_path = os.path.join(dirname, '../data/types/sig17/types_unique_feature_sig17.csv')
 queries_unique_feature_path = os.path.join(dirname, '../data/types/quries_unique_feature.csv')
 
 trainset_average_w2v_path = os.path.join(dirname, '../data/types/trainset_average_w2v.txt')
@@ -359,6 +359,7 @@ def get_trainset_average_w2v():
 # w2v_train_set_generator()
 # types_avg_w2v_generator()
 # quries_avg_w2v_generator()
+types_avg_w2v_generator()
 save_trainset_average_w2v()
 
 # print("eiffel")
