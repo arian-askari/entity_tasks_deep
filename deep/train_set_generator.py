@@ -23,15 +23,26 @@ dirname = os.path.dirname(__file__)
 
 queries_path = os.path.join(dirname, '../data/dbpedia-v1/queries_type_retrieval.json')
 qrel_types_path = os.path.join(dirname, '../data/types/qrels-tti-dbpedia.txt')
-train_set_row_path = os.path.join(dirname, '../data/types/sig17/train_set_row_sig17.csv')
-train_set_feature_path = os.path.join(dirname, '../data/types/sig17/train_set_feature_sig17.csv')
 
 ##################################################################################################
-types_unique_raw_path = os.path.join(dirname, '../data/types/sig17/types_unique_raw_sig17.csv')
-queries_unique_raw_path = os.path.join(dirname, '../data/types/sig17/quries_unique_row_sig17.txt')
+# train_set_row_path = os.path.join(dirname, '../data/types/sig17/train_set_row_sig17.csv')
+# train_set_feature_path = os.path.join(dirname, '../data/types/sig17/train_set_feature_sig17.csv')
 
-types_unique_feature_path = os.path.join(dirname, '../data/types/sig17/types_unique_feature_sig17.csv')
-queries_unique_feature_path = os.path.join(dirname, '../data/types/sig17/quries_unique_feature_sig17.csv')
+# types_unique_raw_path = os.path.join(dirname, '../data/types/sig17/types_unique_raw_sig17.csv')
+# queries_unique_raw_path = os.path.join(dirname, '../data/types/sig17/quries_unique_row_sig17.txt')
+#
+# types_unique_feature_path = os.path.join(dirname, '../data/types/sig17/types_unique_feature_sig17.csv')
+# queries_unique_feature_path = os.path.join(dirname, '../data/types/sig17/quries_unique_feature_sig17.csv')
+##################################################################################################
+
+train_set_feature_path = os.path.join(dirname, '../data/types/train_set_feature.csv')
+train_set_row_path = os.path.join(dirname, '../data/types/train_set_row.csv')
+
+types_unique_raw_path = os.path.join(dirname, '../data/types/types_unique_raw.csv')
+queries_unique_raw_path = os.path.join(dirname, '../data/types/quries_unique_row.txt')
+
+types_unique_feature_path = os.path.join(dirname, '../data/types/types_unique_feature.csv')
+queries_unique_feature_path = os.path.join(dirname, '../data/types/quries_unique_feature.csv')
 
 trainset_average_w2v_path = os.path.join(dirname, '../data/types/trainset_average_w2v.txt')
 ##################################################################################################
