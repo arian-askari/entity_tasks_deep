@@ -242,6 +242,8 @@ def model_type_retrieval_v1(train_X, train_Y, test_X, test_Y):
 
 def get_trec_output(q_id_list, test_TYPES, test_Y, predict_classes, predicted_prob):
     trec_output_str = ""
+    trec_ouput_dict = dict()
+
     for q_id_test, q_candidate_type, true_predict, predict_class, predict_prob \
             in zip(q_id_list, test_TYPES, test_Y, predict_classes, predicted_prob):
         # 1
@@ -265,7 +267,24 @@ def get_trec_output(q_id_list, test_TYPES, test_Y, predict_classes, predicted_pr
 
         delimeter = "	"
 
-        trec_output_str += query_id + delimeter + iter_str + delimeter + doc_id + delimeter + rank_str + delimeter + sim_score + delimeter + run_id + "\n"
+        if query_id not in trec_ouput_dict:
+            trec_ouput_dict[query_id] = [(doc_id, rank_str, sim_score, run_id)]
+        else:
+            trec_ouput_dict[query_id].append((doc_id, rank_str, sim_score, run_id))
+
+
+    for query_id, detailsList in trec_ouput_dict.items():
+        detailsList_sorted = sorted(detailsList, key = lambda x: x[2], reverse=True)
+        i = 0
+        for detail in detailsList_sorted:
+            doc_id = detail[0]
+            rank_str = str(i)
+            sim_score = detail[2]
+            run_id = detail[3]
+            trec_output_str += query_id + delimeter + iter_str + delimeter + doc_id + delimeter + rank_str + delimeter + sim_score + delimeter + run_id + "\n"
+            i += 1
+
+    # trec_output_str += query_id + delimeter + iter_str + delimeter + doc_id + delimeter + rank_str + delimeter + sim_score + delimeter + run_id + "\n"
     return trec_output_str
 
 
