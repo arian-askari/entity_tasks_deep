@@ -49,7 +49,7 @@ def model_type_retrieval_v4(train_X, train_Y, test_X, test_Y): #one_layer, count
     model_type_retrieva_v1 = Sequential()
     model_type_retrieva_v1.add(Dense(419, input_shape=(600,)))
 
-    model_type_retrieva_v1.add(Dense(8))  # classes: 0-7
+    model_type_retrieva_v1.add(Dense(3))  # classes: 0-2
     model_type_retrieva_v1.add(Activation('softmax'))
 
 
@@ -108,7 +108,7 @@ def model_type_retrieval_v3(train_X, train_Y, test_X, test_Y):
     # model_type_retrieva_v1.add(Activation('relu'))
 
 
-    model_type_retrieva_v1.add(Dense(8))  # classes: 0-7
+    model_type_retrieva_v1.add(Dense(3))  # classes: 0-2
     model_type_retrieva_v1.add(Activation('softmax'))
 
 
@@ -151,7 +151,7 @@ def model_type_retrieval_v2(train_X, train_Y, test_X, test_Y):
     model_type_retrieva_v1.add(Dense(100))
     model_type_retrieva_v1.add(Activation('relu'))
 
-    model_type_retrieva_v1.add(Dense(8))  # classes: 0-7
+    model_type_retrieva_v1.add(Dense(3))  # classes: 0-3
     model_type_retrieva_v1.add(Activation('softmax'))
 
 
@@ -204,7 +204,7 @@ def model_type_retrieval_v1(train_X, train_Y, test_X, test_Y):
     # model_type_retrieva_v1.add(Activation('sigmoid'))
 
     #outupt layer (classifaction model, for NDCG !)
-    model_type_retrieva_v1.add(Dense(8))  # classes: 0-7
+    model_type_retrieva_v1.add(Dense(3))  # classes: 0-2
     model_type_retrieva_v1.add(Activation('softmax'))
 
 
@@ -292,6 +292,15 @@ def create_file(path, data):
     f.close()
 
 
+def append_label_y(label, Y):
+    if label == 0:
+        Y.append("0")
+    elif label <= 4:
+        Y.append("1")
+    elif label <= 7:
+        Y.append("2")
+    return Y
+
 trainset_average_w2v = tsg.get_trainset_average_w2v()
 i = 0
 with open(queries_path, 'r') as ff:
@@ -345,12 +354,12 @@ with open(queries_path, 'r') as ff:
 
                     if (label_zero_count<=1):
                         train_X.append(train_set[0])
-                        train_Y.append(train_set[1])
+                        train_Y = append_label_y(int(train_set[1]), train_Y)
                         train_TYPES.append(train_set[2])
                         q_id_train_list.append(query_ids_train)
                 else:
                     train_X.append(train_set[0])
-                    train_Y.append(train_set[1])
+                    train_Y = append_label_y(int(train_set[1]), train_Y)
                     train_TYPES.append(train_set[2])
                     q_id_train_list.append(query_ids_train)
 
@@ -370,7 +379,7 @@ with open(queries_path, 'r') as ff:
 
                 #if (label_zero_count<=1):
                 test_X.append(test_set[0])
-                test_Y.append(test_set[1])
+                test_Y = append_label_y(int(test_set[1]), test_Y)
                 test_TYPES.append(test_set[2])
                 q_id_test_list.append(query_ids_test[0])
 
@@ -382,37 +391,37 @@ with open(queries_path, 'r') as ff:
 
         ######################## generate trec output for IR measures :) ########################
 
-        # predict_classes_v2, predicted_prob_v2 = model_type_retrieval_v2(train_X, train_Y, test_X, test_Y_one_hot)
-        # trec_output_modelv2 += get_trec_output(q_id_test_list, test_TYPES, test_Y, predict_classes_v2, predicted_prob_v2)
+        predict_classes_v2, predicted_prob_v2 = model_type_retrieval_v2(train_X, train_Y, test_X, test_Y_one_hot)
+        trec_output_modelv2 += get_trec_output(q_id_test_list, test_TYPES, test_Y, predict_classes_v2, predicted_prob_v2)
 
-        # predict_classes_v1, predicted_prob_v1 = model_type_retrieval_v1(train_X, train_Y, test_X, test_Y_one_hot)
-        # trec_output_modelv1 += get_trec_output(q_id_test_list, test_TYPES, test_Y, predict_classes_v1, predicted_prob_v1)
-        #
-        # predict_classes_v3, predicted_prob_v3 = model_type_retrieval_v3(train_X, train_Y, test_X, test_Y_one_hot)
-        # trec_output_modelv3 += get_trec_output(q_id_test_list, test_TYPES, test_Y, predict_classes_v3, predicted_prob_v3)
+        predict_classes_v1, predicted_prob_v1 = model_type_retrieval_v1(train_X, train_Y, test_X, test_Y_one_hot)
+        trec_output_modelv1 += get_trec_output(q_id_test_list, test_TYPES, test_Y, predict_classes_v1, predicted_prob_v1)
+
+        predict_classes_v3, predicted_prob_v3 = model_type_retrieval_v3(train_X, train_Y, test_X, test_Y_one_hot)
+        trec_output_modelv3 += get_trec_output(q_id_test_list, test_TYPES, test_Y, predict_classes_v3, predicted_prob_v3)
 
 
-        predict_classes_v4, predicted_prob_v4 = model_type_retrieval_v4(train_X, train_Y, test_X, test_Y_one_hot)
-        trec_output_modelv4 += get_trec_output(q_id_test_list, test_TYPES, test_Y, predict_classes_v4, predicted_prob_v4)
+        # predict_classes_v4, predicted_prob_v4 = model_type_retrieval_v4(train_X, train_Y, test_X, test_Y_one_hot)
+        # trec_output_modelv4 += get_trec_output(q_id_test_list, test_TYPES, test_Y, predict_classes_v4, predicted_prob_v4)
 
 
         ######################## generate trec output for IR measures :) ########################
         print("\n-----------------------------------------------\n\n\n")
 
-    # trec_output_modelv2 = trec_output_modelv2.rstrip('\n')
-    # trec_output_modelv1 = trec_output_modelv1.rstrip('\n')
-    # trec_output_modelv3 = trec_output_modelv3.rstrip('\n')
-    trec_output_modelv4 = trec_output_modelv4.rstrip('\n')
+    trec_output_modelv2 = trec_output_modelv2.rstrip('\n')
+    trec_output_modelv1 = trec_output_modelv1.rstrip('\n')
+    trec_output_modelv3 = trec_output_modelv3.rstrip('\n')
+    # trec_output_modelv4 = trec_output_modelv4.rstrip('\n')
 
-    # modelv2_path = models_path + "2.run"
-    # modelv1_path = models_path + "1.run"
-    # modelv3_path = models_path + "3.run"
-    modelv4_path = models_path + "4.run"
+    modelv2_path = models_path + "2.run"
+    modelv1_path = models_path + "1.run"
+    modelv3_path = models_path + "3.run"
+    # modelv4_path = models_path + "4.run"
 
-    # create_file(modelv2_path, trec_output_modelv2)
-    # create_file(modelv1_path, trec_output_modelv1)
-    # create_file(modelv3_path, trec_output_modelv3)
-    create_file(modelv4_path, trec_output_modelv4)
+    create_file(modelv2_path, trec_output_modelv2)
+    create_file(modelv1_path, trec_output_modelv1)
+    create_file(modelv3_path, trec_output_modelv3)
+    # create_file(modelv4_path, trec_output_modelv4)
 
 
     # sys.exit(1)
