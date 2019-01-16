@@ -364,30 +364,28 @@ with open(queries_path, 'r') as ff:
         # print("model-v1")
         # print("model-v2")
         ######################## generate trec output for IR measures :) ########################
-        predict_classes_v2, predicted_prob_v2 = model_type_retrieval_v2(train_X, train_Y, test_X, test_Y_one_hot)
+        # predict_classes_v2, predicted_prob_v2 = model_type_retrieval_v2(train_X, train_Y, test_X, test_Y_one_hot)
 
-        trec_output_modelv2 += get_trec_output(q_id_test_list, test_TYPES, test_Y, predict_classes_v2, predicted_prob_v2)
+        # trec_output_modelv2 += get_trec_output(q_id_test_list, test_TYPES, test_Y, predict_classes_v2, predicted_prob_v2)
 
-        # predict_classes_v1, predicted_prob_v1 = model_type_retrieval_v1(train_X, train_Y, test_X, test_Y_one_hot)
+        predict_classes_v1, predicted_prob_v1 = model_type_retrieval_v1(train_X, train_Y, test_X, test_Y_one_hot)
         #
-        # trec_output_modelv1 += get_trec_output(q_id_test_list, test_TYPES, test_Y, predict_classes_v1, predicted_prob_v1)
+        trec_output_modelv1 += get_trec_output(q_id_test_list, test_TYPES, test_Y, predict_classes_v1, predicted_prob_v1)
         #
-        # predict_classes_v3, predicted_prob_v3 = model_type_retrieval_v3(train_X, train_Y, test_X, test_Y_one_hot)
-        # trec_output_modelv3 += get_trec_output(q_id_test_list, test_TYPES, test_Y, predict_classes_v3,
-        #                                        predicted_prob_v3)
+        predict_classes_v3, predicted_prob_v3 = model_type_retrieval_v3(train_X, train_Y, test_X, test_Y_one_hot)
+        trec_output_modelv3 += get_trec_output(q_id_test_list, test_TYPES, test_Y, predict_classes_v3, predicted_prob_v3)
         ######################## generate trec output for IR measures :) ########################
         print("\n------------------------------------------------\n\n\n")
 
-    trec_output_modelv2 = trec_output_modelv2.rstrip('\n')
-    # trec_output_modelv1 = trec_output_modelv1.rstrip('\n')
-    # trec_output_modelv3 = trec_output_modelv3.rstrip('\n')
+    # trec_output_modelv2 = trec_output_modelv2.rstrip('\n')
+    trec_output_modelv1 = trec_output_modelv1.rstrip('\n')
+    trec_output_modelv3 = trec_output_modelv3.rstrip('\n')
 
-    modelv2_path = models_path + "2.run"
-    # modelv1_path = models_path + "1.run"
-    # modelv3_path = models_path + "3.run"
+    # modelv2_path = models_path + "2.run"
+    modelv1_path = models_path + "1.run"
+    modelv3_path = models_path + "3.run"
 
-    create_file(modelv2_path, trec_output_modelv2)
-    # create_file(modelv1_path, trec_output_modelv1)
-    # create_file(modelv3_path, trec_output_modelv3)
-
+    # create_file(modelv2_path, trec_output_modelv2)
+    create_file(modelv1_path, trec_output_modelv1)
+    create_file(modelv3_path, trec_output_modelv3)
     # sys.exit(1)
