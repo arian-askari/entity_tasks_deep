@@ -33,6 +33,7 @@ qrel_types_path = os.path.join(dirname, '../data/types/qrels-tti-dbpedia.txt')
 #
 # types_unique_feature_path = os.path.join(dirname, '../data/types/sig17/types_unique_feature_sig17.csv')
 # queries_unique_feature_path = os.path.join(dirname, '../data/types/sig17/quries_unique_feature_sig17.csv')
+# trainset_average_w2v_path = os.path.join(dirname, '../data/types/sig17/trainset_average_w2v_sig17.txt')
 ##################################################################################################
 
 train_set_feature_path = os.path.join(dirname, '../data/types/train_set_feature.csv')
@@ -373,7 +374,7 @@ def get_trainset_average_w2v():
 #
 # quries_avg_w2v_generator()
 # types_avg_w2v_generator()
-# save_trainset_average_w2v()
+save_trainset_average_w2v()
 
 # print("eiffel")
 # wrd1 = getVector("eiffel")

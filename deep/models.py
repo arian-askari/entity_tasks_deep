@@ -26,9 +26,12 @@ es = Elasticsearch(timeout=10000)
 
 dirname = os.path.dirname(__file__)
 
+# queries_path = os.path.join(dirname, '../data/types/sig17/queries-v1.json')
+queries_path = os.path.join(dirname, '../data/types/queries-v1.json')
+
+
 # queries_path = os.path.join(dirname, '../data/dbpedia-v2/queries_stopped_with_type.json')
 # queries_path = os.path.join(dirname, '../data/dbpedia-v1/queries_type_retrieval.json')
-queries_path = os.path.join(dirname, '../data/types/sig17/queries-v1.json')
 # queries_path = os.path.join(dirname, '../data/dbpedia-v2/queries_stopped.json')
 qrel_types_path = os.path.join(dirname, '../data/types/qrels-tti-dbpedia.txt')
 qrels_types_dict = dict()
@@ -418,6 +421,7 @@ with open(queries_path, 'r') as ff:
 
         ######################## generate trec output for IR measures :) ########################
         print("\n-----------------------------------------------\n\n\n")
+        
 
     trec_output_modelv2 = trec_output_modelv2.rstrip('\n')
     trec_output_modelv1 = trec_output_modelv1.rstrip('\n')
