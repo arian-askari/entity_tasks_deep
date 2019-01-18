@@ -59,7 +59,7 @@ class Elastic(object):
     SIMILARITY = "sim"  # Used when other similarities are used
 
     def __init__(self, index_name):
-        self.__es = Elasticsearch(hosts=ELASTIC_HOSTS)
+        self.__es = Elasticsearch(hosts=ELASTIC_HOSTS, request_timeout=9999)
         self.__index_name = index_name
 
     @staticmethod
@@ -217,7 +217,7 @@ class Elastic(object):
             actions.append(action)
 
         if len(actions) > 0:
-            helpers.bulk(self.__es, actions)
+            helpers.bulk(self.__es, actions, request_timeout=9999)
 
     def add_doc(self, doc_id, contents):
         """Adds a document with the specified contents to the index.
