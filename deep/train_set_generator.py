@@ -81,6 +81,45 @@ def getVector(word):
         return []
 
 
+def get_query_character_level_w2v(q_body):
+    tokens = q_body.split(" ")
+
+    q_w2v_character_level_list = []  # store list of w2v vector(300-D) for each q_word
+
+    for token in tokens:
+        vec = getVector(token)
+        if len(vec) > 0:  # try to find original term, w2c
+            q_w2v_character_level_list.append(vec)
+            continue
+
+        tmp = token.lower()
+        vec = getVector(tmp)
+        if len(vec) > 0:  # try to find full lower term, w2c
+            q_w2v_character_level_list.append(vec)
+            continue
+
+        tmp = token[:1].lower() + token[1:]
+        vec = getVector(tmp)
+        if len(vec) > 0:  # try to find first character lower term, w2c
+            q_w2v_character_level_list.append(vec)
+            continue
+
+        tmp = token[:1].upper() + token[1:]
+        vec = getVector(tmp)
+        if len(vec) > 0: # try to find first upperCase term, w2c
+            q_w2v_character_level_list.append(vec)
+            continue
+
+        tmp = token.upper()
+        vec = getVector(tmp)
+        if len(vec) > 0:  # try to find full upper term, w2c
+            q_w2v_character_level_list.append(vec)
+            continue
+        q_w2v_character_level_list.append(np.zeros(300).tolist())
+
+    return q_w2v_character_level_list
+
+
 def get_average_w2v(tokens):
     token_resume = 0
 
@@ -202,6 +241,7 @@ def get_query_avg_w2v(q_body):
     tokens = q_body.split(" ")
     q_avg_w2v = get_average_w2v(tokens)
     return q_avg_w2v
+
 
 
 def w2v_train_set_generator():
