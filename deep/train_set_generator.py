@@ -40,7 +40,7 @@ train_set_feature_path = os.path.join(dirname, '../data/types/train_set_feature.
 train_set_row_path = os.path.join(dirname, '../data/types/train_set_row.csv')
 
 types_unique_raw_path = os.path.join(dirname, '../data/types/types_unique_raw.csv')
-queries_unique_raw_path = os.path.join(dirname, '../data/types/quries_unique_row.txt')
+queries_unique_raw_path = os.path.join(dirname, '../data/types/quries_unique_row.csv')
 
 types_unique_feature_path = os.path.join(dirname, '../data/types/types_unique_feature.csv')
 queries_unique_feature_path = os.path.join(dirname, '../data/types/quries_unique_feature.csv')
@@ -87,40 +87,62 @@ def getVector(word):
         return []
 
 
+def get_vec_several_try(token):
+    vec = getVector(token)
+    if len(vec) > 0:  # try to find original term, w2c
+        return vec
+
+    tmp = token.lower()
+    vec = getVector(tmp)
+    if len(vec) > 0:  # try to find full lower term, w2c
+        return vec
+
+    tmp = token[:1].lower() + token[1:]
+    vec = getVector(tmp)
+    if len(vec) > 0:  # try to find first character lower term, w2c
+        return vec
+
+    tmp = token[:1].upper() + token[1:]
+    vec = getVector(tmp)
+    if len(vec) > 0:  # try to find first upperCase term, w2c
+        return vec
+
+    tmp = token.upper()
+    vec = getVector(tmp)
+    if len(vec) > 0:  # try to find full upper term, w2c
+        return vec
+
+    return []
+
 def get_query_character_level_w2v(q_body):
+
     tokens = q_body.split(" ")
 
     q_w2v_character_level_list = []  # store list of w2v vector(300-D) for each q_word
 
     for token in tokens:
-        vec = getVector(token)
+        token = token.replace("(", "").replace(")", "")
+        vec = get_vec_several_try(token)
         if len(vec) > 0:  # try to find original term, w2c
             q_w2v_character_level_list.append(vec)
             continue
 
-        tmp = token.lower()
-        vec = getVector(tmp)
-        if len(vec) > 0:  # try to find full lower term, w2c
-            q_w2v_character_level_list.append(vec)
+        INDEX_TYPE = "dbpedia_2015_10_types"
+        tks = es.getTokens(INDEX_TYPE, token)
+        char_level_list_temp = []
+        for t in tks:
+            t = t.split("'")
+            t = t[0]
+            vec = get_vec_several_try(t)
+            if len(vec) > 0:  # try to find original term, w2c
+                char_level_list_temp.append(vec)
+
+        if len(char_level_list_temp)>0:
+            char_level_list_temp = [sum(x) for x in zip(*char_level_list_temp)]
+            char_level_list_avg = [x / len(char_level_list_temp) for x in char_level_list_temp]
+            char_level_list_temp.append(char_level_list_avg)
             continue
 
-        tmp = token[:1].lower() + token[1:]
-        vec = getVector(tmp)
-        if len(vec) > 0:  # try to find first character lower term, w2c
-            q_w2v_character_level_list.append(vec)
-            continue
-
-        tmp = token[:1].upper() + token[1:]
-        vec = getVector(tmp)
-        if len(vec) > 0: # try to find first upperCase term, w2c
-            q_w2v_character_level_list.append(vec)
-            continue
-
-        tmp = token.upper()
-        vec = getVector(tmp)
-        if len(vec) > 0:  # try to find full upper term, w2c
-            q_w2v_character_level_list.append(vec)
-            continue
         q_w2v_character_level_list.append(np.zeros(300).tolist())
 
     return q_w2v_character_level_list
@@ -304,7 +326,7 @@ def quries_avg_w2v_generator():
             print(q_id)
             print(str_query_features)
 
-            f_train_set_feature = open(queries_w2v_char_level_path, 'a+')
+            f_train_set_feature = open(queries_unique_feature_path, 'a+')
             f_train_set_feature.write(str_query_features)
             f_train_set_feature.close()
 
@@ -317,12 +339,12 @@ def q_w2v_char_level_generator():
 
             q_body_w2v_char_level = get_query_character_level_w2v(q_body)
 
-            str_query_features = str(q_id) + "\t" + q_body + "\t" + str(q_body_w2v_char_level.tolist()) + "\n"
+            str_query_features = str(q_id) + "\t" + q_body + "\t" + str(np.array(q_body_w2v_char_level).tolist()) + "\n"
 
             print(q_id)
             print(str_query_features)
 
-            f_train_set_feature = open(queries_unique_feature_path, 'a+')
+            f_train_set_feature = open(queries_w2v_char_level_path, 'a+')
             f_train_set_feature.write(str_query_features)
             f_train_set_feature.close()
 
@@ -441,7 +463,7 @@ def get_trainset_average_w2v():
 # q_w2v_char_level_generator()
 
 # save_trainset_average_w2v()
-
+# quries_avg_w2v_generator()
 q_w2v_char_level_generator()
 
 # print("eiffel")
