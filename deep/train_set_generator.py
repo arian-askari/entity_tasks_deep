@@ -46,6 +46,12 @@ types_unique_feature_path = os.path.join(dirname, '../data/types/types_unique_fe
 queries_unique_feature_path = os.path.join(dirname, '../data/types/quries_unique_feature.csv')
 
 trainset_average_w2v_path = os.path.join(dirname, '../data/types/trainset_average_w2v.txt')
+
+####
+queries_w2v_char_level_path = os.path.join(dirname, '../data/types/queries_w2v_char_level_feature.csv')
+
+
+
 ##################################################################################################
 
 try:
@@ -298,6 +304,24 @@ def quries_avg_w2v_generator():
             print(q_id)
             print(str_query_features)
 
+            f_train_set_feature = open(queries_w2v_char_level_path, 'a+')
+            f_train_set_feature.write(str_query_features)
+            f_train_set_feature.close()
+
+
+def q_w2v_char_level_generator():
+    with open(queries_unique_raw_path) as tsv:
+        for line in csv.reader(tsv, dialect="excel-tab"):  # can also
+            q_id = str(line[0])
+            q_body = str(line[1])
+
+            q_body_w2v_char_level = get_query_character_level_w2v(q_body)
+
+            str_query_features = str(q_id) + "\t" + q_body + "\t" + str(q_body_w2v_char_level.tolist()) + "\n"
+
+            print(q_id)
+            print(str_query_features)
+
             f_train_set_feature = open(queries_unique_feature_path, 'a+')
             f_train_set_feature.write(str_query_features)
             f_train_set_feature.close()
@@ -414,7 +438,11 @@ def get_trainset_average_w2v():
 #
 # quries_avg_w2v_generator()
 # types_avg_w2v_generator()
-save_trainset_average_w2v()
+# q_w2v_char_level_generator()
+
+# save_trainset_average_w2v()
+
+q_w2v_char_level_generator()
 
 # print("eiffel")
 # wrd1 = getVector("eiffel")
