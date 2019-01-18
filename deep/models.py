@@ -58,6 +58,7 @@ def model_type_retrieval_v4(train_X, train_Y, test_X, test_Y): #one_layer, count
 
 
     sgd = optimizers.RMSprop(lr=0.0001, rho=0.9, epsilon=None, decay=0.0)
+    # optimizers.
     model_type_retrieva_v1.compile(optimizer=sgd, loss='categorical_crossentropy', metrics=["accuracy"])
 
     model_type_retrieva_v1.fit(train_X, train_Y, epochs=100, batch_size=1, verbose = 2)
