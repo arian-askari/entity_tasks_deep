@@ -464,7 +464,7 @@ def get_trainset_average_w2v():
 
 # save_trainset_average_w2v()
 # quries_avg_w2v_generator()
-q_w2v_char_level_generator()
+# q_w2v_char_level_generator()
 
 # print("eiffel")
 # wrd1 = getVector("eiffel")
