@@ -72,7 +72,7 @@ from nordlys.core.retrieval.elastic_cache import ElasticCache
 from nordlys.core.retrieval.retrieval import Retrieval
 from nordlys.core.retrieval.scorer import Scorer
 from nordlys.core.utils.file_utils import FileUtils
-
+import json
 # Constants
 DBPEDIA_INDEX = ELASTIC_INDICES[0]
 
@@ -84,7 +84,7 @@ class ER(object):
         self.__num_docs = int(config["num_docs"])
         self.__start = int(config["start"])
         self.__er = Retrieval(config)
-        pprint(self.__config)
+        # pprint(self.__config)
 
         self.__elastic = elastic
 
@@ -160,7 +160,12 @@ def main(args):
 
     if args.query:
         res = er.retrieve(args.query)
-        pprint(res)
+
+        # pprint(res)
+        # print()
+        # print(type(res))
+        print(json.dumps(res))
+        # print("hello")
     else:
         er.batch_retrieval()
 
