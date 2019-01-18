@@ -1,6 +1,6 @@
-from configparser import ConfigParser
 import sys
-
+sys.path.append("../")
+from configparser import ConfigParser
 import re
 
 import time
@@ -8,7 +8,7 @@ from pymongo import MongoClient
 from elasticsearch import Elasticsearch
 from elasticsearch import helpers
 
-sys.path.append("../")
+
 
 from config import config
 # from utils import load_data
@@ -33,6 +33,7 @@ def resolve_uri(uri):
         elif not uri.startswith("<http"):  # for <dbpedia:XXX>
             return uri[uri.find(":") + 1:-1].replace("_", " ")
     return uri.replace("<", "").replace(">", "")
+
 
 
 first_cap_re = re.compile('(.)([A-Z][a-z]+)')
@@ -60,7 +61,6 @@ def bulk_insert(es,index,docs):
 def print_time(start_time):
     t = time.time() - start_time
     print(" --> "+str(int(t//60))+":"+str(int(t%60)))
-
 
 def main():
     start_time = time.time()
@@ -140,6 +140,4 @@ def main():
     bulk_insert(es, index_name, docs)
     client.close()
 
-
-if __name__ == '__main__':
-    main()
+main()
