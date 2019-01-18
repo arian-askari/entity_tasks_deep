@@ -97,7 +97,7 @@ def bulk_insert(es,index,docs):
         actions.append(action)
 
     if len(actions) > 0:
-        helpers.bulk(es, actions, request_timeout = 300)
+        helpers.bulk(es, actions, request_timeout = 9999)
 
 
 def print_time(start_time):

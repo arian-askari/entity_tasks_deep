@@ -59,7 +59,7 @@ class Elastic(object):
     SIMILARITY = "sim"  # Used when other similarities are used
 
     def __init__(self, index_name):
-        self.__es = Elasticsearch(hosts=ELASTIC_HOSTS, request_timeout=9999)
+        self.__es = Elasticsearch(hosts=ELASTIC_HOSTS, timeout=9999)
         self.__index_name = index_name
 
     @staticmethod
@@ -251,10 +251,10 @@ class Elastic(object):
 
         if len(fields_return)>0:
             hits = self.__es.search(index=self.__index_name, q=query, df=field, _source=False, size=num,
-                                    fielddata_fields=fields_return, from_=start)["hits"]["hits"]
+                                    fielddata_fields=fields_return, from_=start, request_timeout= 9999)["hits"]["hits"]
         else:
             hits = self.__es.search(index=self.__index_name, q=query, df=field, _source=False, size=num,
-                                    from_=start)["hits"]["hits"]
+                                    from_=start, request_timeout = 9999)["hits"]["hits"]
         
         results = {}
 
@@ -339,7 +339,7 @@ class Elastic(object):
         :return: {'doc_id': {tv}, ..}
         """
         tv_all = self.__es.mtermvectors(index=self.__index_name, doc_type=self.DOC_TYPE, ids=",".join(doc_ids),
-                                        fields=field, term_statistics=term_stats)
+                                        fields=field, term_statistics=term_stats, request_timeout=9999)
         result = {}
         for tv in tv_all["docs"]:
             result[tv["_id"]] = tv.get("term_vectors", {}).get(field, {}).get("terms", {})

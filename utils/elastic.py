@@ -12,8 +12,12 @@ def getTokens(index, text):
 
     return tokens
 
-def find(index, conditions):
-    result = es.search(index=index, body=conditions, params={"size": 1000})
+def find(index, conditions, term_vector=False):
+    if term_vector is True:
+        result = es.search(index=index, body=conditions, params={"size": 1000,"term_statistics":True})
+    else:
+        result = es.search(index=index, body=conditions, params={"size": 1000})
+
     return result
 
 
