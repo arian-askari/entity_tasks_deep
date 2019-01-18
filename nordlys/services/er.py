@@ -96,7 +96,8 @@ class ER(object):
         if config.get("first_pass", None) is None:
             config["first_pass"] = {}
         if config["first_pass"].get("1st_num_docs", None) is None:
-            config["first_pass"]["1st_num_docs"] = 1000
+            # config["first_pass"]["1st_num_docs"] = 1000
+            config["first_pass"]["1st_num_docs"] = 100
         if config["first_pass"].get("fields_return", None) is None:
             config["first_pass"]["fields_return"] = ""
         if config.get("num_docs", None) is None:
