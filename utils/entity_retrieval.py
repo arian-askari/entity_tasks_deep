@@ -14,12 +14,16 @@ def get_entity_types(entity_name):
         }
 
     }, False)
-    type_keys_list = results['hits']['hits'][0]["_source"]["type_key_values"]
-    type_values_list = results['hits']['hits'][0]["_source"]["type_values"]
-    return (type_keys_list, type_values_list)
+
+    if results['hits']['total'] == 0:
+        return []
+    else:
+        print(results)
+        type_keys_list = results['hits']['hits'][0]["_source"]["type_key_values"]
+        type_values_list = results['hits']['hits'][0]["_source"]["type_values"]
+        return [type_keys_list, type_values_list]
 
 
-    return [] #types of entity e, read from elastic index dbpedia...!
 
 def get_entity_abstract(entity_name):
     index_name = cnf.cf['elastic']['entity_db']
@@ -33,8 +37,6 @@ def get_entity_abstract(entity_name):
     }, False)
     abstract = results['hits']['hits'][0]["_source"]["abstract"]
     return abstract
-
-
     return [] #types of entity e, read from elastic index dbpedia...!
 
 
@@ -50,11 +52,14 @@ def retrieve_entities(query, k=100):  # retrieve top k type for query, with nord
     top_entities = []
     for result_key, result_detail in d['results'].items():
         entity = result_detail['entity']
-
-        type_keys_list, type_values_list = get_entity_types(entity)
+        type_keys_list  = []
+        # type_values_list = None
+        res_types = get_entity_types(entity)
+        if len(res_types)>0:
+            type_keys_list = res_types[0]
+            # type_values_list = res_types[1]
         abstract = get_entity_abstract(entity)
 
-        # type_ = re.findall(r'dbo:(.*?)>', type_)[0]
         score = result_detail['score']
         rank = int(result_key)
         top_entities.append((entity, type_keys_list, abstract, score, rank))
@@ -67,6 +72,6 @@ def retrieve_entities(query, k=100):  # retrieve top k type for query, with nord
 # get_entity_abstract(e_example2)
 
 # query = "eminem album music"
-# query = "eminem"
-# r_k = retrieve_entities(query, k=100)
-# print(r_k)
+query = "eminem"
+r_k = retrieve_entities(query, k=100)
+print(r_k)
