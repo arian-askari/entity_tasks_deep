@@ -53,7 +53,7 @@ queries_w2v_char_level_path = os.path.join(dirname, '../data/types/queries_w2v_c
 q_ret_100_entities_path = os.path.join(dirname, '../data/types/q_ret_100_entities.csv')
 entity_unique_avg_w2v_path = os.path.join(dirname, '../data/types/entity_unique_avg_w2v.json')
 
-trainset_translation_matrix_path = os.path.join(dirname, '../data/types/trainset_translation_matrix.txt')
+trainset_translation_matrix_path = os.path.join(dirname, '../data/types/trainset_translation_matrix_v2_q_avg.txt')
 
 ##################################################################################################
 
@@ -559,7 +559,7 @@ def get_cosine_similarity(q_w2v_word, entity_avg_w2v):
 
 
 def get_trainslation_matrix(q_id, type, queries_w2v_char_level_dict , queries_ret_100_entities_dict, entity_unique_avg_w2v_dict):
-    query_max_len = 14
+    query_max_len = 1
     entity_max_retrieve = 100
 
     w2v_dim_len = 300
@@ -567,41 +567,36 @@ def get_trainslation_matrix(q_id, type, queries_w2v_char_level_dict , queries_re
     column_size = entity_max_retrieve
     row_size = query_max_len
 
-    translation_mattix_np = np.zeros([row_size, column_size])
+    translation_mattix_np = np.zeros([1, column_size])
 
     #queries_w2v_char_level_dict,   { q_id: (q_body,q_body_w2v_char_level_list_of_list)}
     #queries_ret_100_entities_dict, {q_id: [(q_body, retrieved_entity, [types of retrieved entity], abstract, relevant_score, rank)]}
     #entity_unique_avg_w2v_dict,     {entity_name: w2v_abstract_e}
 
-    current_row = -1
 
-    q_w2v_words = queries_w2v_char_level_dict[q_id][1]
     q_retrieved_entities = queries_ret_100_entities_dict[q_id]
 
-    for q_w2v_word in q_w2v_words:
-        current_column = -1
+    queries_feazture_dict = get_queries_feature_dict()
+    q_w2v_word = queries_feazture_dict[q_id][1]
 
-        current_row += 1
+    current_column = -1
 
-        if (all(v == 0 for v in q_w2v_word)):
-            continue #skip this row zeros, because query w2v doesn't exist !
+    row_np = np.zeros(column_size)
 
-        row_np = np.zeros(column_size)
+    for retrieved in q_retrieved_entities:
+        current_column += 1
 
-        for retrieved in q_retrieved_entities:
-            current_column += 1
+        q_body, retrieved_entity, types_of_retrieved_entity , abstract, relevant_score, rank = retrieved
 
-            q_body, retrieved_entity, types_of_retrieved_entity , abstract, relevant_score, rank = retrieved
+        if type not in types_of_retrieved_entity:
+            continue
 
-            if type not in types_of_retrieved_entity:
-                continue
+        entity_avg_w2v = entity_unique_avg_w2v_dict[retrieved_entity]
+        cosine_sim = get_cosine_similarity(q_w2v_word, entity_avg_w2v)
 
-            entity_avg_w2v = entity_unique_avg_w2v_dict[retrieved_entity]
-            cosine_sim = get_cosine_similarity(q_w2v_word, entity_avg_w2v)
+        row_np[current_column] = cosine_sim
 
-            row_np[current_column] = cosine_sim
-
-        translation_mattix_np[current_row, :] = row_np
+    translation_mattix_np[0, :] = row_np
 
     # cosine_sim_row = np.random.rand(w2v_dim_len)
     # translation_mattix_np[row_number,:] = cosine_sim_row
