@@ -9,7 +9,7 @@ from gensim.models.keyedvectors import KeyedVectors
 
 import utils.elastic as es
 import utils.type_retrieval as tp
-
+import utils.entity_retrieval as er_detailed
 
 def isfloat(value):
     try:
@@ -49,6 +49,7 @@ trainset_average_w2v_path = os.path.join(dirname, '../data/types/trainset_averag
 
 ####
 queries_w2v_char_level_path = os.path.join(dirname, '../data/types/queries_w2v_char_level_feature.csv')
+q_ret_100_entities_path = os.path.join(dirname, '../data/types/q_ret_100_entities.csv')
 
 
 
@@ -419,6 +420,16 @@ def get_raw_trainset_dict():
 
     return raw_trainset_dict
 
+def q_rel_entities_generator():
+    q_rel_entities_dict = {}
+    with open(queries_unique_raw_path) as tsv:
+        for line in csv.reader(tsv, dialect="excel-tab"):  # can also
+            q_id = str(line[0])
+            q_body = str(line[1])
+            q_rel_entities_dict[q_id] = er_detailed.retrieve_entities(q_body, k=100)
+
+    json.dump(q_rel_entities_dict, fp=open(q_ret_100_entities_path, 'w'))
+
 
 def save_trainset_average_w2v():
     types_feature_dict = get_types_feature_dict()
@@ -465,6 +476,8 @@ def get_trainset_average_w2v():
 # save_trainset_average_w2v()
 # quries_avg_w2v_generator()
 # q_w2v_char_level_generator()
+
+q_rel_entities_generator()
 
 # print("eiffel")
 # wrd1 = getVector("eiffel")
