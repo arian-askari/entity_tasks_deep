@@ -50,21 +50,36 @@ def substrac_dicts(dict1, dict2):
 
 
 def model_type_retrieval_v4(train_X, train_Y, test_X, test_Y): #one_layer, count of neuron is count of types!
-    model_type_retrieva_v1 = Sequential()
-    model_type_retrieva_v1.add(Dense(419, input_shape=(14, 100)))
+    model_type_retrieva_ec = Sequential()
+    model_type_retrieva_ec.add(Dense(419, input_shape=(14, 100)))
+    model_type_retrieva_ec.add(Activation('relu'))
 
-    model_type_retrieva_v1.add(Dense(8))  # classes: 0-7
-    model_type_retrieva_v1.add(Activation('softmax'))
+    model_type_retrieva_tc = Sequential()
+    model_type_retrieva_tc.add(Dense(419, input_shape=(600,)))
+    model_type_retrieva_tc.add(Activation('relu'))
+
+
+    merged_tc_ec = Sequential()
+
+    merged_tc_ec = Add()([model_type_retrieva_tc.output, model_type_retrieva_ec.output])
+    merged_tc_ec = Dense(8)(merged_tc_ec)
+    merged_tc_ec = Activation('softmax')(merged_tc_ec)
+
+    merged_tc_ec_newModel = Sequential()
+    merged_tc_ec_newModel = Model([model_type_retrieva_tc.input, model_type_retrieva_ec.input], merged_tc_ec)
+
+    # model_type_retrieva_v1.add(Dense(8))  # classes: 0-7
+    # model_type_retrieva_v1.add(Activation('softmax'))
 
 
     sgd = optimizers.RMSprop(lr=0.0001, rho=0.9, epsilon=None, decay=0.0)
     # optimizers.
-    model_type_retrieva_v1.compile(optimizer=sgd, loss='categorical_crossentropy', metrics=["accuracy"])
+    merged_tc_ec_newModel.compile(optimizer=sgd, loss='categorical_crossentropy', metrics=["accuracy"])
 
-    model_type_retrieva_v1.fit(train_X, train_Y, epochs=100, batch_size=1, verbose = 2)
+    merged_tc_ec_newModel.fit(train_X, train_Y, epochs=100, batch_size=1, verbose = 2)
 
-    predict_classes = model_type_retrieva_v1.predict_classes(test_X)
-    predicted_prob = model_type_retrieva_v1.predict_proba(test_X)
+    predict_classes = merged_tc_ec_newModel.predict_classes(test_X)
+    predicted_prob = merged_tc_ec_newModel.predict_proba(test_X)
 
     return (predict_classes, predicted_prob)
 
@@ -324,7 +339,8 @@ def create_file(path, data):
     f.close()
 
 
-trainset_average_w2v = tsg.get_trainset_translation_matrix_average_w2v()
+trainset_translation_matrix = tsg.get_trainset_translation_matrix_average_w2v()
+trainset_average_w2v = tsg.get_trainset_average_w2v()
 i = 0
 with open(queries_path, 'r') as ff:
     # print(q)
@@ -370,13 +386,17 @@ with open(queries_path, 'r') as ff:
         for query_ids_train in queries_for_train.keys():
             label_zero_count = 0
             q_id_train_set = trainset_average_w2v[query_ids_train]
+            q_id_trani_set_translation = trainset_translation_matrix[query_ids_train]
 
-            for train_set in q_id_train_set:
+            for train_set, train_set_translation in zip(q_id_train_set, q_id_trani_set_translation):
                 if train_set[1]=="0":
                     label_zero_count += 1
 
                     if (label_zero_count<=1):
-                        train_X.append(train_set[0])
+                        train_X.append([train_set[0], train_set_translation[0]])
+                        if train_set[1] != train_set_translation[1]:
+                            print("bug !, two different train set record was merged!")
+                            sys.exit(1)
                         train_Y.append(train_set[1])
                         train_TYPES.append(train_set[2])
                         q_id_train_list.append(query_ids_train)
@@ -396,12 +416,16 @@ with open(queries_path, 'r') as ff:
         for query_ids_test in queries_for_test_set:
             label_zero_count = 0
             q_id_test_set = trainset_average_w2v[query_ids_test[0]]
-            for test_set in q_id_test_set:
+            q_id_test_set_translation = trainset_translation_matrix[query_ids_test[0]]
+            for test_set, test_set_translation in zip(q_id_test_set,q_id_test_set_translation):
                 if test_set[1]=="0":
                     label_zero_count += 1
 
                 #if (label_zero_count<=1):
-                test_X.append(test_set[0])
+                test_X.append([test_set[0], test_set_translation[0]])
+                if (test_set_translation[1] != test_set[1]):
+                    print("bug !, two different train set record was merged!")
+                    sys.exit(1)
                 test_Y.append(test_set[1])
                 test_TYPES.append(test_set[2])
                 q_id_test_list.append(query_ids_test[0])
@@ -414,8 +438,8 @@ with open(queries_path, 'r') as ff:
 
         ######################## generate trec output for IR measures :) ########################
 
-        predict_classes_v2, predicted_prob_v2 = model_type_retrieval_v2(train_X, train_Y, test_X, test_Y_one_hot)
-        trec_output_modelv2 += get_trec_output(q_id_test_list, test_TYPES, test_Y, predict_classes_v2, predicted_prob_v2)
+        # predict_classes_v2, predicted_prob_v2 = model_type_retrieval_v2(train_X, train_Y, test_X, test_Y_one_hot)
+        # trec_output_modelv2 += get_trec_output(q_id_test_list, test_TYPES, test_Y, predict_classes_v2, predicted_prob_v2)
         #
         # predict_classes_v1, predicted_prob_v1 = model_type_retrieval_v1(train_X, train_Y, test_X, test_Y_one_hot)
         # trec_output_modelv1 += get_trec_output(q_id_test_list, test_TYPES, test_Y, predict_classes_v1, predicted_prob_v1)
@@ -424,28 +448,28 @@ with open(queries_path, 'r') as ff:
         # trec_output_modelv3 += get_trec_output(q_id_test_list, test_TYPES, test_Y, predict_classes_v3, predicted_prob_v3)
         #
         #
-        # predict_classes_v4, predicted_prob_v4 = model_type_retrieval_v4(train_X, train_Y, test_X, test_Y_one_hot)
-        # trec_output_modelv4 += get_trec_output(q_id_test_list, test_TYPES, test_Y, predict_classes_v4, predicted_prob_v4)
+        predict_classes_v4, predicted_prob_v4 = model_type_retrieval_v4(train_X, train_Y, test_X, test_Y_one_hot)
+        trec_output_modelv4 += get_trec_output(q_id_test_list, test_TYPES, test_Y, predict_classes_v4, predicted_prob_v4)
 
 
         ######################## generate trec output for IR measures :) ########################
         print("\n-----------------------------------------------\n\n\n")
         
 
-    trec_output_modelv2 = trec_output_modelv2.rstrip('\n')
+    # trec_output_modelv2 = trec_output_modelv2.rstrip('\n')
     # trec_output_modelv1 = trec_output_modelv1.rstrip('\n')
     # trec_output_modelv3 = trec_output_modelv3.rstrip('\n')
-    # trec_output_modelv4 = trec_output_modelv4.rstrip('\n')
+    trec_output_modelv4 = trec_output_modelv4.rstrip('\n')
 
-    modelv2_path = models_path + "2.run"
+    # modelv2_path = models_path + "2.run"
     # modelv1_path = models_path + "1.run"
     # modelv3_path = models_path + "3.run"
-    # modelv4_path = models_path + "4.run"
+    modelv4_path = models_path + "4.run"
 
-    create_file(modelv2_path, trec_output_modelv2)
+    # create_file(modelv2_path, trec_output_modelv2)
     # create_file(modelv1_path, trec_output_modelv1)
     # create_file(modelv3_path, trec_output_modelv3)
-    # create_file(modelv4_path, trec_output_modelv4)
+    create_file(modelv4_path, trec_output_modelv4)
 
 
     # sys.exit(1)
