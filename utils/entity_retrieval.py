@@ -68,9 +68,10 @@ def retrieve_entities(query, k=100):  # retrieve top k type for query, with nord
 
         score = result_detail['score']
         rank = int(result_key)
-
         top_entities.append((query, entity, type_keys_list, abstract, score, rank))
     # print(top_entities)
+    print("entity count found for this query; ", len(top_entities))
+
     return top_entities
 
 # e_example = "<dbpedia:A_Killing_Affair>"
