@@ -666,7 +666,7 @@ def get_trainset_average_w2v():
 # entity_unique_avg_w2v()
 
 # save_translation_matrix()
-save_translation_matrix()
+# save_translation_matrix()
 
 # print("eiffel")
 # wrd1 = getVector("eiffel")
