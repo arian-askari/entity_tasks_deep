@@ -50,7 +50,7 @@ trainset_average_w2v_path = os.path.join(dirname, '../data/types/trainset_averag
 ####
 queries_w2v_char_level_path = os.path.join(dirname, '../data/types/queries_w2v_char_level_feature.csv')
 q_ret_100_entities_path = os.path.join(dirname, '../data/types/q_ret_100_entities.csv')
-
+entity_unique_avg_w2v_path = os.path.join(dirname, '../data/types/entity_unique_avg_w2v.json')
 
 
 ##################################################################################################
@@ -271,6 +271,13 @@ def get_query_avg_w2v(q_body):
     q_avg_w2v = get_average_w2v(tokens)
     return q_avg_w2v
 
+def get_entity_avg_w2v(e_abstract):
+    INDEX_TYPE = "dbpedia_2015_10_types"
+    # tokens = es.getTokens(INDEX_TYPE, q_body)
+    tokens = e_abstract.split(" ")
+    e_avg_w2v = get_average_w2v(tokens)
+    return e_avg_w2v
+
 
 
 def w2v_train_set_generator():
@@ -436,6 +443,22 @@ def q_rel_entities_generator():
 
     json.dump(q_rel_entities_dict, fp=open(q_ret_100_entities_path, 'w'))
 
+def entity_unique_avg_w2v():
+    entity_avg_w2v_dict = {}
+    '''
+        {entity_name: w2v_abstract_e}
+    '''
+    with open(q_ret_100_entities_path, 'r') as ff:
+        q_rel_entities_dict = json.load(ff)
+
+        for q_id, q_ret in q_rel_entities_dict.items():
+            for ret in q_ret:
+                q_body, retrieved_entity, types_of_retrieved_entity, abstract, relevant_score, rank = ret
+                if retrieved_entity not in entity_avg_w2v_dict:
+                    entity_avg_w2v_dict[retrieved_entity] = get_entity_avg_w2v(abstract)
+
+    json.dump(entity_avg_w2v_dict, fp=open(entity_unique_avg_w2v_path, 'w'))
+
 
 def save_trainset_average_w2v():
     types_feature_dict = get_types_feature_dict()
@@ -484,6 +507,7 @@ def get_trainset_average_w2v():
 # q_w2v_char_level_generator()
 
 # q_rel_entities_generator()
+entity_unique_avg_w2v()
 
 # print("eiffel")
 # wrd1 = getVector("eiffel")
