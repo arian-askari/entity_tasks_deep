@@ -273,8 +273,8 @@ def get_query_avg_w2v(q_body):
 
 def get_entity_avg_w2v(e_abstract):
     INDEX_TYPE = "dbpedia_2015_10_types"
-    # tokens = es.getTokens(INDEX_TYPE, q_body)
-    tokens = e_abstract.split(" ")
+    tokens = es.getTokens(INDEX_TYPE, e_abstract)
+    # tokens = e_abstract.split(" ")
     e_avg_w2v = get_average_w2v(tokens)
     return e_avg_w2v
 
@@ -456,6 +456,8 @@ def entity_unique_avg_w2v():
                 q_body, retrieved_entity, types_of_retrieved_entity, abstract, relevant_score, rank = ret
                 if retrieved_entity not in entity_avg_w2v_dict:
                     entity_avg_w2v_dict[retrieved_entity] = get_entity_avg_w2v(abstract)
+                    kkkk=0
+            break
 
     json.dump(entity_avg_w2v_dict, fp=open(entity_unique_avg_w2v_path, 'w'))
 
