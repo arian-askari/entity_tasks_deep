@@ -422,6 +422,9 @@ def get_raw_trainset_dict():
 
 def q_rel_entities_generator():
     q_rel_entities_dict = {}
+    '''
+        {q_id: [(q_body, retrieved_entity, [types of retrieved entity], abstract, relevant_score, rank)]}
+    '''
     with open(queries_unique_raw_path) as tsv:
         cnt = 0
         for line in csv.reader(tsv, dialect="excel-tab"):  # can also
@@ -480,7 +483,7 @@ def get_trainset_average_w2v():
 # quries_avg_w2v_generator()
 # q_w2v_char_level_generator()
 
-q_rel_entities_generator()
+# q_rel_entities_generator()
 
 # print("eiffel")
 # wrd1 = getVector("eiffel")
