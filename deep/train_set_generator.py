@@ -1,6 +1,7 @@
 import os, subprocess, json, ast, sys, re, random, csv, json
 import seaborn as sns
 import numpy as np
+from scipy import spatial
 
 np.set_printoptions(threshold=np.inf)
 
@@ -52,6 +53,7 @@ queries_w2v_char_level_path = os.path.join(dirname, '../data/types/queries_w2v_c
 q_ret_100_entities_path = os.path.join(dirname, '../data/types/q_ret_100_entities.csv')
 entity_unique_avg_w2v_path = os.path.join(dirname, '../data/types/entity_unique_avg_w2v.json')
 
+trainset_translation_matrix_path = os.path.join(dirname, '../data/types/trainset_translation_matrix.txt')
 
 ##################################################################################################
 
@@ -493,6 +495,121 @@ def entity_unique_avg_w2v():
 
     json.dump(entity_avg_w2v_dict, fp=open(entity_unique_avg_w2v_path, 'w'))
 
+########################################
+def get_queries_char_level_w2v_dict():
+    queries_w2v_char_level_dict = dict()
+    '''
+    { q_id: (q_body,q_body_w2v_char_level_list_of_list)}
+    queries_feature['q_id'][1]//get list of list of  w2v of q_id terms !
+    '''
+    with open(queries_w2v_char_level_path) as tsv:
+        for line in csv.reader(tsv, dialect="excel-tab"):  # can also
+            q_id = str(line[0])
+            q_body = str(line[1])
+
+            q_body_w2v_char_level = str(line[2])
+            q_body_w2v_char_level = ast.literal_eval(q_body_w2v_char_level)
+            queries_w2v_char_level_dict[q_id] = (q_body, q_body_w2v_char_level)
+
+    return queries_w2v_char_level_dict
+
+def get_queries_ret_100_entities_dict():
+    with open(q_ret_100_entities_path, 'r') as ff:
+        queries_ret_100_entities_dict = json.load(ff)
+        return queries_ret_100_entities_dict
+
+def get_entity_unique_avg_w2v_dict():
+    with open(entity_unique_avg_w2v_path, 'r') as ff:
+        entity_unique_avg_w2v_dict = json.load(ff)
+        return entity_unique_avg_w2v_dict
+
+def save_translation_matrix():
+    queries_w2v_char_level_dict = get_queries_char_level_w2v_dict()
+    #{ q_id: (q_body,q_body_w2v_char_level_list_of_list)}
+
+    queries_ret_100_entities_dict = get_queries_ret_100_entities_dict()
+    #{q_id: [(q_body, retrieved_entity, [types of retrieved entity], abstract, relevant_score, rank)]}
+
+    entity_unique_avg_w2v_dict = get_entity_unique_avg_w2v_dict()
+    # {entity_name: w2v_abstract_e}
+
+    train_set_translation_matrix_dict = dict()
+
+    with open(train_set_row_path) as tsv:
+        for line in csv.reader(tsv, dialect="excel-tab"):  # can also
+            q_id = str(line[0])
+            q_body = str(line[1])
+            q_type = str(line[2])
+            q_type_rel_class = str(line[3])
+
+            translation_matrix_np = get_trainslation_matrix(q_id, q_type, queries_w2v_char_level_dict , queries_ret_100_entities_dict, entity_unique_avg_w2v_dict)
+            translation_matrix_list = translation_matrix_np.tolist()
+
+            if q_id not in train_set_translation_matrix_dict:
+                train_set_translation_matrix_dict[q_id] = [(translation_matrix_list, q_type_rel_class, q_type)]
+            else:
+                train_set_translation_matrix_dict[q_id].append((translation_matrix_list, q_type_rel_class, q_type))
+
+        json.dump(train_set_translation_matrix_dict, fp=open(trainset_translation_matrix_path, 'w'))
+
+
+def get_cosine_similarity(q_w2v_word, entity_avg_w2v):
+    cosine_sim = 1 - spatial.distance.cosine(q_w2v_word, entity_avg_w2v)
+    return cosine_sim
+
+
+def get_trainslation_matrix(q_id, type, queries_w2v_char_level_dict , queries_ret_100_entities_dict, entity_unique_avg_w2v_dict):
+    query_max_len = 14
+    entity_max_retrieve = 100
+
+    w2v_dim_len = 300
+
+    column_size = entity_max_retrieve
+    row_size = query_max_len
+
+    translation_mattix_np = np.zeros([row_size, column_size])
+
+    #queries_w2v_char_level_dict,   { q_id: (q_body,q_body_w2v_char_level_list_of_list)}
+    #queries_ret_100_entities_dict, {q_id: [(q_body, retrieved_entity, [types of retrieved entity], abstract, relevant_score, rank)]}
+    #entity_unique_avg_w2v_dict,     {entity_name: w2v_abstract_e}
+
+    current_row = -1
+
+    q_w2v_words = queries_w2v_char_level_dict[q_id][1]
+    q_retrieved_entities = queries_ret_100_entities_dict[q_id]
+
+    for q_w2v_word in q_w2v_words:
+        current_column = -1
+
+        current_row += 1
+
+        if (all(v == 0 for v in q_w2v_word)):
+            continue #skip this row zeros, because query w2v doesn't exist !
+
+        row_np = np.zeros(column_size)
+
+        for retrieved in q_retrieved_entities:
+            current_column += 1
+
+            q_body, retrieved_entity, types_of_retrieved_entity , abstract, relevant_score, rank = retrieved
+
+            if type not in types_of_retrieved_entity:
+                continue
+
+            entity_avg_w2v = entity_unique_avg_w2v_dict[retrieved_entity]
+            cosine_sim = get_cosine_similarity(q_w2v_word, entity_avg_w2v)
+
+            row_np[current_column] = cosine_sim
+
+        translation_mattix_np[current_row, :] = row_np
+
+    # cosine_sim_row = np.random.rand(w2v_dim_len)
+    # translation_mattix_np[row_number,:] = cosine_sim_row
+
+    return translation_mattix_np
+
+
+########################################3
 
 def save_trainset_average_w2v():
     types_feature_dict = get_types_feature_dict()
@@ -543,6 +660,9 @@ def get_trainset_average_w2v():
 
 # q_rel_entities_generator()
 # entity_unique_avg_w2v()
+
+# save_translation_matrix()
+save_translation_matrix()
 
 # print("eiffel")
 # wrd1 = getVector("eiffel")
