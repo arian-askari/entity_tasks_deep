@@ -42,7 +42,7 @@ word2vec_train_set_path = '/home/arian/workSpaces/entityArticle/entity-attr-reso
 word_vectors = []
 
 # models_path = os.path.join(dirname, '../data/runs/sig17/model_v')
-models_path = os.path.join(dirname, '../data/runs/model_v')
+models_path = os.path.join(dirname, '../data/runs/translation/model_v')
 
 def substrac_dicts(dict1, dict2):
     return dict(set(dict1.items()) - set((dict(dict2)).items()))
@@ -51,7 +51,7 @@ def substrac_dicts(dict1, dict2):
 
 def model_type_retrieval_v4(train_X, train_Y, test_X, test_Y): #one_layer, count of neuron is count of types!
     model_type_retrieva_v1 = Sequential()
-    model_type_retrieva_v1.add(Dense(419, input_shape=(600,)))
+    model_type_retrieva_v1.add(Dense(419, input_shape=(14, 100)))
 
     model_type_retrieva_v1.add(Dense(8))  # classes: 0-7
     model_type_retrieva_v1.add(Activation('softmax'))
@@ -71,7 +71,7 @@ def model_type_retrieval_v4(train_X, train_Y, test_X, test_Y): #one_layer, count
 
 def model_type_retrieval_v3(train_X, train_Y, test_X, test_Y):
     model_type_retrieva_v1 = Sequential()
-    model_type_retrieva_v1.add(Dense(1000, input_shape=(600,)))
+    model_type_retrieva_v1.add(Dense(1000, input_shape=(14, 100)))
 
     model_type_retrieva_v1.add(Dense(900))
     model_type_retrieva_v1.add(Activation('relu'))
@@ -139,7 +139,7 @@ def model_type_retrieval_v3(train_X, train_Y, test_X, test_Y):
 
 def model_type_retrieval_v2(train_X, train_Y, test_X, test_Y):
     model_type_retrieva_v1 = Sequential()
-    model_type_retrieva_v1.add(Dense(1000, input_shape=(600,)))
+    model_type_retrieva_v1.add(Dense(1000, input_shape=(14, 100)))
 
     model_type_retrieva_v1.add(Dense(800))
     model_type_retrieva_v1.add(Activation('relu'))
@@ -184,7 +184,7 @@ def model_type_retrieval_v1(train_X, train_Y, test_X, test_Y):
     avg_q_ = [] #baes bani error e dar nahayat!
 
     model_type_retrieva_v1 = Sequential()
-    model_type_retrieva_v1.add(Dense(20, input_shape=(600,)))
+    model_type_retrieva_v1.add(Dense(20, input_shape=(14, 100)))
 
     model_type_retrieva_v1.add(Dense(37))
     model_type_retrieva_v1.add(Activation('relu'))
@@ -316,7 +316,7 @@ def create_file(path, data):
     f.close()
 
 
-trainset_average_w2v = tsg.get_trainset_average_w2v()
+trainset_average_w2v = tsg.get_trainset_translation_matrix_average_w2v()
 i = 0
 with open(queries_path, 'r') as ff:
     # print(q)

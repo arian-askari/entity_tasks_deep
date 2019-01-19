@@ -608,6 +608,10 @@ def get_trainslation_matrix(q_id, type, queries_w2v_char_level_dict , queries_re
 
     return translation_mattix_np
 
+def get_trainset_translation_matrix_average_w2v():
+    train_set_translation_matrix_dict = json.load(open(trainset_translation_matrix_path))
+    return train_set_translation_matrix_dict
+
 
 ########################################3
 
