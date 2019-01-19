@@ -423,9 +423,12 @@ def get_raw_trainset_dict():
 def q_rel_entities_generator():
     q_rel_entities_dict = {}
     with open(queries_unique_raw_path) as tsv:
+        cnt = 0
         for line in csv.reader(tsv, dialect="excel-tab"):  # can also
+            cnt +=1
             q_id = str(line[0])
             q_body = str(line[1])
+            print("cnt:", cnt, " q_body:", q_body)
             q_rel_entities_dict[q_id] = er_detailed.retrieve_entities(q_body, k=100)
 
     json.dump(q_rel_entities_dict, fp=open(q_ret_100_entities_path, 'w'))
