@@ -490,8 +490,6 @@ def entity_unique_avg_w2v():
                 q_body, retrieved_entity, types_of_retrieved_entity, abstract, relevant_score, rank = ret
                 if retrieved_entity not in entity_avg_w2v_dict:
                     entity_avg_w2v_dict[retrieved_entity] = get_entity_avg_w2v(abstract).tolist()
-                    kkkk=0
-            break
 
     json.dump(entity_avg_w2v_dict, fp=open(entity_unique_avg_w2v_path, 'w'))
 
@@ -541,10 +539,10 @@ def get_trainset_average_w2v():
 # save_trainset_average_w2v()
 # quries_avg_w2v_generator()
 
-q_w2v_char_level_generator()
+# q_w2v_char_level_generator()
 
 # q_rel_entities_generator()
-entity_unique_avg_w2v()
+# entity_unique_avg_w2v()
 
 # print("eiffel")
 # wrd1 = getVector("eiffel")
