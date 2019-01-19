@@ -116,13 +116,13 @@ def get_vec_several_try(token):
     return []
 
 def get_average_w2v_multi_try(tokens):
-    q_w2v_character_level_list = []  # store list of w2v vector(300-D) for each q_word
+    character_level_list = []  # store list of w2v vector(300-D) for each q_word
 
     for token in tokens:
         token = token.replace("(", "").replace(")", "")
         vec = get_vec_several_try(token)
         if len(vec) > 0:  # try to find original term, w2c
-            q_w2v_character_level_list.append(vec)
+            character_level_list.append(vec)
             continue
 
         INDEX_TYPE = "dbpedia_2015_10_types"
@@ -138,13 +138,14 @@ def get_average_w2v_multi_try(tokens):
         if len(char_level_list_temp) > 0:
             char_level_list_temp = [sum(x) for x in zip(*char_level_list_temp)]
             char_level_list_avg = [x / len(char_level_list_temp) for x in char_level_list_temp]
-            char_level_list_temp.append(char_level_list_avg)
+            character_level_list.append(char_level_list_avg)
             continue
 
+    if len(character_level_list) == 0:
         return []
 
-    q_w2v_character_level_list = np.array(q_w2v_character_level_list)
-    vector_mn = q_w2v_character_level_list.mean(axis=0)
+    e_w2v_character_level_list = np.array(character_level_list)
+    vector_mn = e_w2v_character_level_list.mean(axis=0)
     return vector_mn
 
 def get_query_character_level_w2v(q_body):
@@ -173,7 +174,8 @@ def get_query_character_level_w2v(q_body):
         if len(char_level_list_temp)>0:
             char_level_list_temp = [sum(x) for x in zip(*char_level_list_temp)]
             char_level_list_avg = [x / len(char_level_list_temp) for x in char_level_list_temp]
-            char_level_list_temp.append(char_level_list_avg)
+            # char_level_list_temp.append(char_level_list_avg)
+            q_w2v_character_level_list.append(char_level_list_avg)
             continue
 
         q_w2v_character_level_list.append(np.zeros(300).tolist())
@@ -538,7 +540,8 @@ def get_trainset_average_w2v():
 
 # save_trainset_average_w2v()
 # quries_avg_w2v_generator()
-# q_w2v_char_level_generator()
+
+q_w2v_char_level_generator()
 
 # q_rel_entities_generator()
 entity_unique_avg_w2v()
