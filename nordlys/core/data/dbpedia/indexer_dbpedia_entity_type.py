@@ -50,13 +50,14 @@ class IndexerDBpediaTypes(object):
     }
 
     def __init__(self, config):
+        baepath = "../../../../"
         self.__elastic = None
         self.__config = config
         self.__model = config.get("model", Elastic.BM25)
         self.__index_name = config["index_name"]
-        self.__type2entity_file = config["type2entity_file"]
+        self.__type2entity_file = baepath + config["type2entity_file"]
         self.__entity_abstracts = {}
-        self.__load_entity_abstracts(config["entity_abstracts_file"])
+        self.__load_entity_abstracts(baepath + config["entity_abstracts_file"])
 
     @property
     def name(self):
@@ -203,13 +204,18 @@ class IndexerDBpediaTypes(object):
 # -------
 # Main script
 
-def main(args):
+# def main(args):
+def main():
     # config = FileUtils.load_config(args.config)
     #arian change this line !
-    config = FileUtils.load_config(args.config)
 
-    type2entity_file = os.path.expanduser(os.path.join(config.get("type2entity_file", "")))
-    entity_abstracts_file = os.path.expanduser(os.path.join(config.get("entity_abstracts_file", "")))
+
+    # config = FileUtils.load_config(args.config)
+    baepath = "../../../../"
+    config = FileUtils.load_config(baepath + "data/config/index_dbpedia_2015_10_types.config.json")
+
+    type2entity_file = os.path.expanduser(os.path.join(baepath + config.get("type2entity_file", "")))
+    entity_abstracts_file = os.path.expanduser(os.path.join(baepath + config.get("entity_abstracts_file", "")))
     if (not os.path.isfile(type2entity_file)) or (not os.path.isfile(entity_abstracts_file)):
         exit(1)
 
@@ -236,4 +242,5 @@ def arg_parser(description=None):
 
 
 if __name__ == "__main__":
-    main(arg_parser())
+    main()
+    # main(arg_parser())
