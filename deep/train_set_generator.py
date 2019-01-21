@@ -26,34 +26,40 @@ queries_path = os.path.join(dirname, '../data/dbpedia-v1/queries_type_retrieval.
 qrel_types_path = os.path.join(dirname, '../data/types/qrels-tti-dbpedia.txt')
 
 ##################################################################################################
-# train_set_row_path = os.path.join(dirname, '../data/types/sig17/train_set_row_sig17.csv')
-# train_set_feature_path = os.path.join(dirname, '../data/types/sig17/train_set_feature_sig17.csv')
+train_set_row_path = os.path.join(dirname, '../data/types/sig17/train_set_row_sig17.csv')
+train_set_feature_path = os.path.join(dirname, '../data/types/sig17/train_set_feature_sig17.csv')
 
-# types_unique_raw_path = os.path.join(dirname, '../data/types/sig17/types_unique_raw_sig17.csv')
-# queries_unique_raw_path = os.path.join(dirname, '../data/types/sig17/quries_unique_row_sig17.txt')
-#
-# types_unique_feature_path = os.path.join(dirname, '../data/types/sig17/types_unique_feature_sig17.csv')
-# queries_unique_feature_path = os.path.join(dirname, '../data/types/sig17/quries_unique_feature_sig17.csv')
-# trainset_average_w2v_path = os.path.join(dirname, '../data/types/sig17/trainset_average_w2v_sig17.txt')
+types_unique_raw_path = os.path.join(dirname, '../data/types/sig17/types_unique_raw_sig17.csv')
+queries_unique_raw_path = os.path.join(dirname, '../data/types/sig17/quries_unique_row_sig17.txt')
+
+types_unique_feature_path = os.path.join(dirname, '../data/types/sig17/types_unique_feature_sig17.csv')
+queries_unique_feature_path = os.path.join(dirname, '../data/types/sig17/quries_unique_feature_sig17.csv')
+trainset_average_w2v_path = os.path.join(dirname, '../data/types/sig17/trainset_average_w2v_sig17.txt')
+
+queries_w2v_char_level_path = os.path.join(dirname, '../data/types/sig17/queries_w2v_char_level_feature.csv')
+q_ret_100_entities_path = os.path.join(dirname, '../data/types/sig17/q_ret_100_entities.csv')
+entity_unique_avg_w2v_path = os.path.join(dirname, '../data/types/sig17/entity_unique_avg_w2v.json')
+
+trainset_translation_matrix_path = os.path.join(dirname, '../data/types/sig17/trainset_translation_matrix.txt')
 ##################################################################################################
 
-train_set_feature_path = os.path.join(dirname, '../data/types/train_set_feature.csv')
-train_set_row_path = os.path.join(dirname, '../data/types/train_set_row.csv')
-
-types_unique_raw_path = os.path.join(dirname, '../data/types/types_unique_raw.csv')
-queries_unique_raw_path = os.path.join(dirname, '../data/types/quries_unique_row.csv')
-
-types_unique_feature_path = os.path.join(dirname, '../data/types/types_unique_feature.csv')
-queries_unique_feature_path = os.path.join(dirname, '../data/types/quries_unique_feature.csv')
-
-trainset_average_w2v_path = os.path.join(dirname, '../data/types/trainset_average_w2v.txt')
-
-####
-queries_w2v_char_level_path = os.path.join(dirname, '../data/types/queries_w2v_char_level_feature.csv')
-q_ret_100_entities_path = os.path.join(dirname, '../data/types/q_ret_100_entities.csv')
-entity_unique_avg_w2v_path = os.path.join(dirname, '../data/types/entity_unique_avg_w2v.json')
-
-trainset_translation_matrix_path = os.path.join(dirname, '../data/types/trainset_translation_matrix.txt')
+# train_set_feature_path = os.path.join(dirname, '../data/types/train_set_feature.csv')
+# train_set_row_path = os.path.join(dirname, '../data/types/train_set_row.csv')
+#
+# types_unique_raw_path = os.path.join(dirname, '../data/types/types_unique_raw.csv')
+# queries_unique_raw_path = os.path.join(dirname, '../data/types/quries_unique_row.csv')
+#
+# types_unique_feature_path = os.path.join(dirname, '../data/types/types_unique_feature.csv')
+# queries_unique_feature_path = os.path.join(dirname, '../data/types/quries_unique_feature.csv')
+#
+# trainset_average_w2v_path = os.path.join(dirname, '../data/types/trainset_average_w2v.txt')
+#
+# ####
+# queries_w2v_char_level_path = os.path.join(dirname, '../data/types/queries_w2v_char_level_feature.csv')
+# q_ret_100_entities_path = os.path.join(dirname, '../data/types/q_ret_100_entities.csv')
+# entity_unique_avg_w2v_path = os.path.join(dirname, '../data/types/entity_unique_avg_w2v.json')
+#
+# trainset_translation_matrix_path = os.path.join(dirname, '../data/types/trainset_translation_matrix.txt')
 
 ##################################################################################################
 
@@ -661,10 +667,10 @@ def get_trainset_average_w2v():
 # quries_avg_w2v_generator()
 
 # q_w2v_char_level_generator()
-
+#
 # q_rel_entities_generator()
 # entity_unique_avg_w2v()
-
+#
 # save_translation_matrix()
 # save_translation_matrix()
 
