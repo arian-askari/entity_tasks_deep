@@ -4,6 +4,7 @@ import csv
 import seaborn as sns
 import numpy as np
 
+import keras
 import keras_metrics
 from keras.layers.core import Dense, Activation
 from keras.optimizers import Adagrad
@@ -42,44 +43,74 @@ word2vec_train_set_path = '/home/arian/workSpaces/entityArticle/entity-attr-reso
 word_vectors = []
 
 # models_path = os.path.join(dirname, '../data/runs/sig17/model_v')
-models_path = os.path.join(dirname, '../data/runs/translation/model_v')
+
+
+# models_path = os.path.join(dirname, '../data/runs/translation/model_merged_v')
+models_path = os.path.join(dirname, '../data/runs/translation/sig17/model_merged_v')
+
+# models_path = os.path.join(dirname, '../data/runs/translation/model_v')
 
 def substrac_dicts(dict1, dict2):
     return dict(set(dict1.items()) - set((dict(dict2)).items()))
 
 
 
-def model_type_retrieval_v4(train_X, train_Y, test_X, test_Y): #one_layer, count of neuron is count of types!
-    model_type_retrieva_ec = Sequential()
-    model_type_retrieva_ec.add(Dense(419, input_shape=(14, 100)))
-    model_type_retrieva_ec.add(Activation('relu'))
+def model_type_retrieval_v4(train_X, train_Y, test_X, test_Y, train_X2, test_X2): #one_layer, count of neuron is count of types!
 
-    model_type_retrieva_tc = Sequential()
-    model_type_retrieva_tc.add(Dense(419, input_shape=(600,)))
-    model_type_retrieva_tc.add(Activation('relu'))
+    ##################################################################################################################################
+    input1 = keras.layers.Input(shape=(600,))
+    x1 = keras.layers.Dense(419, activation='relu')(input1)
+
+    input2 = keras.layers.Input(shape=(1400,))
+    x2 = keras.layers.Dense(419, activation='relu')(input2)
+
+    # equivalent to added = keras.layers.add([x1, x2])
+    added = keras.layers.Add()([x1, x2])
+
+    out = keras.layers.Dense(8, activation='softmax')(added)
+    model = keras.models.Model(inputs=[input1, input2], outputs=out)
+    ##################################################################################################################################
 
 
-    merged_tc_ec = Sequential()
 
-    merged_tc_ec = Add()([model_type_retrieva_tc.output, model_type_retrieva_ec.output])
-    merged_tc_ec = Dense(8)(merged_tc_ec)
-    merged_tc_ec = Activation('softmax')(merged_tc_ec)
+    ##################################################################################################################################
+    # model_ec = Sequential()
+    # model_ec.add(Dense(419, input_shape=(1400,)))
+    # model_ec.add(Activation('softmax'))
+    #
+    # model_tc = Sequential()
+    # model_tc.add(Dense(419, input_shape=(600,)))
+    # model_tc.add(Activation('softmax'))
+    #
+    # merged_q1_d1 = Sequential()
+    #
+    # merged_tc_ec = Add()([model_tc.output, model_ec.output])
+    # merged_tc_ec = Dense(8)(merged_tc_ec)
+    # merged_tc_ec = Activation('softmax')(merged_tc_ec)
+    #
+    # merged_q1_d1_newModel = Sequential()
+    # merged_q1_d1_newModel = Model([model_tc.input, model_ec.input], merged_tc_ec)
 
-    merged_tc_ec_newModel = Sequential()
-    merged_tc_ec_newModel = Model([model_type_retrieva_tc.input, model_type_retrieva_ec.input], merged_tc_ec)
-
-    # model_type_retrieva_v1.add(Dense(8))  # classes: 0-7
-    # model_type_retrieva_v1.add(Activation('softmax'))
+    ##################################################################################################################################
 
 
     sgd = optimizers.RMSprop(lr=0.0001, rho=0.9, epsilon=None, decay=0.0)
     # optimizers.
-    merged_tc_ec_newModel.compile(optimizer=sgd, loss='categorical_crossentropy', metrics=["accuracy"])
 
-    merged_tc_ec_newModel.fit(train_X, train_Y, epochs=100, batch_size=1, verbose = 2)
+    # merged_q1_d1_newModel.compile(optimizer=sgd, loss='categorical_crossentropy', metrics=["accuracy"])
+    #
+    # merged_q1_d1_newModel.fit([train_X,train_X2], train_Y, epochs=100, batch_size=1, verbose = 2)
 
-    predict_classes = merged_tc_ec_newModel.predict_classes(test_X)
-    predicted_prob = merged_tc_ec_newModel.predict_proba(test_X)
+    # predict_classes = merged_q1_d1_newModel.predict_classes([test_X,test_X2])
+    # predicted_prob = merged_q1_d1_newModel.predict_proba([test_X,test_X2])
+
+    model.compile(optimizer=sgd, loss='categorical_crossentropy', metrics=["accuracy"])
+
+    model.fit([train_X,train_X2], train_Y, epochs=100, batch_size=1, verbose = 2)
+
+
+    predicted_prob = model.predict([test_X,test_X2])
+    predict_classes = predicted_prob.argmax(axis=-1)
 
     return (predict_classes, predicted_prob)
 
@@ -360,13 +391,16 @@ with open(queries_path, 'r') as ff:
     for i in range(k_fold):
         q_id_train_list = []
         train_X = []
+        train_X2 = []
         train_Y = []
         train_TYPES = []
 
         test_X = []
+        test_X2 = []
         test_Y = []
         test_TYPES = []
         q_id_test_list = []
+
 
 
         fold_size = int(len(queries_dict)/k_fold)  #168/6=28
@@ -393,7 +427,14 @@ with open(queries_path, 'r') as ff:
                     label_zero_count += 1
 
                     if (label_zero_count<=1):
-                        train_X.append([train_set[0], train_set_translation[0]])
+                        train_X.append(train_set[0])
+
+                        t = np.array(train_set_translation[0])
+                        t = t.flatten()
+
+                        train_X2.append(t)
+                        # train_X2.append(train_set_translation[0])
+
                         if train_set[1] != train_set_translation[1]:
                             print("bug !, two different train set record was merged!")
                             sys.exit(1)
@@ -402,6 +443,13 @@ with open(queries_path, 'r') as ff:
                         q_id_train_list.append(query_ids_train)
                 else:
                     train_X.append(train_set[0])
+
+                    t = np.array(train_set_translation[0])
+                    t = t.flatten()
+
+                    train_X2.append(t)
+
+                    # train_X2.append(train_set_translation[0])
                     train_Y.append(train_set[1])
                     train_TYPES.append(train_set[2])
                     q_id_train_list.append(query_ids_train)
@@ -410,7 +458,7 @@ with open(queries_path, 'r') as ff:
         train_Y = train_Y.values.tolist()
 
 
-        train_X = np.array(train_X)
+        # train_X = np.array(train_X)
         train_Y = np.array(train_Y)
 
         for query_ids_test in queries_for_test_set:
@@ -422,7 +470,14 @@ with open(queries_path, 'r') as ff:
                     label_zero_count += 1
 
                 #if (label_zero_count<=1):
-                test_X.append([test_set[0], test_set_translation[0]])
+                test_X.append(test_set[0])
+
+                t = np.array(test_set_translation[0])
+                t = t.flatten()
+
+                test_X2.append(t)
+                # test_X2.append(test_set_translation[0])
+
                 if (test_set_translation[1] != test_set[1]):
                     print("bug !, two different train set record was merged!")
                     sys.exit(1)
@@ -433,7 +488,7 @@ with open(queries_path, 'r') as ff:
         test_Y_one_hot = pd.get_dummies(test_Y)
         test_Y_one_hot = test_Y_one_hot.values.tolist()
 
-        test_X = np.array(test_X)
+        # test_X = np.array(test_X)
         test_Y_one_hot = np.array(test_Y_one_hot)
 
         ######################## generate trec output for IR measures :) ########################
@@ -448,7 +503,7 @@ with open(queries_path, 'r') as ff:
         # trec_output_modelv3 += get_trec_output(q_id_test_list, test_TYPES, test_Y, predict_classes_v3, predicted_prob_v3)
         #
         #
-        predict_classes_v4, predicted_prob_v4 = model_type_retrieval_v4(train_X, train_Y, test_X, test_Y_one_hot)
+        predict_classes_v4, predicted_prob_v4 = model_type_retrieval_v4(train_X, train_Y, test_X, test_Y_one_hot, train_X2, test_X2)
         trec_output_modelv4 += get_trec_output(q_id_test_list, test_TYPES, test_Y, predict_classes_v4, predicted_prob_v4)
 
 
