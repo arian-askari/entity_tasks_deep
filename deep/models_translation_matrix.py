@@ -53,6 +53,19 @@ def model_type_retrieval_v4(train_X, train_Y, test_X, test_Y): #one_layer, count
     model_type_retrieva_v1 = Sequential()
     model_type_retrieva_v1.add(Dense(419, input_shape=(14, 100)))
 
+    model_type_retrieva_v1.add(MaxPooling1D())
+    model_type_retrieva_v1.add(Dropout(0.3))
+
+    model_type_retrieva_v1.add(Flatten())
+
+
+    #poooling ghaedtanaa bayad bezanam bad flatten konam!
+    '''
+    model_type_retrieva_v1.add(TimeDistributed(Dense(1)))
+    model_type_retrieva_v1.add(AveragePooling1D())
+    model_type_retrieva_v1.add(Dropout(0.3))
+    '''
+
     model_type_retrieva_v1.add(Dense(8))  # classes: 0-7
     model_type_retrieva_v1.add(Activation('softmax'))
 
@@ -61,7 +74,7 @@ def model_type_retrieval_v4(train_X, train_Y, test_X, test_Y): #one_layer, count
     # optimizers.
     model_type_retrieva_v1.compile(optimizer=sgd, loss='categorical_crossentropy', metrics=["accuracy"])
 
-    model_type_retrieva_v1.fit(train_X, train_Y, epochs=100, batch_size=1, verbose = 2)
+    model_type_retrieva_v1.fit(train_X, train_Y, epochs=200, batch_size=1, verbose = 2)
 
     predict_classes = model_type_retrieva_v1.predict_classes(test_X)
     predicted_prob = model_type_retrieva_v1.predict_proba(test_X)
@@ -72,6 +85,9 @@ def model_type_retrieval_v4(train_X, train_Y, test_X, test_Y): #one_layer, count
 def model_type_retrieval_v3(train_X, train_Y, test_X, test_Y):
     model_type_retrieva_v1 = Sequential()
     model_type_retrieva_v1.add(Dense(1000, input_shape=(14, 100)))
+
+    model_type_retrieva_v1.add(Flatten())
+
 
     model_type_retrieva_v1.add(Dense(900))
     model_type_retrieva_v1.add(Activation('relu'))
@@ -143,8 +159,9 @@ def model_type_retrieval_v2(train_X, train_Y, test_X, test_Y):
 
     #poooling ghaedtanaa bayad bezanam bad flatten konam!
     '''
-    model.add(TimeDistributed(Dense(1)))
-    model.add(AveragePooling1D())
+    model_type_retrieva_v1.add(TimeDistributed(Dense(1)))
+    model_type_retrieva_v1.add(AveragePooling1D())
+    model_type_retrieva_v1.add(Dropout(0.3))
     '''
     model_type_retrieva_v1.add(Flatten())
 
@@ -194,6 +211,9 @@ def model_type_retrieval_v1(train_X, train_Y, test_X, test_Y):
     model_type_retrieva_v1 = Sequential()
     model_type_retrieva_v1.add(Dense(20, input_shape=(14, 100)))
 
+    model_type_retrieva_v1.add(Flatten())
+
+
     model_type_retrieva_v1.add(Dense(37))
     model_type_retrieva_v1.add(Activation('relu'))
 
@@ -205,6 +225,10 @@ def model_type_retrieval_v1(train_X, train_Y, test_X, test_Y):
 
     model_type_retrieva_v1.add(Dense(14))
     model_type_retrieva_v1.add(Activation('relu'))
+
+
+    # model_type_retrieva_v1.add(Flatten()) #inja ham bashe okaye masalan!
+
 
     model_type_retrieva_v1.add(Dense(3))
     model_type_retrieva_v1.add(Activation('relu'))
@@ -414,9 +438,9 @@ with open(queries_path, 'r') as ff:
 
         ######################## generate trec output for IR measures :) ########################
 
-        predict_classes_v2, predicted_prob_v2 = model_type_retrieval_v2(train_X, train_Y, test_X, test_Y_one_hot)
-        trec_output_modelv2 += get_trec_output(q_id_test_list, test_TYPES, test_Y, predict_classes_v2, predicted_prob_v2)
-        #
+        # predict_classes_v2, predicted_prob_v2 = model_type_retrieval_v2(train_X, train_Y, test_X, test_Y_one_hot)
+        # trec_output_modelv2 += get_trec_output(q_id_test_list, test_TYPES, test_Y, predict_classes_v2, predicted_prob_v2)
+
         # predict_classes_v1, predicted_prob_v1 = model_type_retrieval_v1(train_X, train_Y, test_X, test_Y_one_hot)
         # trec_output_modelv1 += get_trec_output(q_id_test_list, test_TYPES, test_Y, predict_classes_v1, predicted_prob_v1)
         #
@@ -424,28 +448,28 @@ with open(queries_path, 'r') as ff:
         # trec_output_modelv3 += get_trec_output(q_id_test_list, test_TYPES, test_Y, predict_classes_v3, predicted_prob_v3)
         #
         #
-        # predict_classes_v4, predicted_prob_v4 = model_type_retrieval_v4(train_X, train_Y, test_X, test_Y_one_hot)
-        # trec_output_modelv4 += get_trec_output(q_id_test_list, test_TYPES, test_Y, predict_classes_v4, predicted_prob_v4)
+        predict_classes_v4, predicted_prob_v4 = model_type_retrieval_v4(train_X, train_Y, test_X, test_Y_one_hot)
+        trec_output_modelv4 += get_trec_output(q_id_test_list, test_TYPES, test_Y, predict_classes_v4, predicted_prob_v4)
 
 
         ######################## generate trec output for IR measures :) ########################
         print("\n-----------------------------------------------\n\n\n")
         
 
-    trec_output_modelv2 = trec_output_modelv2.rstrip('\n')
+    # trec_output_modelv2 = trec_output_modelv2.rstrip('\n')
     # trec_output_modelv1 = trec_output_modelv1.rstrip('\n')
     # trec_output_modelv3 = trec_output_modelv3.rstrip('\n')
-    # trec_output_modelv4 = trec_output_modelv4.rstrip('\n')
+    trec_output_modelv4 = trec_output_modelv4.rstrip('\n')
 
-    modelv2_path = models_path + "2.run"
+    # modelv2_path = models_path + "2.run"
     # modelv1_path = models_path + "1.run"
     # modelv3_path = models_path + "3.run"
-    # modelv4_path = models_path + "4.run"
+    modelv4_path = models_path + "4_200epoch_maxpool_dropout.run"
 
-    create_file(modelv2_path, trec_output_modelv2)
+    # create_file(modelv2_path, trec_output_modelv2)
     # create_file(modelv1_path, trec_output_modelv1)
     # create_file(modelv3_path, trec_output_modelv3)
-    # create_file(modelv4_path, trec_output_modelv4)
+    create_file(modelv4_path, trec_output_modelv4)
 
 
     # sys.exit(1)
