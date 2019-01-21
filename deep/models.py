@@ -43,6 +43,7 @@ word_vectors = []
 
 # models_path = os.path.join(dirname, '../data/runs/sig17/model_v')
 models_path = os.path.join(dirname, '../data/runs/model_v')
+models_path_validation = os.path.join(dirname, '../data/runs/validation/model_v')
 
 def substrac_dicts(dict1, dict2):
     return dict(set(dict1.items()) - set((dict(dict2)).items()))
@@ -61,7 +62,7 @@ def model_type_retrieval_v4(train_X, train_Y, test_X, test_Y): #one_layer, count
     # optimizers.
     model_type_retrieva_v1.compile(optimizer=sgd, loss='categorical_crossentropy', metrics=["accuracy"])
 
-    model_type_retrieva_v1.fit(train_X, train_Y, epochs=100, batch_size=1, verbose = 2)
+    model_type_retrieva_v1.fit(train_X, train_Y, epochs=1, batch_size=1, verbose = 2)
 
     predict_classes = model_type_retrieva_v1.predict_classes(test_X)
     predicted_prob = model_type_retrieva_v1.predict_proba(test_X)
@@ -310,134 +311,240 @@ def get_trec_output(q_id_list, test_TYPES, test_Y, predict_classes, predicted_pr
 # test_Y = [1, 1, '...', 0]
 '''
 
+
+
+
 def create_file(path, data):
     f = open(path, 'w')
     f.write(data)
     f.close()
 
 
+
 trainset_average_w2v = tsg.get_trainset_average_w2v()
 i = 0
-with open(queries_path, 'r') as ff:
-    # print(q)
-    # avg_q_ = get_average_w2v(q)
-    # print(avg_q_)
-    trec_output_modelv1 = ""
-    trec_output_modelv2 = ""
-    trec_output_modelv3 = ""
-    trec_output_modelv4 = ""
 
-    queries_json = json.load(ff)
+def get_train_test_data(queries_for_train, queries_for_test_set):
+    global trainset_average_w2v
+    q_id_train_list = []
+    train_X = []
+    train_Y = []
+    train_TYPES = []
 
-    queries_dict = dict(queries_json)
+    test_X = []
+    test_Y = []
+    test_TYPES = []
+    q_id_test_list = []
 
-    queries_for_select_test_set = dict(queries_dict)
-    k_fold = 5
-    for i in range(k_fold):
-        q_id_train_list = []
-        train_X = []
-        train_Y = []
-        train_TYPES = []
+    for query_ids_train in queries_for_train.keys():
+        label_zero_count = 0
+        q_id_train_set = trainset_average_w2v[query_ids_train]
 
-        test_X = []
-        test_Y = []
-        test_TYPES = []
-        q_id_test_list = []
+        for train_set in q_id_train_set:
+            if train_set[1] == "0":
+                label_zero_count += 1
 
-
-        fold_size = int(len(queries_dict)/k_fold)  #168/6=28
-
-        queries_for_test_set = None
-        if (i + 1) == k_fold:
-            queries_for_test_set = list(queries_for_select_test_set.items())
-        else:
-            queries_for_test_set = random.sample(list(queries_for_select_test_set.items()), fold_size)
-
-        queries_for_select_test_set = substrac_dicts(queries_for_select_test_set, queries_for_test_set)
-
-        queries_for_train = substrac_dicts(queries_dict, queries_for_test_set)
-
-        # train_set_average_dict[q_id] = [(merged_features, q_type_rel_class)]
-
-        for query_ids_train in queries_for_train.keys():
-            label_zero_count = 0
-            q_id_train_set = trainset_average_w2v[query_ids_train]
-
-            for train_set in q_id_train_set:
-                if train_set[1]=="0":
-                    label_zero_count += 1
-
-                    if (label_zero_count<=1):
-                        train_X.append(train_set[0])
-                        train_Y.append(train_set[1])
-                        train_TYPES.append(train_set[2])
-                        q_id_train_list.append(query_ids_train)
-                else:
+                if (label_zero_count <= 1):
                     train_X.append(train_set[0])
                     train_Y.append(train_set[1])
                     train_TYPES.append(train_set[2])
                     q_id_train_list.append(query_ids_train)
+            else:
+                train_X.append(train_set[0])
+                train_Y.append(train_set[1])
+                train_TYPES.append(train_set[2])
+                q_id_train_list.append(query_ids_train)
 
-        train_Y = pd.get_dummies(train_Y)
-        train_Y = train_Y.values.tolist()
+    train_Y = pd.get_dummies(train_Y)
+    train_Y = train_Y.values.tolist()
 
+    train_X = np.array(train_X)
+    train_Y = np.array(train_Y)
 
-        train_X = np.array(train_X)
-        train_Y = np.array(train_Y)
+    for query_ids_test in queries_for_test_set:
+        label_zero_count = 0
+        q_id_test_set = trainset_average_w2v[query_ids_test[0]]
+        for test_set in q_id_test_set:
+            if test_set[1] == "0":
+                label_zero_count += 1
 
-        for query_ids_test in queries_for_test_set:
-            label_zero_count = 0
-            q_id_test_set = trainset_average_w2v[query_ids_test[0]]
-            for test_set in q_id_test_set:
-                if test_set[1]=="0":
-                    label_zero_count += 1
+            # if (label_zero_count<=1):
+            test_X.append(test_set[0])
+            test_Y.append(test_set[1])
+            test_TYPES.append(test_set[2])
+            q_id_test_list.append(query_ids_test[0])
 
-                #if (label_zero_count<=1):
-                test_X.append(test_set[0])
-                test_Y.append(test_set[1])
-                test_TYPES.append(test_set[2])
-                q_id_test_list.append(query_ids_test[0])
+    test_Y_one_hot = pd.get_dummies(test_Y)
+    test_Y_one_hot = test_Y_one_hot.values.tolist()
 
-        test_Y_one_hot = pd.get_dummies(test_Y)
-        test_Y_one_hot = test_Y_one_hot.values.tolist()
+    test_X = np.array(test_X)
+    test_Y_one_hot = np.array(test_Y_one_hot)
 
-        test_X = np.array(test_X)
-        test_Y_one_hot = np.array(test_Y_one_hot)
-
-        ######################## generate trec output for IR measures :) ########################
-
-        predict_classes_v2, predicted_prob_v2 = model_type_retrieval_v2(train_X, train_Y, test_X, test_Y_one_hot)
-        trec_output_modelv2 += get_trec_output(q_id_test_list, test_TYPES, test_Y, predict_classes_v2, predicted_prob_v2)
-
-        predict_classes_v1, predicted_prob_v1 = model_type_retrieval_v1(train_X, train_Y, test_X, test_Y_one_hot)
-        trec_output_modelv1 += get_trec_output(q_id_test_list, test_TYPES, test_Y, predict_classes_v1, predicted_prob_v1)
-
-        predict_classes_v3, predicted_prob_v3 = model_type_retrieval_v3(train_X, train_Y, test_X, test_Y_one_hot)
-        trec_output_modelv3 += get_trec_output(q_id_test_list, test_TYPES, test_Y, predict_classes_v3, predicted_prob_v3)
+    return (train_X, train_Y, test_X, test_Y_one_hot, q_id_test_list, test_TYPES, test_Y)
 
 
-        predict_classes_v4, predicted_prob_v4 = model_type_retrieval_v4(train_X, train_Y, test_X, test_Y_one_hot)
-        trec_output_modelv4 += get_trec_output(q_id_test_list, test_TYPES, test_Y, predict_classes_v4, predicted_prob_v4)
 
 
-        ######################## generate trec output for IR measures :) ########################
-        print("\n-----------------------------------------------\n\n\n")
-        
+def validation_phase():
+    with open(queries_path, 'r') as ff:
+        # print(avg_q_)
+        trec_output_modelv1 = ""
+        trec_output_modelv2 = ""
+        trec_output_modelv3 = ""
+        trec_output_modelv4 = ""
 
-    trec_output_modelv2 = trec_output_modelv2.rstrip('\n')
-    trec_output_modelv1 = trec_output_modelv1.rstrip('\n')
-    trec_output_modelv3 = trec_output_modelv3.rstrip('\n')
-    trec_output_modelv4 = trec_output_modelv4.rstrip('\n')
+        queries_json = json.load(ff)
 
-    modelv2_path = models_path + "2.run"
-    modelv1_path = models_path + "1.run"
-    modelv3_path = models_path + "3.run"
-    modelv4_path = models_path + "4.run"
+        queries_dict = dict(queries_json)
 
-    create_file(modelv2_path, trec_output_modelv2)
-    create_file(modelv1_path, trec_output_modelv1)
-    create_file(modelv3_path, trec_output_modelv3)
-    create_file(modelv4_path, trec_output_modelv4)
+        queries_for_select_test_set = dict(queries_dict)
+        k_fold = 5
+        for i in range(k_fold):
+            fold_size = int(len(queries_dict) / k_fold)
+
+            ###################### remove queries for test from (train and validation set) #################################
+            queries_for_test_set = None
+            if (i + 1) == k_fold:
+                queries_for_test_set = list(queries_for_select_test_set.items())
+            else:
+                queries_for_test_set = random.sample(list(queries_for_select_test_set.items()), fold_size)
+
+            queries_for_select_test_set = substrac_dicts(queries_for_select_test_set, queries_for_test_set)
+
+            queries_for_train = substrac_dicts(queries_dict, queries_for_test_set)
+            ######################remove query for test from train and validation set #################################
+
+            #################################  validation and train folds #################################
+
+            queries_for_select_validation_set = dict(queries_for_train)
+
+            for j in range(k_fold-1):
+
+                fold_size = int(len(queries_for_select_validation_set) / (k_fold - 1))
+
+                queries_validation_set = None
+                if (j + 1) == (k_fold-1):
+                    queries_validation_set = list(queries_for_select_validation_set.items())
+                else:
+                    queries_validation_set = random.sample(list(queries_for_select_validation_set.items()), fold_size)
+
+                queries_validation_set = random.sample(list(queries_for_select_validation_set.items()), fold_size)
+
+                queries_for_select_validation_set = substrac_dicts(queries_for_select_validation_set, queries_validation_set)
+
+                queries_train_set = substrac_dicts(queries_for_select_test_set, queries_for_test_set)
+
+                # get Data for train and test set, with query ids
+                train_X, train_Y, test_X, test_Y_one_hot, q_id_test_list, test_TYPES, test_Y = get_train_test_data(queries_train_set, queries_validation_set)
 
 
-    # sys.exit(1)
+                ######################## generate trec output for IR measures :) ########################
+
+                # predict_classes_v2, predicted_prob_v2 = model_type_retrieval_v2(train_X, train_Y, test_X, test_Y_one_hot)
+                # trec_output_modelv2 += get_trec_output(q_id_test_list, test_TYPES, test_Y, predict_classes_v2,
+                #                                        predicted_prob_v2)
+                #
+                # predict_classes_v1, predicted_prob_v1 = model_type_retrieval_v1(train_X, train_Y, test_X, test_Y_one_hot)
+                # trec_output_modelv1 += get_trec_output(q_id_test_list, test_TYPES, test_Y, predict_classes_v1,
+                #                                        predicted_prob_v1)
+                #
+                # predict_classes_v3, predicted_prob_v3 = model_type_retrieval_v3(train_X, train_Y, test_X, test_Y_one_hot)
+                # trec_output_modelv3 += get_trec_output(q_id_test_list, test_TYPES, test_Y, predict_classes_v3,
+                #                                        predicted_prob_v3)
+
+                predict_classes_v4, predicted_prob_v4 = model_type_retrieval_v4(train_X, train_Y, test_X, test_Y_one_hot)
+                trec_output_modelv4 += get_trec_output(q_id_test_list, test_TYPES, test_Y, predict_classes_v4,
+                                                       predicted_prob_v4)
+
+                ######################## generate trec output for IR measures :) ########################
+                print("\n-----------------------------------------------\n\n\n")
+                break
+
+            # trec_output_modelv2 = trec_output_modelv2.rstrip('\n')
+            # trec_output_modelv1 = trec_output_modelv1.rstrip('\n')
+            # trec_output_modelv3 = trec_output_modelv3.rstrip('\n')
+            trec_output_modelv4 = trec_output_modelv4.rstrip('\n')
+
+            # modelv2_path = models_path_validation + "2.run"
+            # modelv1_path = models_path_validation + "1.run"
+            # modelv3_path = models_path_validation + "3.run"
+            modelv4_path = models_path_validation + "4.run"
+
+            # create_file(modelv2_path, trec_output_modelv2)
+            # create_file(modelv1_path, trec_output_modelv1)
+            # create_file(modelv3_path, trec_output_modelv3)
+            create_file(modelv4_path, trec_output_modelv4)
+
+            sys.exit(1)
+
+
+def train_test_phase():
+    with open(queries_path, 'r') as ff:
+        # print(q)
+        # avg_q_ = get_average_w2v(q)
+        # print(avg_q_)
+        trec_output_modelv1 = ""
+        trec_output_modelv2 = ""
+        trec_output_modelv3 = ""
+        trec_output_modelv4 = ""
+
+        queries_json = json.load(ff)
+
+        queries_dict = dict(queries_json)
+
+        queries_for_select_test_set = dict(queries_dict)
+        k_fold = 5
+        for i in range(k_fold):
+            fold_size = int(len(queries_dict)/k_fold)
+
+            queries_for_test_set = None
+            if (i + 1) == k_fold:
+                queries_for_test_set = list(queries_for_select_test_set.items())
+            else:
+                queries_for_test_set = random.sample(list(queries_for_select_test_set.items()), fold_size)
+
+            queries_for_select_test_set = substrac_dicts(queries_for_select_test_set, queries_for_test_set)
+
+            queries_for_train = substrac_dicts(queries_dict, queries_for_test_set)
+
+            # get Data for train and test set, with query ids
+            train_X, train_Y, test_X, test_Y_one_hot, q_id_test_list, test_TYPES, test_Y = get_train_test_data(queries_for_train, queries_for_test_set)
+
+            ######################## generate trec output for IR measures :) ########################
+
+            predict_classes_v2, predicted_prob_v2 = model_type_retrieval_v2(train_X, train_Y, test_X, test_Y_one_hot)
+            trec_output_modelv2 += get_trec_output(q_id_test_list, test_TYPES, test_Y, predict_classes_v2, predicted_prob_v2)
+
+            predict_classes_v1, predicted_prob_v1 = model_type_retrieval_v1(train_X, train_Y, test_X, test_Y_one_hot)
+            trec_output_modelv1 += get_trec_output(q_id_test_list, test_TYPES, test_Y, predict_classes_v1, predicted_prob_v1)
+
+            predict_classes_v3, predicted_prob_v3 = model_type_retrieval_v3(train_X, train_Y, test_X, test_Y_one_hot)
+            trec_output_modelv3 += get_trec_output(q_id_test_list, test_TYPES, test_Y, predict_classes_v3, predicted_prob_v3)
+
+
+            predict_classes_v4, predicted_prob_v4 = model_type_retrieval_v4(train_X, train_Y, test_X, test_Y_one_hot)
+            trec_output_modelv4 += get_trec_output(q_id_test_list, test_TYPES, test_Y, predict_classes_v4, predicted_prob_v4)
+
+
+            ######################## generate trec output for IR measures :) ########################
+            print("\n-----------------------------------------------\n\n\n")
+
+
+        trec_output_modelv2 = trec_output_modelv2.rstrip('\n')
+        trec_output_modelv1 = trec_output_modelv1.rstrip('\n')
+        trec_output_modelv3 = trec_output_modelv3.rstrip('\n')
+        trec_output_modelv4 = trec_output_modelv4.rstrip('\n')
+
+        modelv2_path = models_path + "2.run"
+        modelv1_path = models_path + "1.run"
+        modelv3_path = models_path + "3.run"
+        modelv4_path = models_path + "4.run"
+
+        create_file(modelv2_path, trec_output_modelv2)
+        create_file(modelv1_path, trec_output_modelv1)
+        create_file(modelv3_path, trec_output_modelv3)
+        create_file(modelv4_path, trec_output_modelv4)
+        # sys.exit(1)
+
+# train_test_phase()
+validation_phase()
