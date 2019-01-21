@@ -50,6 +50,39 @@ def substrac_dicts(dict1, dict2):
 
 
 
+mv5_l1_neuron_count = 200
+epoch_count = 100
+
+print("mv5_l1_neuron_count: ", mv5_l1_neuron_count, "\t epoch count: " , epoch_count)
+
+extra_name_v5_path = "_L1N(" + str(mv5_l1_neuron_count) + ")"
+extra_name_v5_path += "_epochCount(" + str(epoch_count) + ")"
+def model_type_retrieval_v5(train_X, train_Y, test_X, test_Y): #one_layer, count of neuron is count of types!
+    # https://datascienceplus.com/keras-regression-based-neural-networks/
+
+    model_type_retrieva_v1 = Sequential()
+    model_type_retrieva_v1.add(Dense(mv5_l1_neuron_count, input_shape=(600,)))
+
+    model_type_retrieva_v1.add(Dense(1))  # classes: 0-7
+    model_type_retrieva_v1.add(Activation('linear'))
+
+
+    sgd = optimizers.RMSprop(lr=0.0001, rho=0.9, epsilon=None, decay=0.0)
+
+    # optimizers.
+    model_type_retrieva_v1.compile(optimizer=sgd, loss='mse', metrics=["accuracy"])
+    # model_type_retrieva_v1.compile(optimizer='adam', loss='mse', metrics=["accuracy"])
+
+    model_type_retrieva_v1.fit(train_X, train_Y, epochs=epoch_count, batch_size=1, verbose = 2)
+
+    # predict_classes = model_type_retrieva_v1.predict_classes(test_X)
+    # predicted_prob = model_type_retrieva_v1.predict_proba(test_X)
+    # return (predict_classes, predicted_prob)
+
+    predict_classes = model_type_retrieva_v1.predict(test_X)
+
+    return predict_classes
+
 def model_type_retrieval_v4(train_X, train_Y, test_X, test_Y): #one_layer, count of neuron is count of types!
     model_type_retrieva_v1 = Sequential()
     model_type_retrieva_v1.add(Dense(419, input_shape=(600,)))
@@ -246,7 +279,7 @@ def model_type_retrieval_v1(train_X, train_Y, test_X, test_Y):
     return (predict_classes, predicted_prob)
 
 
-def get_trec_output(q_id_list, test_TYPES, test_Y, predict_classes, predicted_prob):
+def get_trec_output(q_id_list, test_TYPES, test_Y, predict_classes, predicted_prob =[]):
     trec_output_str = ""
     trec_ouput_dict = dict()
 
@@ -265,8 +298,12 @@ def get_trec_output(q_id_list, test_TYPES, test_Y, predict_classes, predicted_pr
         rank_str = "0"  # trec az in estefade nemikone, felan ino nemikhad dorost print konam:)
 
         # 5
-        sim_score = (predict_class+1) * predict_prob[predict_class] # (predict_class+1), baraye inke baraye class 0, score e ehtemal sefr nashe, hamaro +1 kardam, dar kol tasiir nadare, vase class 7 ham 1 mishe va score ha relative mishan
-        sim_score = str(sim_score)
+        sim_score = None
+        if len(predicted_prob) == 0: #model is regression
+            sim_score = str(predict_class) #model is regression
+        else:
+            sim_score = (predict_class+1) * predict_prob[predict_class] # (predict_class+1), baraye inke baraye class 0, score e ehtemal sefr nashe, hamaro +1 kardam, dar kol tasiir nadare, vase class 7 ham 1 mishe va score ha relative mishan
+            sim_score = str(sim_score)
 
         # 6
         run_id = "Model_Deep"
@@ -392,6 +429,7 @@ def validation_phase():
         trec_output_modelv2 = ""
         trec_output_modelv3 = ""
         trec_output_modelv4 = ""
+        trec_output_modelv5 = ""
 
         queries_json = json.load(ff)
 
@@ -452,9 +490,14 @@ def validation_phase():
                 # trec_output_modelv3 += get_trec_output(q_id_test_list, test_TYPES, test_Y, predict_classes_v3,
                 #                                        predicted_prob_v3)
 
-                predict_classes_v4, predicted_prob_v4 = model_type_retrieval_v4(train_X, train_Y, test_X, test_Y_one_hot)
-                trec_output_modelv4 += get_trec_output(q_id_test_list, test_TYPES, test_Y, predict_classes_v4,
-                                                       predicted_prob_v4)
+
+                # predict_classes_v4, predicted_prob_v4 = model_type_retrieval_v4(train_X, train_Y, test_X, test_Y_one_hot)
+                # trec_output_modelv4 += get_trec_output(q_id_test_list, test_TYPES, test_Y, predict_classes_v4,
+                #                                        predicted_prob_v4)
+
+                train_Y = np.argmax(train_Y, axis=1)
+                predict_classes_v5 = model_type_retrieval_v5(train_X, train_Y, test_X, test_Y) #change test_Y_one_hot to test_Y_one_hot, because its regression model
+                trec_output_modelv5 += get_trec_output(q_id_test_list, test_TYPES, test_Y, predict_classes_v5)
 
                 ######################## generate trec output for IR measures :) ########################
                 print("\n-----------------------------------------------\n\n\n")
@@ -463,17 +506,19 @@ def validation_phase():
             # trec_output_modelv2 = trec_output_modelv2.rstrip('\n')
             # trec_output_modelv1 = trec_output_modelv1.rstrip('\n')
             # trec_output_modelv3 = trec_output_modelv3.rstrip('\n')
-            trec_output_modelv4 = trec_output_modelv4.rstrip('\n')
+            # trec_output_modelv4 = trec_output_modelv4.rstrip('\n')
+            trec_output_modelv5 = trec_output_modelv4.rstrip('\n')
 
             # modelv2_path = models_path_validation + "2.run"
             # modelv1_path = models_path_validation + "1.run"
             # modelv3_path = models_path_validation + "3.run"
-            modelv4_path = models_path_validation + "4.run"
+            # modelv4_path = models_path_validation + "4.run"
+            modelv5_path = models_path_validation + extra_name_v5_path + "5.run"
 
             # create_file(modelv2_path, trec_output_modelv2)
             # create_file(modelv1_path, trec_output_modelv1)
             # create_file(modelv3_path, trec_output_modelv3)
-            create_file(modelv4_path, trec_output_modelv4)
+            create_file(modelv5_path, trec_output_modelv4)
 
             sys.exit(1)
 
