@@ -4,6 +4,8 @@ ANALYZER_STOP = "stop_en"
 es = Elasticsearch(timeout=10000)
 
 def getTokens(index, text):
+    if len(text) == 0:
+        return []
     # TODO:: term haii ke faghat adad hastan ro badan bayad hazf konam be nazaram ! ya shayad hamin alan anjam bedam !
     query_tokenied_list = es.indices.analyze(index=index, params={"text": text, "analyzer": ANALYZER_STOP})
     tokens = []
