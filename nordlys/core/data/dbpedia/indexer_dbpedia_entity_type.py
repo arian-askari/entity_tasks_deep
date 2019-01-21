@@ -57,7 +57,7 @@ class IndexerDBpediaTypes(object):
         self.__index_name = config["index_name"]
         self.__type2entity_file = baepath + config["type2entity_file"]
         self.__entity_abstracts = {}
-        self.__load_entity_abstracts(baepath + config["entity_abstracts_file"])
+        # self.__load_entity_abstracts(baepath + config["entity_abstracts_file"])
 
     @property
     def name(self):
