@@ -11,6 +11,8 @@ from keras.utils import np_utils
 from keras.layers import *
 from keras.models import *
 from keras import optimizers
+from keras.callbacks import CSVLogger
+
 from gensim.models import Word2Vec
 from sklearn.decomposition import PCA
 from matplotlib import pyplot
@@ -43,15 +45,18 @@ word_vectors = []
 
 # models_path = os.path.join(dirname, '../data/runs/sig17/model_v')
 models_path = os.path.join(dirname, '../data/runs/model_v')
-models_path_validation = os.path.join(dirname, '../data/runs/validation/model_v')
+model_path_prefix = "model_v"
+models_path_validation = os.path.join(dirname, '../data/runs/validation/')
+# models_path_validation = os.path.join(dirname, '../data/runs/validation/' + model_path_prefix)
 
 def substrac_dicts(dict1, dict2):
     return dict(set(dict1.items()) - set((dict(dict2)).items()))
 
 
 
-mv5_l1_neuron_count = 200
-epoch_count = 100
+mv5_l1_neuron_count = 1000
+epoch_count = 419
+
 
 print("mv5_l1_neuron_count: ", mv5_l1_neuron_count, "\t epoch count: " , epoch_count)
 
@@ -68,12 +73,19 @@ def model_type_retrieval_v5(train_X, train_Y, test_X, test_Y): #one_layer, count
 
 
     sgd = optimizers.RMSprop(lr=0.0001, rho=0.9, epsilon=None, decay=0.0)
+    # adam = optimizers.Adam(lr=0.0001)
 
     # optimizers.
     model_type_retrieva_v1.compile(optimizer=sgd, loss='mse', metrics=["accuracy"])
-    # model_type_retrieva_v1.compile(optimizer='adam', loss='mse', metrics=["accuracy"])
+    # model_type_retrieva_v1.compile(optimizer= adam, loss='mse', metrics=["accuracy"])
 
-    model_type_retrieva_v1.fit(train_X, train_Y, epochs=epoch_count, batch_size=1, verbose = 2)
+    log_file_name = model_path_prefix + "5" + extra_name_v5_path
+    log_path = models_path_validation + log_file_name + ".log"
+
+    # csv_logger = CSVLogger(log_path, append=True, separator=',')
+    csv_logger = CSVLogger(log_path, append=False, separator=',')
+
+    model_type_retrieva_v1.fit(train_X, train_Y, epochs=epoch_count, batch_size=1, verbose = 2, callbacks=[csv_logger])
 
     # predict_classes = model_type_retrieva_v1.predict_classes(test_X)
     # predicted_prob = model_type_retrieva_v1.predict_proba(test_X)
@@ -279,7 +291,7 @@ def model_type_retrieval_v1(train_X, train_Y, test_X, test_Y):
     return (predict_classes, predicted_prob)
 
 
-def get_trec_output(q_id_list, test_TYPES, test_Y, predict_classes, predicted_prob =[]):
+def get_trec_output(q_id_list, test_TYPES, test_Y, predict_classes, predicted_prob):
     trec_output_str = ""
     trec_ouput_dict = dict()
 
@@ -298,12 +310,8 @@ def get_trec_output(q_id_list, test_TYPES, test_Y, predict_classes, predicted_pr
         rank_str = "0"  # trec az in estefade nemikone, felan ino nemikhad dorost print konam:)
 
         # 5
-        sim_score = None
-        if len(predicted_prob) == 0: #model is regression
-            sim_score = str(predict_class) #model is regression
-        else:
-            sim_score = (predict_class+1) * predict_prob[predict_class] # (predict_class+1), baraye inke baraye class 0, score e ehtemal sefr nashe, hamaro +1 kardam, dar kol tasiir nadare, vase class 7 ham 1 mishe va score ha relative mishan
-            sim_score = str(sim_score)
+        sim_score = (predict_class+1) * predict_prob[predict_class] # (predict_class+1), baraye inke baraye class 0, score e ehtemal sefr nashe, hamaro +1 kardam, dar kol tasiir nadare, vase class 7 ham 1 mishe va score ha relative mishan
+        sim_score = str(sim_score)
 
         # 6
         run_id = "Model_Deep"
@@ -330,6 +338,53 @@ def get_trec_output(q_id_list, test_TYPES, test_Y, predict_classes, predicted_pr
     # trec_output_str += query_id + delimeter + iter_str + delimeter + doc_id + delimeter + rank_str + delimeter + sim_score + delimeter + run_id + "\n"
     return trec_output_str
 
+
+def get_trec_output_logistic_regression(q_id_list, test_TYPES, test_Y, predict_classes):
+    trec_output_str = ""
+    trec_ouput_dict = dict()
+
+    for q_id_test, q_candidate_type, true_predict, predict_class \
+            in zip(q_id_list, test_TYPES, test_Y, predict_classes):
+        # 1
+        query_id = q_id_test
+
+        # 2
+        iter_str = "Q0"
+
+        # 3
+        doc_id = q_candidate_type
+
+        # 4
+        rank_str = "0"  # trec az in estefade nemikone, felan ino nemikhad dorost print konam:)
+
+        # 5
+        sim_score = None
+        sim_score = str(predict_class[0]) #model is regression
+
+        # 6
+        run_id = "Model_Deep"
+
+        delimeter = "	"
+
+        if query_id not in trec_ouput_dict:
+            trec_ouput_dict[query_id] = [(doc_id, rank_str, sim_score, run_id)]
+        else:
+            trec_ouput_dict[query_id].append((doc_id, rank_str, sim_score, run_id))
+
+
+    for query_id, detailsList in trec_ouput_dict.items():
+        detailsList_sorted = sorted(detailsList, key = lambda x: x[2], reverse=True)
+        i = 0
+        for detail in detailsList_sorted:
+            doc_id = detail[0]
+            rank_str = str(i)
+            sim_score = detail[2]
+            run_id = detail[3]
+            trec_output_str += query_id + delimeter + iter_str + delimeter + doc_id + delimeter + rank_str + delimeter + sim_score + delimeter + run_id + "\n"
+            i += 1
+
+    # trec_output_str += query_id + delimeter + iter_str + delimeter + doc_id + delimeter + rank_str + delimeter + sim_score + delimeter + run_id + "\n"
+    return trec_output_str
 
 
 '''
@@ -420,7 +475,14 @@ def get_train_test_data(queries_for_train, queries_for_test_set):
     return (train_X, train_Y, test_X, test_Y_one_hot, q_id_test_list, test_TYPES, test_Y)
 
 
+def save_metric_result(model_file_name):
+    result_path = model_file_name.split(".")[0] + ".result"
+    run_path = model_file_name + ".run"
+    cmd = 'trec_eval -m all_trec "/media/arian/New Volume/Arian/typeRetrieval/data/types/qrels.test" "/media/arian/New Volume/Arian/typeRetrieval/data/runs/validation/' + run_path + '" > "/media/arian/New Volume/Arian/typeRetrieval/data/runs/validation/' + result_path + '"'
+    print(cmd)
+    os.system(cmd)
 
+    
 
 def validation_phase():
     with open(queries_path, 'r') as ff:
@@ -497,7 +559,7 @@ def validation_phase():
 
                 train_Y = np.argmax(train_Y, axis=1)
                 predict_classes_v5 = model_type_retrieval_v5(train_X, train_Y, test_X, test_Y) #change test_Y_one_hot to test_Y_one_hot, because its regression model
-                trec_output_modelv5 += get_trec_output(q_id_test_list, test_TYPES, test_Y, predict_classes_v5)
+                trec_output_modelv5 += get_trec_output_logistic_regression(q_id_test_list, test_TYPES, test_Y, predict_classes_v5)
 
                 ######################## generate trec output for IR measures :) ########################
                 print("\n-----------------------------------------------\n\n\n")
@@ -507,19 +569,21 @@ def validation_phase():
             # trec_output_modelv1 = trec_output_modelv1.rstrip('\n')
             # trec_output_modelv3 = trec_output_modelv3.rstrip('\n')
             # trec_output_modelv4 = trec_output_modelv4.rstrip('\n')
-            trec_output_modelv5 = trec_output_modelv4.rstrip('\n')
+            trec_output_modelv5 = trec_output_modelv5.rstrip('\n')
 
             # modelv2_path = models_path_validation + "2.run"
             # modelv1_path = models_path_validation + "1.run"
             # modelv3_path = models_path_validation + "3.run"
             # modelv4_path = models_path_validation + "4.run"
-            modelv5_path = models_path_validation + extra_name_v5_path + "5.run"
+
+            model_file_name = model_path_prefix + "5" + extra_name_v5_path
+            modelv5_path = models_path_validation +  model_file_name + ".run"
 
             # create_file(modelv2_path, trec_output_modelv2)
             # create_file(modelv1_path, trec_output_modelv1)
             # create_file(modelv3_path, trec_output_modelv3)
-            create_file(modelv5_path, trec_output_modelv4)
-
+            create_file(modelv5_path, trec_output_modelv5)
+            save_metric_result(model_file_name)
             sys.exit(1)
 
 
