@@ -46,7 +46,10 @@ word_vectors = []
 # models_path = os.path.join(dirname, '../data/runs/sig17/model_v')
 models_path = os.path.join(dirname, '../data/runs/model_v')
 model_path_prefix = "model_v"
-models_path_validation = os.path.join(dirname, '../data/runs/validation/')
+models_path_validation = os.path.join(dirname, '../data/runs/validation/adam/')
+# models_path_validation = os.path.join(dirname, '../data/runs/validation/')
+
+
 # models_path_validation = os.path.join(dirname, '../data/runs/validation/' + model_path_prefix)
 
 def substrac_dicts(dict1, dict2):
@@ -55,29 +58,36 @@ def substrac_dicts(dict1, dict2):
 
 
 mv5_l1_neuron_count = 1000
-epoch_count = 419
+mv5_l2_neuron_count_candidate = [200, 300, 400, 500, 600, 700, 800, 1000, 2048]
+mv5_l2_neuron_count = 0
+epoch_count = 1000
 
-
-print("mv5_l1_neuron_count: ", mv5_l1_neuron_count, "\t epoch count: " , epoch_count)
-
-extra_name_v5_path = "_L1N(" + str(mv5_l1_neuron_count) + ")"
-extra_name_v5_path += "_epochCount(" + str(epoch_count) + ")"
+extra_name_v5_path = ""
 def model_type_retrieval_v5(train_X, train_Y, test_X, test_Y): #one_layer, count of neuron is count of types!
+    print("layer1- neurons: ", mv5_l1_neuron_count, "\t", "layer2- neurons: ", mv5_l2_neuron_count, "\t epoch count: ", epoch_count)
+    global extra_name_v5_path
+
+    extra_name_v5_path = "_L1N(" + str(mv5_l1_neuron_count) + ")"
+    extra_name_v5_path += "_L2N(" + str(mv5_l2_neuron_count) + ")"
+    extra_name_v5_path += "_epochCount(" + str(epoch_count) + ")"
+
     # https://datascienceplus.com/keras-regression-based-neural-networks/
 
     model_type_retrieva_v1 = Sequential()
     model_type_retrieva_v1.add(Dense(mv5_l1_neuron_count, input_shape=(600,)))
 
-    model_type_retrieva_v1.add(Dense(1))  # classes: 0-7
+    model_type_retrieva_v1.add(Dense(mv5_l2_neuron_count))
     model_type_retrieva_v1.add(Activation('linear'))
 
+    model_type_retrieva_v1.add(Dense(1))
+    model_type_retrieva_v1.add(Activation('linear'))
 
-    sgd = optimizers.RMSprop(lr=0.0001, rho=0.9, epsilon=None, decay=0.0)
-    # adam = optimizers.Adam(lr=0.0001)
+    # sgd = optimizers.RMSprop(lr=0.0001, rho=0.9, epsilon=None, decay=0.0)
+    adam = optimizers.Adam(lr=0.0001)
 
     # optimizers.
-    model_type_retrieva_v1.compile(optimizer=sgd, loss='mse', metrics=["accuracy"])
-    # model_type_retrieva_v1.compile(optimizer= adam, loss='mse', metrics=["accuracy"])
+    # model_type_retrieva_v1.compile(optimizer=sgd, loss='mse', metrics=["accuracy"])
+    model_type_retrieva_v1.compile(optimizer= adam, loss='mse', metrics=["accuracy"])
 
     log_file_name = model_path_prefix + "5" + extra_name_v5_path
     log_path = models_path_validation + log_file_name + ".log"
@@ -478,7 +488,7 @@ def get_train_test_data(queries_for_train, queries_for_test_set):
 def save_metric_result(model_file_name):
     result_path = model_file_name.split(".")[0] + ".result"
     run_path = model_file_name + ".run"
-    cmd = 'trec_eval -m all_trec "/media/arian/New Volume/Arian/typeRetrieval/data/types/qrels.test" "/media/arian/New Volume/Arian/typeRetrieval/data/runs/validation/' + run_path + '" > "/media/arian/New Volume/Arian/typeRetrieval/data/runs/validation/' + result_path + '"'
+    cmd = 'trec_eval -m all_trec "/media/arian/New Volume/Arian/typeRetrieval/data/types/qrels.test" "/media/arian/New Volume/Arian/typeRetrieval/data/runs/validation/adam/' + run_path + '" > "/media/arian/New Volume/Arian/typeRetrieval/data/runs/validation/' + result_path + '"'
     print(cmd)
     os.system(cmd)
 
@@ -583,8 +593,9 @@ def validation_phase():
             # create_file(modelv1_path, trec_output_modelv1)
             # create_file(modelv3_path, trec_output_modelv3)
             create_file(modelv5_path, trec_output_modelv5)
-            save_metric_result(model_file_name)
-            sys.exit(1)
+            # save_metric_result(model_file_name)
+            # sys.exit(1)
+            break
 
 
 def train_test_phase():
@@ -656,4 +667,7 @@ def train_test_phase():
         # sys.exit(1)
 
 # train_test_phase()
-validation_phase()
+
+for l2_n in mv5_l2_neuron_count_candidate:
+    mv5_l2_neuron_count = l2_n
+    validation_phase()
