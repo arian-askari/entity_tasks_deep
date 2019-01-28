@@ -66,7 +66,7 @@ mv5_l2_dropout = 0
 
 epoch_count = 10000
 
-extra_name_v5_path = ""
+extra_name_path = ""
 current_fold = ""
 
 
