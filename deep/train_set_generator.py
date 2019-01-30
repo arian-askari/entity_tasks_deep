@@ -668,7 +668,7 @@ def get_trainset_average_w2v():
 
 # q_w2v_char_level_generator()
 #
-q_rel_entities_generator()
+#q_rel_entities_generator()
 # entity_unique_avg_w2v()
 #
 # save_translation_matrix()

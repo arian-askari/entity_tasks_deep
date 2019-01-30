@@ -106,7 +106,7 @@ def model_type_retrieval_v4(train_X, train_Y, test_X, test_Y, train_X2, test_X2)
 
     model.compile(optimizer=sgd, loss='categorical_crossentropy', metrics=["accuracy"])
 
-    model.fit([train_X,train_X2], train_Y, epochs=100, batch_size=1, verbose = 2)
+    model.fit([train_X,train_X2], train_Y, epochs=200, batch_size=1, verbose = 2)
 
 
     predicted_prob = model.predict([test_X,test_X2])
