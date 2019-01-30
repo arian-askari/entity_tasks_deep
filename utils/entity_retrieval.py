@@ -19,9 +19,11 @@ def get_entity_types(entity_name):
     if results['hits']['total'] == 0:
         return []
     else:
-        type_keys_list = results['hits']['hits'][0]["_source"]["type_key_values"]
-        type_values_list = results['hits']['hits'][0]["_source"]["type_values"]
-        return [type_keys_list, type_values_list]
+        type_keys_list = results['hits']['hits'][0]["_source"]["type_keys"]
+        return type_keys_list
+
+        # type_values_list = results['hits']['hits'][0]["_source"]["type_values"]
+        # return [type_keys_list, type_values_list]
 
 
 
@@ -59,8 +61,9 @@ def retrieve_entities(query, k=100):  # retrieve top k type for query, with nord
         type_keys_list  = []
         res_types = get_entity_types(entity)
         if len(res_types)>0:
-            type_keys_list = res_types[0]
+            type_keys_list = res_types
         else:
+            print("entity: ",entity," doesn't have any type")
             #shayad be taske query haye bedun type komak kone ! albate faghat shayaad !
             continue #if doesn't have any type, skip this entity ! can't help us for type retrieval ! :)
 
