@@ -109,8 +109,6 @@ class Model_Generator():
             result["predict_prob"] = predict_prob_values
 
         if test_y is not None:
-            # test_y = np.array(test_y)
-            # print(test_y)
             result["loss_mean"], result["acc_mean"] = self.__network.evaluate(test_x, test_y, verbose=0)
 
         return result
