@@ -300,16 +300,28 @@ def nested_cross_fold_validation():
             , loss_function=""
         )
 
+#simple test
+# layers_for_evaluate_reg = [[1, 1], [4, 1],[2, 1]]
+# layers_for_evaluate_class = [[1, 8], [4, 8],[2, 8]]
+#
+# activation_for_evaluate_reg = [["relu",  "linear"], ["relu", "linear"], ["relu", "linear"]]
+# activation_for_evaluate_class = [["relu",  "softmax"], ["relu", "softmax"], ["relu", "softmax"]]
+#
+# categories = ["regression", "classification"]
+# layers_for_evaluates = [layers_for_evaluate_reg, layers_for_evaluate_class]
+# activation_for_evaluates = [activation_for_evaluate_reg, activation_for_evaluate_class]
 
-layers_for_evaluate_reg = [[1, 1], [4, 1],[2, 1]]
-layers_for_evaluate_class = [[1, 8], [4, 8],[2, 8]]
+epoch_count = 10000
+layers_for_evaluate_reg = [[1000, 1000, 1], [1000, 1000, 100, 1]]
+layers_for_evaluate_class = [[1000, 1000, 8], [1000, 1000, 100, 8]]
 
-activation_for_evaluate_reg = [["relu",  "linear"], ["relu", "linear"], ["relu", "linear"]]
-activation_for_evaluate_class = [["relu",  "softmax"], ["relu", "softmax"], ["relu", "softmax"]]
+activation_for_evaluate_reg = [["relu", "relu", "linear"], ["relu","relu","relu", "linear"]]
+activation_for_evaluate_class = [["relu","relu","softmax"], ["relu","relu","relu","softmax"]]
 
 categories = ["regression", "classification"]
 layers_for_evaluates = [layers_for_evaluate_reg, layers_for_evaluate_class]
 activation_for_evaluates = [activation_for_evaluate_reg, activation_for_evaluate_class]
+dropout_rates = [0.2, 0.3, 0.4, 0.5]
 
 for cat, act, layers in zip(categories, activation_for_evaluates, layers_for_evaluates):
     category = cat
