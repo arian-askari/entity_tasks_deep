@@ -66,26 +66,24 @@ class Model_Generator():
 
         result = dict()
         result["model"] = self.__network
-        result["train_loss_latest"] = self.__history.history['loss'][-1]
-        result["train_acc_mean"] = np.mean(self.__history.history['acc'])
+        result["train_loss_latest"] = float(self.__history.history['loss'][-1])
+        result["train_acc_mean"] = float(np.mean(self.__history.history['acc']))
 
         result["train_loss"] = self.__history.history['loss']
-        result["train_acc"] = self.__history.history['acc']
-
-        print("\nmodel summary:\n--------------")
+        # print("\nmodel summary:\n--------------")
         print(self.__network.summary())
 
         return result
+
 
     def get_train_loss_mean(self):
         """ get loss and acc during training."""
         if self.__network is not None:
             result = dict()
-            result["train_loss_latest"] = self.__history.history['loss'][-1]
-            result["train_acc_mean"] = np.mean(self.__history.history['acc'])
+            result["train_loss_latest"] = float(self.__history.history['loss'][-1])
+            result["train_acc_mean"] = float(np.mean(self.__history.history['acc']))
 
             result["train_loss"] = self.__history.history['loss']
-            result["train_acc"] = self.__history.history['acc']
             return self.__network
         else:
             return None
@@ -104,15 +102,15 @@ class Model_Generator():
             predict_values = self.__network.predict(test_x)
             result["predict"] = predict_values
 
-        elif output_activation == "linear":
+        elif output_activation == "softmax":
             predict_values = self.__network.predict_classes(test_x)
             predict_prob_values = self.__network.predict_proba(test_x)
             result["predict"] = predict_values
             result["predict_prob"] = predict_prob_values
 
         if test_y is not None:
-            test_y = np.array(test_y)
-            print(test_y)
+            # test_y = np.array(test_y)
+            # print(test_y)
             result["loss_mean"], result["acc_mean"] = self.__network.evaluate(test_x, test_y, verbose=0)
 
         return result
@@ -138,6 +136,31 @@ class Model_Generator():
 
     def get_model_name(self):
         return self.__model_name
+
+    def get_layers(self):
+        return self.__layers
+
+    def get_activiation(self):
+        return self.__activation
+
+    def get_category(self):
+        return self.__category
+
+    def get_dropout(self):
+        return self.__dropout
+
+    def get_batch_size(self):
+        return self.__batch_size
+
+    def get_epoch_count(self):
+        return self.__epochs
+
+    def get_optimizer(self):
+        return self.__optimizer
+
+    def get_loss_function(self):
+        return self.__loss
+
 
 
 def example():
