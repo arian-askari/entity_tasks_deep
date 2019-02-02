@@ -3,33 +3,63 @@ import os, json, random, sys
 # os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 
 from keras.layers import *
+from seq2seq.test import losses_test
+
 from utils import trec_output as trec
 from utils import file_utils
 from deep import train_set_generator as tsg
 from deep.model_generator import Model_Generator
+from utils.report_generator import Report_Generator
+report = Report_Generator()
 
 queries_path = os.path.join("../data", "dbpedia-v1", "queries_type_retrieval.json")
 models_path = os.path.join("../data", "runs", "")
+models_path_from_root = os.path.join("./data", "runs", "")
+
+results_path_from_root = os.path.join("./data", "results", "")
+results_path= os.path.join("../data", "results", "")
 
 input_name = "input(abstract_e_avg)_"
 input_dim = (600,)
-category = "regression"
+# category = "regression"
+category = "classification"
+
 
 def substrac_dicts(dict1, dict2):
     return dict(set(dict1.items()) - set((dict(dict2)).items()))
 
 epoch_count = 10000
-layers_for_evaluate = [[1000,1000,1], [1000,1000,100,1]]
-activation_for_evaluate = [["relu","relu","linear"],["relu", "relu", "relu", "linear"]]
-dropout_rates = [0.2,0.3,0.4,0.5]
+
+# layers_for_evaluate = [[1000, 1000, 1], [1000, 1000, 100, 1]]
+# activation_for_evaluate = [["relu","relu","linear"],["relu", "relu", "relu", "linear"]]
+# dropout_rates = [0.2, 0.3, 0.4, 0.5]
+# loss_function = "mse"
+# batch_size = 100
+# optimizer = "adam"
+
+
 
 ''' test '''
-# epoch_count = 1
+epoch_count = 1
 # layers_for_evaluate = [[1, 1], [4, 1],[2, 1]]
+layers_for_evaluate = [[1, 8], [4, 8],[2, 8]]
 # activation_for_evaluate = [["relu",  "linear"], ["relu", "linear"], ["relu", "linear"]]
-# dropout_rates = [0.1]
+activation_for_evaluate = [["relu",  "softmax"], ["relu", "softmax"], ["relu", "softmax"]]
+dropout_rates = [0.1]
+batch_size = 100
+optimizer = "adam"
+loss_function = "mse"
 
 def nested_cross_fold_validation():
+    loss_train_best_models_total = np.array([])
+    acc_validation_best_models_total = np.array([])
+
+    loss_validation_best_models_total = np.array([])
+    acc_train_best_models_total = np.array([])  # np.append(number, np_array)
+
+    loss_test_total = np.array([])
+    acc_test_total = np.array([])  # np.append(number, np_array)
+
     with open(queries_path, 'r') as ff:
         trec_output_test = ""
 
@@ -42,8 +72,8 @@ def nested_cross_fold_validation():
 
         # K cross fold validation
         for i in range(k_fold):
-            global current_fold
-            current_fold = str(i)
+            trec_output_test_per_fold = ""
+
             fold_size = int(len(queries_dict) / k_fold)
 
             queries_for_test_set = None
@@ -66,11 +96,14 @@ def nested_cross_fold_validation():
                     trec_output_validation = ""
                     model_name = ""
 
-                    for j in range(k_fold - 1):
-                        current_fold = str(j+1)
+                    loss_train_total = np.array([])
+                    acc_validation_total = np.array([])
 
+                    loss_validation_total = np.array([])
+                    acc_train_total = np.array([]) #  np.append(number, np_array)
+                    for j in range(k_fold - 1):
                         queries_validation_set = None
-                        if (j + 1) == (k_fold - 1):
+                        if j == (k_fold - 2):
                             queries_validation_set = list(queries_for_select_validation_set.items())
                         else:
                             queries_validation_set = random.sample(list(queries_for_select_validation_set.items()), fold_size)
@@ -80,10 +113,14 @@ def nested_cross_fold_validation():
                         queries_train_set = substrac_dicts(queries_for_train, queries_validation_set)
                         train_X, train_Y, test_X, test_Y_one_hot, q_id_test_list, test_TYPES, test_Y = tsg.get_train_test_data(
                             queries_train_set, queries_validation_set)
-                        train_Y = np.argmax(train_Y, axis=1)
+
+                        if category == "regression":
+                            train_Y = np.argmax(train_Y, axis=1)
+
 
                         model = Model_Generator(layers=layers, activation=activation, epochs=epoch_count, dropout=dropout_rate,
-                                                category=category, learning_rate=0.0001, loss="mse")  # regression sample
+                                                category=category, learning_rate=0.0001, loss=loss_function, batch_size=batch_size,
+                                                optimizer=optimizer)  # regression sample
 
                         model_name = model.get_model_name()
 
@@ -93,44 +130,142 @@ def nested_cross_fold_validation():
 
                         ressult_train = model.fit(train_X, train_Y, input_dim)
 
-                        result_validation = model.predict(test_X, test_Y)
-                        predict_values = result_validation["predict"]
 
-                        trec_output_validation += trec.get_trec_output_regression(q_id_test_list, test_TYPES, test_Y, predict_values)
+                        result_validation = None
+                        predict_values = None
+                        predict_values = None
+                        predict_probs = None
+                        if category == "regression":
+                            result_validation = model.predict(test_X, test_Y)
+                            predict_values = result_validation["predict"]
+                            trec_output_validation += trec.get_trec_output_regression(q_id_test_list, test_TYPES, test_Y, predict_values)
+                        else:
+                            result_validation = model.predict(test_X, test_Y_one_hot)
+                            predict_values = result_validation["predict"]
+                            predict_probs = result_validation["predict_prob"]
+                            trec_output_validation += trec.get_trec_output_classification(q_id_test_list, test_TYPES, test_Y, predict_values, predict_probs)
 
                         loss_train, acc_train = ressult_train["train_loss_latest"], ressult_train["train_acc_mean"]
                         loss_validation, acc_validation = result_validation["loss_mean"], result_validation["acc_mean"]
+
+                        loss_train_total = np.append(loss_train_total, float(loss_train))
+                        acc_train_total = np.append(acc_train_total, float(acc_train))
+
+                        loss_validation_total = np.append(loss_validation_total, float(loss_validation))
+                        acc_validation_total = np.append(acc_validation_total, float(acc_validation))
 
                         models_during_validation.append((model, loss_train,
                                                          acc_train, loss_validation, acc_validation))
 
                         #inja mishe yek record baraye config rooye in Ti , V, ba in config ha, ezafe konim dar csv e report :) !
-
                         print("\n-----------------------------------------------\n\n\n")
+
+                    loss_train_avg = np.mean(loss_train_total)
+                    loss_validation_avg = np.mean(loss_validation_total)
+
+                    acc_train_avg = np.mean(acc_train_total)
+                    acc_validation_avg = np.mean(acc_validation_total)
 
                     model_path_run_validation = models_path + input_name + "T" + str(i+1) + "_V(all)_" + model_name + ".run"
 
                     trec_output_validation = trec_output_validation.rstrip('\n')
                     file_utils.create_file(model_path_run_validation, trec_output_validation)
 
+                    """ Generate_report validation"""
+                    model_path_from_root_run_validation = models_path + input_name + "T" + str(i+1) + "_V(all)_" + model_name + ".run"
+                    model_validation_result_from_root_path = results_path + input_name + "T" + str(i+1) + "_V(all)_" + model_name + ".result"
+
+                    report.append_validation(
+                        run_path_validation=model_path_from_root_run_validation
+                        , result_path_validation=model_validation_result_from_root_path
+                        , input_name=input_name
+                        ,layers=str(layers)
+                        , activations=str(activation)
+                        , category=category
+                        , fold_outer_i=str(i+1)
+                        , loss_train_avg=str(loss_train_avg)
+                        , loss_validation_avg=str(loss_validation_avg)
+                        , dropout=str(dropout_rate)
+                        , acc_train_avg=str(acc_train_avg)
+                        , acc_validation_avg=str(acc_validation_avg)
+                        , batch_size=str(batch_size)
+                        , epoch=str(epoch_count)
+                        , optimizer=optimizer
+                        ,loss_function=loss_function
+                    )
 
             ''' Evaluate best model on Test (unseen data :) ) '''
             _, __, test_X, test_Y_one_hot, q_id_test_list, test_TYPES, test_Y = tsg.get_train_test_data(queries_for_train, queries_for_test_set)
 
             models_sorted = sorted(models_during_validation, key=lambda x: x[3])  # ascending sort
 
-            best_model, loss_train, acc_train, loss_validation, acc_validation = models_sorted[0]
-            result_test = best_model.predict(test_X, test_Y)
-            loss_test, acc_test = result_test["loss_mean"], result_test["acc_mean"]
-            predict_values = result_test["predict"]
 
+
+            best_model, loss_train, acc_train, loss_validation, acc_validation = models_sorted[0]
             best_model_name = best_model.get_model_name()
 
-            model_test_fold_run_path = models_path + "T" + str(i+1) + "(bestModel)_" + best_model_name + ".run"
-            trec_output_test += trec.get_trec_output_regression(q_id_test_list, test_TYPES, test_Y, predict_values)
+            model_test_fold_run_path = models_path + input_name + "_T" + str(i+1) + "(bestModel)_" + best_model_name + ".run"
 
-            temp = trec_output_test.rstrip('\n')
+            #####################################################################################
+            result_validation = None
+            predict_values = None
+            predict_values = None
+            predict_probs = None
+            result_test = None
+
+            if category == "regression":
+                result_test = best_model.predict(test_X, test_Y)
+                predict_values = result_test["predict"]
+                trec_output_test_per_fold = trec.get_trec_output_regression(q_id_test_list, test_TYPES, test_Y, predict_values)
+                trec_output_test += trec_output_test_per_fold
+
+            else:
+                result_test = best_model.predict(test_X, test_Y_one_hot)
+                predict_values = result_test["predict"]
+                predict_probs = result_test["predict_prob"]
+                trec_output_test_per_fold = trec.get_trec_output_classification(q_id_test_list, test_TYPES, test_Y, predict_values, predict_probs)
+                trec_output_test += trec_output_test_per_fold
+                ######################################################################################################
+
+            loss_test, acc_test = result_test["loss_mean"], result_test["acc_mean"]
+            temp = trec_output_test_per_fold.rstrip('\n')
             file_utils.create_file(model_test_fold_run_path, temp)
+
+            """ Generate_report test fold"""
+            model_test_fold_run_from_root_path = models_path + input_name + "_T" + str(i + 1) + "(bestModel)_" + best_model_name + ".run"
+            model_test_fold_result_from_root_path = results_path + input_name + "_T" + str(i + 1) + "(bestModel)_" + best_model_name + ".result"
+            model_validation_result_from_root_path = results_path + input_name + "T" + str(i + 1) + "_V(all)_" + best_model_name + ".result"
+
+            report.append_test(
+                run_path_test=model_test_fold_run_from_root_path
+                , result_path_test=model_test_fold_result_from_root_path
+                , result_path_validation=model_validation_result_from_root_path
+                , input_name=input_name
+                , layers=str(best_model.get_layers())
+                , activations=str(best_model.get_activiation())
+                , category=best_model.get_category()
+                , fold_outer_i=str(i)
+                , loss_train_avg=str(loss_train)
+                , loss_validation_avg=str(loss_validation)
+                , dropout=str(best_model.get_dropout())
+                , loss_test=str(loss_test)
+                , acc_test=str(loss_test)
+                , acc_train_avg=str(acc_train)
+                , acc_validation_avg=str(acc_validation)
+                , batch_size=str(best_model.get_batch_size())
+                , epoch=str(best_model.get_epoch_count())
+                , optimizer=str(best_model.get_optimizer())
+                , loss_function=str(best_model.get_loss_function())
+            )
+
+            loss_train_best_models_total = np.append(loss_train_best_models_total, float(loss_train))
+            acc_train_best_models_total = np.append(acc_train_best_models_total, float(acc_train))
+
+            loss_validation_best_models_total= np.append(loss_validation_best_models_total, float(loss_validation))
+            acc_validation_best_models_total= np.append(acc_validation_best_models_total, float(acc_validation))
+
+            loss_test_total= np.append(loss_test_total, float(loss_test))
+            acc_test_total= np.append(acc_test_total, float(acc_test))
 
             print("\n-----------------------------------------------\n")
 
@@ -139,5 +274,45 @@ def nested_cross_fold_validation():
 
         file_utils.create_file(model_test_all_run_path, trec_output_test)
 
+        """ Generate_report evaluate test data on best models in validation"""
+        model_test_all_run_from_root_path = models_path + input_name + "_T(all)" + "_" + category + ".run"
+        model_test_all_result_from_root_path = results_path + input_name + "_T(all)" + "_" + category + ".result"
 
-nested_cross_fold_validation()
+        report.append_test(
+            run_path_test=model_test_all_run_from_root_path
+            , result_path_test=model_test_all_result_from_root_path
+            , result_path_validation=""
+            , input_name=input_name
+            , layers=str("")
+            , activations=str("")
+            , category= ""
+            , fold_outer_i= ""
+            , loss_train_avg=str(np.mean(loss_train_best_models_total))
+            , loss_validation_avg=str(np.mean(loss_validation_best_models_total))
+            , dropout=""
+            , loss_test=str(np.mean(loss_test_total))
+            , acc_test=str(np.mean(acc_test_total))
+            , acc_train_avg=str(np.mean(acc_train_best_models_total))
+            , acc_validation_avg=str(np.mean(acc_validation_best_models_total))
+            , batch_size=""
+            , epoch=""
+            , optimizer=""
+            , loss_function=""
+        )
+
+
+layers_for_evaluate_reg = [[1, 1], [4, 1],[2, 1]]
+layers_for_evaluate_class = [[1, 8], [4, 8],[2, 8]]
+
+activation_for_evaluate_reg = [["relu",  "linear"], ["relu", "linear"], ["relu", "linear"]]
+activation_for_evaluate_class = [["relu",  "softmax"], ["relu", "softmax"], ["relu", "softmax"]]
+
+categories = ["regression", "classification"]
+layers_for_evaluates = [layers_for_evaluate_reg, layers_for_evaluate_class]
+activation_for_evaluates = [activation_for_evaluate_reg, activation_for_evaluate_class]
+
+for cat, act, layers in zip(categories, activation_for_evaluates, layers_for_evaluates):
+    category = cat
+    activation_for_evaluate = act
+    layers_for_evaluate = layers
+    nested_cross_fold_validation()
