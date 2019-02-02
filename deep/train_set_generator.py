@@ -1,6 +1,7 @@
 import os, subprocess, json, ast, sys, re, random, csv, json
 import seaborn as sns
 import numpy as np
+import pandas as pd
 from scipy import spatial
 
 np.set_printoptions(threshold=np.inf)
@@ -74,7 +75,7 @@ word2vec_train_set_path = os.path.join(dirname, '../data/GoogleNews-vectors-nega
 # word_vectors = KeyedVectors.load_word2vec_format(word2vec_train_set_path, binary=True, limit=100000) 4
 
 word_vectors = None
-
+trainset_average_w2v = None
 
 # word_vectors = []
 
@@ -85,6 +86,16 @@ def loadWord2Vec():
         word_vectors = KeyedVectors.load_word2vec_format(word2vec_train_set_path, binary=True)
         print("w2v loaded...")
 
+def get_trainset_average_w2v():
+    train_set_average_dict = json.load(open(trainset_average_w2v_path))
+    return train_set_average_dict
+
+def load_trainset_average_w2v():
+    global trainset_average_w2v
+    if trainset_average_w2v is None:
+        print("trainset_average_w2v loading...")
+        trainset_average_w2v = get_trainset_average_w2v()
+        print("trainset_average_w2v loaded...")
 
 def getVector(word):
     loadWord2Vec()
@@ -650,9 +661,65 @@ def save_trainset_average_w2v():
     # json.dump(train_set_average_dict, fp=open(trainset_average_w2v_path, 'w'), indent=4, sort_keys=True)
 
 
-def get_trainset_average_w2v():
-    train_set_average_dict = json.load(open(trainset_average_w2v_path))
-    return train_set_average_dict
+def get_train_test_data(queries_for_train, queries_for_test_set):
+    global trainset_average_w2v
+    if trainset_average_w2v is None:
+        load_trainset_average_w2v()
+    q_id_train_list = []
+    train_X = []
+    train_Y = []
+    train_TYPES = []
+
+    test_X = []
+    test_Y = []
+    test_TYPES = []
+    q_id_test_list = []
+
+    for query_ids_train in queries_for_train.keys():
+        label_zero_count = 0
+        q_id_train_set = trainset_average_w2v[query_ids_train]
+
+        for train_set in q_id_train_set:
+            if train_set[1] == "0":
+                label_zero_count += 1
+
+                if (label_zero_count <= 1):
+                    train_X.append(train_set[0])
+                    train_Y.append(train_set[1])
+                    train_TYPES.append(train_set[2])
+                    q_id_train_list.append(query_ids_train)
+            else:
+                train_X.append(train_set[0])
+                train_Y.append(train_set[1])
+                train_TYPES.append(train_set[2])
+                q_id_train_list.append(query_ids_train)
+
+    train_Y = pd.get_dummies(train_Y)
+    train_Y = train_Y.values.tolist()
+
+    train_X = np.array(train_X)
+    train_Y = np.array(train_Y)
+
+    for query_ids_test in queries_for_test_set:
+        label_zero_count = 0
+        q_id_test_set = trainset_average_w2v[query_ids_test[0]]
+        for test_set in q_id_test_set:
+            if test_set[1] == "0":
+                label_zero_count += 1
+
+            # if (label_zero_count<=1):
+            test_X.append(test_set[0])
+            test_Y.append(test_set[1])
+            test_TYPES.append(test_set[2])
+            q_id_test_list.append(query_ids_test[0])
+
+    test_Y_one_hot = pd.get_dummies(test_Y)
+    test_Y_one_hot = test_Y_one_hot.values.tolist()
+
+    test_X = np.array(test_X)
+    test_Y_one_hot = np.array(test_Y_one_hot)
+
+    return (train_X, train_Y, test_X, test_Y_one_hot, q_id_test_list, test_TYPES, test_Y)
 
 
 # w2v_train_set_generator()
