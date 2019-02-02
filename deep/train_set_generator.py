@@ -719,7 +719,7 @@ def get_train_test_data(queries_for_train, queries_for_test_set):
     test_X = np.array(test_X)
     test_Y_one_hot = np.array(test_Y_one_hot)
 
-    return (train_X, train_Y, test_X, test_Y_one_hot, q_id_test_list, test_TYPES, test_Y)
+    return (train_X, train_Y, test_X, test_Y_one_hot, q_id_test_list, test_TYPES, np.array(test_Y))
 
 
 # w2v_train_set_generator()
