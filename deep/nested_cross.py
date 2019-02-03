@@ -3,7 +3,6 @@ import os, json, random, sys
 # os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 
 from keras.layers import *
-from seq2seq.test import losses_test
 
 from utils import trec_output as trec
 from utils import file_utils
@@ -20,6 +19,7 @@ results_path_from_root = os.path.join("./data", "results", "")
 results_path= os.path.join("../data", "results", "")
 
 input_name = "input(abstract_e_avg)_"
+# input_name = "input(type_terms)_"
 input_dim = (600,)
 # category = "regression"
 category = "classification"

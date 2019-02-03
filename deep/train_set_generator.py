@@ -42,6 +42,14 @@ q_ret_100_entities_path = os.path.join(dirname, '../data/types/sig17/q_ret_100_e
 entity_unique_avg_w2v_path = os.path.join(dirname, '../data/types/sig17/entity_unique_avg_w2v.json')
 
 trainset_translation_matrix_path = os.path.join(dirname, '../data/types/sig17/trainset_translation_matrix.txt')
+
+###
+type_terms_raw_path = os.path.join(dirname, '../data/types/sig17/types_unique_terms_sig17.csv')
+type_terms_unique_w2v_path = os.path.join(dirname, '../data/types/sig17/type_terms_unique_w2v_path_sig17.csv')
+trainset_type_terms_avg_q_avg_w2v_path = os.path.join(dirname, '../data/types/sig17/trainset_type_terms_avg_q_avg_w2v_sig17.txt')
+
+# trainset_average_w2v_path = trainset_type_terms_avg_q_avg_w2v_path
+
 ##################################################################################################
 
 # train_set_feature_path = os.path.join(dirname, '../data/types/train_set_feature.csv')
@@ -315,6 +323,12 @@ def get_type_avg_w2v(type_name):
 
     type_avg_w2v = get_average_w2v(tokens)
     return type_avg_w2v
+
+def get_type_terms_avg_w2v(type_terms): #terms of type, different with entities abstract !
+    print("average on terms of type: ", type_terms)
+    tokens = type_terms.split(" ")
+    t_terms_avg_w2v = get_average_w2v_multi_try(tokens)
+    return t_terms_avg_w2v
 
 
 def get_query_avg_w2v(q_body):
@@ -661,6 +675,73 @@ def save_trainset_average_w2v():
     # json.dump(train_set_average_dict, fp=open(trainset_average_w2v_path, 'w'), indent=4, sort_keys=True)
 
 
+###############################################IN progress################################################
+#arian
+
+def get_type_terms_feature_dict():
+    type_terms_feature = dict()
+    '''
+    { type_name: t_avg_w2v)}
+    queries_feature['type'][1]//get avg w2v of trems of type !
+    '''
+    with open(type_terms_unique_w2v_path) as tsv:
+        for line in csv.reader(tsv, dialect="excel-tab"):  # can also
+            q_type = str(line[0])
+
+            q_type_avg_w2v = str(line[1])
+            q_type_avg_w2v = ast.literal_eval(q_type_avg_w2v)
+
+            type_terms_feature[q_type] = q_type_avg_w2v
+
+    return type_terms_feature
+
+def type_terms_avg_w2v_generator():
+    with open(type_terms_raw_path) as tsv:
+        for line in csv.reader(tsv, dialect="excel-tab"):  # can also
+            q_type_raw = str(line[0])
+            q_type_terms = str(line[1])
+
+            q_type_avg_w2v = get_type_terms_avg_w2v(q_type_terms)
+            str_types_feature = str(q_type_raw) + "\t" + str(np.array(q_type_avg_w2v).tolist()) + "\n"
+
+            print(str_types_feature)
+
+            f_train_set_feature = open(type_terms_unique_w2v_path, 'a+')
+            f_train_set_feature.write(str_types_feature)
+            f_train_set_feature.close()
+
+def save_trainset_type_terms_w2v():
+    types_feature_dict = get_type_terms_feature_dict()
+    queries_feazture_dict = get_queries_feature_dict()
+    raw_trainset_dict = get_raw_trainset_dict()
+
+    train_set_average_dict = dict()
+    '''
+        {q_id: [(merged_avg_feature, rel_class, type_name)]}
+    '''
+    for train_set_key, train_set_value_list in raw_trainset_dict.items():
+        for train_set_value in train_set_value_list:
+            q_id = train_set_key
+            q_body = train_set_value[0]
+            q_type = train_set_value[1]
+            q_type_rel_class = train_set_value[2]
+
+            q_body_w2v_avg_feature = queries_feazture_dict[q_id][1]
+            q_type_w2v_avg_feature = types_feature_dict[q_type]
+
+            merged_features = q_body_w2v_avg_feature + q_type_w2v_avg_feature
+
+            if q_id not in train_set_average_dict:
+                train_set_average_dict[q_id] = [(merged_features, q_type_rel_class, q_type)]
+            else:
+                train_set_average_dict[q_id].append((merged_features, q_type_rel_class, q_type))
+    json.dump(train_set_average_dict, fp=open(trainset_type_terms_avg_q_avg_w2v_path, 'w'))
+    # json.dump(train_set_average_dict, fp=open(trainset_average_w2v_path, 'w'), indent=4, sort_keys=True)
+
+
+###############################################IN progress################################################
+
+
 def get_train_test_data(queries_for_train, queries_for_test_set):
     global trainset_average_w2v
     if trainset_average_w2v is None:
@@ -740,6 +821,9 @@ def get_train_test_data(queries_for_train, queries_for_test_set):
 #
 # save_translation_matrix()
 # save_translation_matrix()
+
+# type_terms_avg_w2v_generator()
+save_trainset_type_terms_w2v()
 
 # print("eiffel")
 # wrd1 = getVector("eiffel")
