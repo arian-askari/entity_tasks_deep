@@ -36,14 +36,7 @@ queries_unique_raw_path = os.path.join(dirname, '../data/types/sig17/quries_uniq
 types_unique_feature_path = os.path.join(dirname, '../data/types/sig17/types_unique_feature_sig17.csv')
 queries_unique_feature_path = os.path.join(dirname, '../data/types/sig17/quries_unique_feature_sig17.csv')
 
-
-
-# trainset_average_w2v_path = os.path.join(dirname, '../data/types/sig17/trainset_average_w2v_sig17.txt')
-trainset_average_w2v_path = os.path.join(dirname, '../data/types/sig17/trainset_type_terms_avg_q_avg_w2v_sig17.txt')
-# trainset_type_terms_avg_q_avg_w2v_path = os.path.join(dirname, '../data/types/sig17/trainset_type_terms_avg_q_avg_w2v_sig17.txt')
-
-
-
+trainset_average_w2v_path = os.path.join(dirname, '../data/types/sig17/trainset_average_w2v_sig17.txt')
 
 queries_w2v_char_level_path = os.path.join(dirname, '../data/types/sig17/queries_w2v_char_level_feature.csv')
 q_ret_100_entities_path = os.path.join(dirname, '../data/types/sig17/q_ret_100_entities.csv')
@@ -54,8 +47,8 @@ trainset_translation_matrix_path = os.path.join(dirname, '../data/types/sig17/tr
 ###
 type_terms_raw_path = os.path.join(dirname, '../data/types/sig17/types_unique_terms_sig17.csv')
 type_terms_unique_w2v_path = os.path.join(dirname, '../data/types/sig17/type_terms_unique_w2v_path_sig17.csv')
-
-# trainset_average_w2v_path = trainset_type_terms_avg_q_avg_w2v_path
+trainset_type_terms_avg_q_avg_w2v_path = os.path.join(dirname, '../data/types/sig17/trainset_type_terms_avg_q_avg_w2v_sig17.txt')
+trainset_average_w2v_path = trainset_type_terms_avg_q_avg_w2v_path
 
 ##################################################################################################
 
@@ -830,7 +823,7 @@ def get_train_test_data(queries_for_train, queries_for_test_set):
 # save_translation_matrix()
 # save_translation_matrix()
 
-type_terms_avg_w2v_generator()
+# type_terms_avg_w2v_generator()
 # save_trainset_type_terms_w2v()
 
 # print("eiffel")
