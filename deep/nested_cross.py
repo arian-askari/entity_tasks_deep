@@ -308,8 +308,7 @@ def nested_cross_fold_validation():
 # layers_for_evaluates = [layers_for_evaluate_reg, layers_for_evaluate_class]
 # activation_for_evaluates = [activation_for_evaluate_reg, activation_for_evaluate_class]
 
-# epoch_count = 10000
-epoch_count = 3
+epoch_count = 2000
 layers_for_evaluate_reg = [[1000, 1000, 1], [1000, 1000, 100, 1]]
 layers_for_evaluate_class = [[1000, 1000, 8], [1000, 1000, 100, 8]]
 
