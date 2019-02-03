@@ -17,9 +17,8 @@ models_path_from_root = os.path.join("./data", "runs", "")
 
 results_path_from_root = os.path.join("./data", "results", "")
 results_path= os.path.join("../data", "results", "")
-
-input_name = "input(abstract_e_avg)_"
-# input_name = "input(type_terms)_"
+input_name = "input(type_terms_avg)_"
+# input_name = "input(abstract_e_avg)_"
 input_dim = (600,)
 # category = "regression"
 category = "classification"
@@ -27,8 +26,6 @@ category = "classification"
 
 def substrac_dicts(dict1, dict2):
     return dict(set(dict1.items()) - set((dict(dict2)).items()))
-
-epoch_count = 10000
 
 # layers_for_evaluate = [[1000, 1000, 1], [1000, 1000, 100, 1]]
 # activation_for_evaluate = [["relu","relu","linear"],["relu", "relu", "relu", "linear"]]
@@ -311,7 +308,8 @@ def nested_cross_fold_validation():
 # layers_for_evaluates = [layers_for_evaluate_reg, layers_for_evaluate_class]
 # activation_for_evaluates = [activation_for_evaluate_reg, activation_for_evaluate_class]
 
-epoch_count = 10000
+# epoch_count = 10000
+epoch_count = 3
 layers_for_evaluate_reg = [[1000, 1000, 1], [1000, 1000, 100, 1]]
 layers_for_evaluate_class = [[1000, 1000, 8], [1000, 1000, 100, 8]]
 
@@ -321,7 +319,7 @@ activation_for_evaluate_class = [["relu","relu","softmax"], ["relu","relu","relu
 categories = ["regression", "classification"]
 layers_for_evaluates = [layers_for_evaluate_reg, layers_for_evaluate_class]
 activation_for_evaluates = [activation_for_evaluate_reg, activation_for_evaluate_class]
-dropout_rates = [0.2, 0.3, 0.4, 0.5]
+dropout_rates = [0.2, 0.3, 0.4, 0.5, 0.0]
 
 for cat, act, layers in zip(categories, activation_for_evaluates, layers_for_evaluates):
     category = cat
