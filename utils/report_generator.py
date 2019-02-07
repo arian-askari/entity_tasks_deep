@@ -1,8 +1,8 @@
 import os, json, random, sys, csv
 import utils.file_utils as file_utils
 
-validations_report_path = os.path.join("../data", "reports", "validation_reports.csv")
-test_report_path = os.path.join("../data", "reports", "test_reports.csv")
+validations_report_path = os.path.join("../data", "reports", "validation_reports_cnn.csv")
+test_report_path = os.path.join("../data", "reports", "test_reports_cnn.csv")
 trec_path = os.path.join("../data", "types", "qrels.test")
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 delimeter = "\t"
@@ -15,7 +15,7 @@ class Report_Generator():
 
     def append_validation(self, run_path_validation, result_path_validation, input_name, layers, activations, category, fold_outer_i, loss_train_avg
                           , loss_validation_avg, dropout, acc_train_avg, acc_validation_avg
-                          , batch_size, epoch, optimizer, loss_function, run_path_test=""):
+                          , batch_size, epoch, optimizer, loss_function, top_k, run_path_test=""):
 
 
         self.__create_result_file(run_path_validation, result_path_validation)
@@ -26,7 +26,7 @@ class Report_Generator():
                         "loss_validation_avg" + delimeter + "dropout" + delimeter +\
                         "n5_validation" + delimeter + "acc_train_avg" + delimeter + \
                         "acc_validation_avg" + delimeter + "batch_size" + delimeter +\
-                        "epoch" + delimeter + "optimizer" + delimeter + "loss_function" + "\n"
+                        "epoch" + delimeter + "optimizer" + delimeter + "loss_function" + delimeter + "top_k" + "\n"
 
 
         row = input_name + delimeter +\
@@ -34,7 +34,7 @@ class Report_Generator():
               category + delimeter + fold_outer_i + delimeter + loss_train_avg + delimeter +\
               loss_validation_avg + delimeter + dropout + delimeter + n_5_validation + delimeter +\
               acc_train_avg + delimeter + acc_validation_avg + delimeter + batch_size + delimeter +\
-              epoch + delimeter + optimizer + delimeter + loss_function + "\n"
+              epoch + delimeter + optimizer + delimeter + loss_function + delimeter + top_k  + "\n"
 
         time.sleep(2)
 
@@ -47,7 +47,7 @@ class Report_Generator():
                     , loss_validation_avg, dropout, loss_test
                     , acc_test
                     , acc_train_avg, acc_validation_avg
-                    , batch_size, epoch, optimizer, loss_function):
+                    , batch_size, epoch, optimizer, loss_function, top_k):
 
 
         self.__create_result_file(run_path_test, result_path_test)
@@ -67,7 +67,7 @@ class Report_Generator():
                  delimeter + "loss_test" + delimeter + "acc_test" + delimeter +\
                  "acc_train_avg" + delimeter + "acc_validation_avg" + delimeter +\
                  "batch_size" + delimeter + "epoch" + delimeter +\
-                 "optimizer" + delimeter + "loss_function" + "\n"
+                 "optimizer" + delimeter + "loss_function" + delimeter + "top_k" + "\n"
 
         row = input_name + delimeter + layers +\
               delimeter + activations + delimeter + category + delimeter +\
@@ -76,7 +76,7 @@ class Report_Generator():
               n_5_test + delimeter + n_5_validation + delimeter +\
               loss_test + delimeter + acc_test + delimeter + acc_train_avg +\
               delimeter + acc_validation_avg + delimeter + batch_size +\
-              delimeter + epoch + delimeter + optimizer + delimeter + loss_function + "\n"
+              delimeter + epoch + delimeter + optimizer + delimeter + loss_function + delimeter + top_k + "\n"
 
         time.sleep(2)
 
