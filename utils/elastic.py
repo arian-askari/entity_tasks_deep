@@ -25,9 +25,8 @@ def find(index, conditions, term_vector=False):
 
 def find_by_id(index, id, term_vector=False):
     if term_vector is True:
-        result = es.termvectors(index=index, doc_type='doc', id=id, params={"term_statistics":True})
+        result = es.termvectors(index=index, doc_type='doc', id=id, params={"term_statistics":True, "field_statistics":True})
     else:
-        result = es.search(index=index, doc_type='doc', id=id)
+        result = es.get(index=index, doc_type='doc', id=id)
 
     return result
-
