@@ -1,11 +1,13 @@
-import os, subprocess, json, ast, sys, re, random, csv, json
+import os, subprocess, json, ast, sys, re, random, csv, json, math
 import seaborn as sns
 import numpy as np
 import pandas as pd
 from scipy import spatial
-
+import utils.file_utils as file_utils
+import utils.list_utils as list_utils
 np.set_printoptions(threshold=np.inf)
-
+# np.set_printoptions(precision=3)
+np.set_printoptions(suppress=False)
 from gensim.models import Word2Vec
 from gensim.models.keyedvectors import KeyedVectors
 
@@ -44,6 +46,7 @@ entity_unique_avg_w2v_path = os.path.join(dirname, '../data/types/sig17/entity_u
 
 trainset_translation_matrix_path = os.path.join(dirname, '../data/types/sig17/trainset_translation_matrix.txt')
 trainset_translation_matrix_score_e_path = os.path.join(dirname, '../data/types/sig17/trainset_translation_matrix_score_e.txt')
+trainset_translation_matrix_score_e_detail_tpath = os.path.join(dirname, '../data/types/sig17/trainset_translation_matrix_score_e_detail_t.txt')
 
 ###
 type_terms_raw_path = os.path.join(dirname, '../data/types/sig17/types_unique_terms_sig17.csv')
@@ -51,10 +54,24 @@ type_terms_unique_w2v_path = os.path.join(dirname, '../data/types/sig17/type_ter
 trainset_type_terms_avg_q_avg_w2v_path = os.path.join(dirname, '../data/types/sig17/trainset_type_terms_avg_q_avg_w2v_sig17.txt')
 ###
 
+
+type_tfidf_sorted_terms_raw_path = os.path.join(dirname, '../data/types/sig17/type_tfidf_sorted_terms_sig17.tsv')
+type_dfs_sorted_raw_path = os.path.join(dirname, '../data/types/sig17/type_dfs_sorted_sig17.tsv')
+
+type_w2v_char_level_tfidf_terms_sorted_path = os.path.join(dirname, '../data/types/sig17/type_w2v_char_level_tfidf_terms_sorted.json')
+type_w2v_char_level_dfs_terms_sorted_path = os.path.join(dirname, '../data/types/sig17/type_w2v_char_level_dfs_terms_sorted.json')
+trainset_translation_matrix_type_tfidf_terms_path = os.path.join(dirname, '../data/types/sig17/trainset_translation_matrix_tfidf_terms')
+trainset_translation_matrix_type_sdf_terms_path = os.path.join(dirname, '../data/types/sig17/trainset_translation_matrix_sdf_terms')
+
+###
+
 trainset_cosine_sim_average_w2v_path = os.path.join(dirname, '../data/types/sig17/trainset_cosine_sim_average_w2v_sig17.txt')
 
+type_entity_cnt_path = os.path.join(dirname, '../data/types/sig17/types_details_light.tsv')
+
+
 # trainset_average_w2v_path = trainset_type_terms_avg_q_avg_w2v_path
-trainset_average_w2v_path = trainset_cosine_sim_average_w2v_path
+# trainset_average_w2v_path = trainset_cosine_sim_average_w2v_path
 
 
 ##################################################################################################
@@ -223,6 +240,27 @@ def get_query_character_level_w2v(q_body):
     return q_w2v_character_level_list
 
 
+def get_type_character_level_w2v(type, k=100):
+    tokens = list_utils.unique_preserve_order(type)
+
+    types_have_vec = ""
+    t_w2v_character_level_list = []  # store list of w2v vector(300-D) for each q_word
+    cnt_type_have_vec = 0
+
+    for token in tokens:
+        if cnt_type_have_vec == k:
+            return (types_have_vec, t_w2v_character_level_list)
+
+        token = token.replace("(", "").replace(")", "")
+        vec = get_vec_several_try(token)
+        if len(vec) > 0:  # try to find original term, w2c
+            t_w2v_character_level_list.append(vec.tolist())
+            types_have_vec +=token + " "
+            cnt_type_have_vec += 1
+            continue
+    return (types_have_vec, t_w2v_character_level_list)
+
+
 def get_average_w2v(tokens):
     token_resume = 0
 
@@ -337,6 +375,7 @@ def get_type_avg_w2v(type_name):
     type_avg_w2v = get_average_w2v(tokens)
     return type_avg_w2v
 
+
 def get_type_terms_avg_w2v(type_terms): #terms of type, different with entities abstract !
     print("average on terms of type: ", type_terms)
     tokens = type_terms.split(" ")
@@ -437,17 +476,181 @@ def q_w2v_char_level_generator():
             f_train_set_feature.close()
 
 
-def types_avgw2v_generator():
-    str_query_types = "type_name, avg_w2v\n"
-    '''
-    faghat oonai k type haye rel o non rel mibashan rooye file benevisam! va gheyre tekrari,
-    tu ram negah daram baraye kodom type ha ghablan hesab shode, mojadad hesab nakonam.
-    badaan dige faghat un file ro az roo text mikhunam!
+# arian
+def hasNumbers(inputString):
+    return any(char.isdigit() for char in inputString)
 
-    chon hesab kardan w2v va avg rooye tamame token haye yek type,
-     ounam chandin bar kheyli tul mikeshe!
-    '''
+def get_type_sorted_tfidf_dfs_terms(type_name, k=100):#<dbo:food>
+    INDEX_NAME = "dbpedia_2015_10_types"
 
+    result = es.find_by_id(INDEX_NAME, type_name, True)
+    terms = result['term_vectors']['content']['terms']
+
+    terms_score = []  # {"term":(dfs_score, tf.idf_score"}
+    # dar nahayat retrieve top-100 har bar bar asas yeki az score ha :)
+    cnt_type = 461
+
+    collection_tokens_count = result['term_vectors']['content']["field_statistics"]["sum_ttf"]
+    doc_len = sum([term["term_freq"] for term in terms.values()])
+    for term_key, term_value in terms.items():
+        term_name = str(term_key)
+
+        if hasNumbers(term_name) or len(term_name) < 4:
+            continue
+
+        term_idf = math.log(cnt_type / term_value["doc_freq"])
+        term_tf = term_value["term_freq"]
+        term_cf = term_value["ttf"]
+
+        term_tf_idf_score = term_tf * term_idf
+        p_T_t = (term_tf / doc_len)  # ehtemal rokhdad t dar type T
+        p_T_not_t = (term_cf - term_tf) / (collection_tokens_count - doc_len)  # ehtemal rokh dad t dar digar type ha
+        term_dfs_score = (p_T_t / ((1 - p_T_t) + (p_T_not_t) + 1))
+
+        terms_score.append((term_name, term_dfs_score, term_tf_idf_score))
+
+    terms_sorted_dfs = sorted(terms_score, key=lambda x: x[1], reverse=True)
+    terms_sorted_tf_idf = sorted(terms_score, key=lambda x: x[2], reverse=True)
+    #terms_sorted_dfs[:10] #top ten+
+    return (terms_sorted_tf_idf[:k], terms_sorted_dfs[:k])
+
+
+def type_w2v_char_level_generator():
+    k = 100
+    delimeter = "\t"
+
+    type_tfidf_sorted_terms_raw_str = "type\tterms\ttf_idf_sorted_terms\n"  #headers + new line
+    type_dfs_sorted_raw_str  = "type\tterms\tsdf_sorted_terms\n" #headers + new line
+    type_w2v_char_level_tfidf_terms_sorted_dict = {} # {type:(type_terms, [tf_idf_sorted_terms w2v char level])}
+    type_w2v_char_level_dfs_terms_sorted_dict = {}  # {type:(type_terms, [sdf_sorted_terms w2v char level])}
+
+    with open(type_terms_raw_path) as tsv:
+        for line in csv.reader(tsv, dialect="excel-tab"):  # can also
+            q_type = str(line[0])
+            q_type_terms = str(line[1])
+            q_type_terms = q_type_terms.lower().split(" ")
+
+
+            terms_sorted_tf_idf, terms_sorted_dfs = get_type_sorted_tfidf_dfs_terms(q_type, k=1000) #i[0] term name, i[1] dfs score, i[2] tf idf score
+
+            t_terms_sorted_tf_idf_list = [i[0] for i in terms_sorted_tf_idf]
+            t_terms_sorted_dfs_list = [i[0] for i in terms_sorted_dfs]
+
+            for type_term in q_type_terms: # add type terms first of list tf idf or dfs sorted terms from entity abstracts :)
+                t_terms_sorted_tf_idf_list.insert(0, type_term)
+                t_terms_sorted_dfs_list.insert(0, type_term)
+
+
+            type_terms_tf_idf_have_vec, w2v_tf_idf_char_level = get_type_character_level_w2v(t_terms_sorted_tf_idf_list, k=k)
+            type_terms_dfs_have_vec, w2v_dfs_char_level = get_type_character_level_w2v(t_terms_sorted_dfs_list, k=k)
+
+
+            type_tfidf_sorted_terms_raw_str += q_type + delimeter + (type_terms_tf_idf_have_vec) + "\n"
+            type_dfs_sorted_raw_str += q_type + delimeter + (type_terms_dfs_have_vec) + "\n"
+
+
+            type_w2v_char_level_tfidf_terms_sorted_dict[q_type] = w2v_tf_idf_char_level
+
+            type_w2v_char_level_dfs_terms_sorted_dict[q_type] = w2v_dfs_char_level
+
+        file_utils.write_file(type_tfidf_sorted_terms_raw_path, type_tfidf_sorted_terms_raw_str, force=True)
+        file_utils.write_file(type_dfs_sorted_raw_path, type_dfs_sorted_raw_str, force=True)
+        file_utils.wirte_json_file(type_w2v_char_level_tfidf_terms_sorted_path, type_w2v_char_level_tfidf_terms_sorted_dict, force=True)
+        file_utils.wirte_json_file(type_w2v_char_level_dfs_terms_sorted_path, type_w2v_char_level_dfs_terms_sorted_dict, force=True)
+
+def get_type_tfidf_w2v_char_level():
+    """dict: {type:[w2v word level]}"""
+    with open(type_w2v_char_level_tfidf_terms_sorted_path, 'r') as ff:
+        type_tfidf_w2v_char_level_dict = json.load(ff)
+        return type_tfidf_w2v_char_level_dict
+
+def get_type_sdf_w2v_char_level():
+    """dict: {type:[w2v word level]}"""
+    with open(type_w2v_char_level_dfs_terms_sorted_path, 'r') as ff:
+        type_dfs_w2v_char_level_dict = json.load(ff)
+        return type_dfs_w2v_char_level_dict
+
+
+def save_translation_matrix_type_terms(score_type="tf_idf", k=100):
+    queries_w2v_char_level_dict = get_queries_char_level_w2v_dict()
+    # { q_id: (q_body,q_body_w2v_char_level_list_of_list)}
+    path_dict = ""
+    type_terms_k_top_char_level_w2v = None
+    if score_type == "tf_idf":
+        type_terms_k_top_char_level_w2v = get_type_tfidf_w2v_char_level()
+        path_dict = trainset_translation_matrix_type_tfidf_terms_path + "_" + str(k) + ".json"
+    elif score_type == "dfs":
+        type_terms_k_top_char_level_w2v = get_type_sdf_w2v_char_level()
+        path_dict = trainset_translation_matrix_type_sdf_terms_path + "_" + str(k) + ".json"
+    # {type:[w2v word level]}
+
+    #queries_ret_100_entities_dict = get_queries_ret_100_entities_dict()
+    # entity_unique_avg_w2v_dict = get_entity_unique_avg_w2v_dict()
+    # {entity_name: w2v_abstract_e}
+
+    train_set_translation_matrix_dict = dict()
+
+    with open(train_set_row_path) as tsv:
+        for line in csv.reader(tsv, dialect="excel-tab"):  # can also
+            q_id = str(line[0])
+            q_body = str(line[1])
+            q_type = str(line[2])
+            q_type_rel_class = str(line[3])
+
+            translation_matrix_np = get_trainslation_matrix_type_terms(q_id, q_type, queries_w2v_char_level_dict, type_terms_k_top_char_level_w2v, k=k)
+            translation_matrix_list = translation_matrix_np.tolist()
+
+            if q_id not in train_set_translation_matrix_dict:
+                train_set_translation_matrix_dict[q_id] = [(translation_matrix_list, q_type_rel_class, q_type)]
+
+            else:
+                train_set_translation_matrix_dict[q_id].append((translation_matrix_list, q_type_rel_class, q_type))
+
+
+        # {q_id: [(translation_matrix_list, q_type_rel_class, q_type)]}
+        json.dump(train_set_translation_matrix_dict, fp=open(path_dict, 'w'))
+
+def get_trainslation_matrix_type_terms(q_id, type, queries_w2v_char_level_dict, type_terms_k_top_char_level_w2v, k):
+    """{q_id: [(translation_matrix_list, q_type_rel_class, q_type)]}"""
+    query_max_len = 14
+    type_term_to_k_cnt = k
+
+    column_size = type_term_to_k_cnt
+    row_size = query_max_len
+
+    translation_mattix_np = np.zeros([row_size, column_size])
+
+    current_row = -1
+
+    q_w2v_words = queries_w2v_char_level_dict[q_id][1]
+    t_term_w2c_words = type_terms_k_top_char_level_w2v[type]
+
+    for q_w2v_word in q_w2v_words:
+        current_column = -1
+
+        current_row += 1
+
+        if (all(v == 0 for v in q_w2v_word)):
+            continue #skip this row zeros, because query w2v doesn't exist !
+
+        row_np = np.zeros(column_size)
+
+        for w2c_type_term in t_term_w2c_words[:k]:
+            current_column += 1
+            cosine_sim = get_cosine_similarity(q_w2v_word, w2c_type_term)
+            row_np[current_column] = cosine_sim
+
+        translation_mattix_np[current_row, :] = row_np
+
+    # cosine_sim_row = np.random.rand(w2v_dim_len)
+    # translation_mattix_np[row_number,:] = cosine_sim_row
+
+    # {q_id: [(translation_matrix_list, q_type_rel_class, q_type)]}
+    return translation_mattix_np
+
+def get_trainset_translation_matrix_type_tfidf_terms(k):
+    train_set_translation_matrix_dict = json.load(open(trainset_translation_matrix_type_tfidf_terms_path + "_" + str(k) + ".json"))
+    return train_set_translation_matrix_dict
 
 def get_types_feature_dict():
     types_feature = dict()
@@ -567,6 +770,20 @@ def get_entity_unique_avg_w2v_dict():
         entity_unique_avg_w2v_dict = json.load(ff)
         return entity_unique_avg_w2v_dict
 
+#arian 2
+def get_type_entity_cnt_dict():
+    '''
+    { type: (cnt_entities, 1/cnt_entities)}
+    '''
+    type_entity_cnt_dict = {}
+    with open(type_entity_cnt_path) as tsv:
+        for line in csv.reader(tsv, dialect="excel-tab"):  # can also
+            type_name = str(line[0])
+            cnt_entities = str(line[1])
+            one_div_cnt_entities = str(line[2])
+            type_entity_cnt_dict[type_name] = (cnt_entities, one_div_cnt_entities)
+    return type_entity_cnt_dict
+
 def save_translation_matrix():
     queries_w2v_char_level_dict = get_queries_char_level_w2v_dict()
     #{ q_id: (q_body,q_body_w2v_char_level_list_of_list)}
@@ -597,6 +814,7 @@ def save_translation_matrix():
         # {q_id: [(translation_matrix_list, q_type_rel_class, q_type)]}
         json.dump(train_set_translation_matrix_dict, fp=open(trainset_translation_matrix_path, 'w'))
 
+
 def save_translation_matrix_entity_score():
     queries_w2v_char_level_dict = get_queries_char_level_w2v_dict()
     #{ q_id: (q_body,q_body_w2v_char_level_list_of_list)}
@@ -607,16 +825,21 @@ def save_translation_matrix_entity_score():
     entity_unique_avg_w2v_dict = get_entity_unique_avg_w2v_dict()
     # {entity_name: w2v_abstract_e}
 
+    type_ent_cnt_dict = get_type_entity_cnt_dict()
+
     train_set_translation_matrix_dict = dict()
 
     with open(train_set_row_path) as tsv:
         for line in csv.reader(tsv, dialect="excel-tab"):  # can also
             q_id = str(line[0])
+
+
             q_body = str(line[1])
             q_type = str(line[2])
             q_type_rel_class = str(line[3])
 
-            translation_matrix_np = get_trainslation_matrix_score_e(q_id, q_type, queries_w2v_char_level_dict , queries_ret_100_entities_dict, entity_unique_avg_w2v_dict)
+
+            translation_matrix_np = get_trainslation_matrix_score_e(q_id, q_type, queries_w2v_char_level_dict , queries_ret_100_entities_dict, entity_unique_avg_w2v_dict, type_ent_cnt_dict)
             translation_matrix_list = translation_matrix_np.tolist()
 
             if q_id not in train_set_translation_matrix_dict:
@@ -624,7 +847,7 @@ def save_translation_matrix_entity_score():
             else:
                 train_set_translation_matrix_dict[q_id].append((translation_matrix_list, q_type_rel_class, q_type))
 
-        json.dump(train_set_translation_matrix_dict, fp=open(trainset_translation_matrix_score_e_path, 'w'))
+        json.dump(train_set_translation_matrix_dict, fp=open(trainset_translation_matrix_score_e_detail_tpath, 'w'))
 
 
 def get_cosine_similarity(q_w2v_word, entity_avg_w2v):
@@ -686,7 +909,7 @@ def get_trainslation_matrix(q_id, type, queries_w2v_char_level_dict, queries_ret
 
 
 
-def get_trainslation_matrix_score_e(q_id, type, queries_w2v_char_level_dict , queries_ret_100_entities_dict, entity_unique_avg_w2v_dict):
+def get_trainslation_matrix_score_e(q_id, type, queries_w2v_char_level_dict , queries_ret_100_entities_dict, entity_unique_avg_w2v_dict, type_ent_cnt_dict):
     query_max_len = 14
     entity_max_retrieve = 100
 
@@ -705,6 +928,7 @@ def get_trainslation_matrix_score_e(q_id, type, queries_w2v_char_level_dict , qu
 
     q_w2v_words = queries_w2v_char_level_dict[q_id][1]
     q_retrieved_entities = queries_ret_100_entities_dict[q_id]
+
 
     for q_w2v_word in q_w2v_words:
         current_column = -1
@@ -727,7 +951,7 @@ def get_trainslation_matrix_score_e(q_id, type, queries_w2v_char_level_dict , qu
             entity_avg_w2v = entity_unique_avg_w2v_dict[retrieved_entity]
             cosine_sim = get_cosine_similarity(q_w2v_word, entity_avg_w2v)
 
-            row_np[current_column] = relevant_score
+            row_np[current_column] = (relevant_score) * (float(type_ent_cnt_dict[type][0]))
 
         translation_mattix_np[current_row, :] = row_np
 
@@ -743,7 +967,6 @@ def get_trainset_translation_matrix_average_w2v():
 def get_trainset_translation_matrix_score_e_average_w2v():
     train_set_translation_matrix_dict = json.load(open(trainset_translation_matrix_score_e_path))
     return train_set_translation_matrix_dict
-
 
 ########################################3
 
@@ -868,6 +1091,79 @@ def save_trainset_type_terms_w2v():
     json.dump(train_set_average_dict, fp=open(trainset_type_terms_avg_q_avg_w2v_path, 'w'))
     # json.dump(train_set_average_dict, fp=open(trainset_average_w2v_path, 'w'), indent=4, sort_keys=True)
 
+def get_train_test_data_translation_matric_type_centric(queries_for_train, queries_for_test_set , k):
+    global trainset_average_w2v
+    if trainset_average_w2v is None:
+        global trainset_average_w2v_path
+        trainset_average_w2v_path = trainset_translation_matrix_type_tfidf_terms_path + "_" + str(k) + ".json"
+        load_trainset_average_w2v()
+    q_id_train_list = []
+    train_X = []
+    train_Y = []
+    train_TYPES = []
+
+    test_X = []
+    test_Y = []
+    test_TYPES = []
+    q_id_test_list = []
+
+    for query_ids_train in queries_for_train.keys():
+        label_zero_count = 0
+        q_id_train_set = trainset_average_w2v[query_ids_train]
+
+        for train_set in q_id_train_set:
+            if train_set[1] == "0":
+                label_zero_count += 1
+
+                if (label_zero_count <= 1):
+                    t =  np.array(train_set[0])
+                    # t = t.flatten()
+
+                    train_X.append(t)
+                    train_Y.append(train_set[1])
+                    train_TYPES.append(train_set[2])
+                    q_id_train_list.append(query_ids_train)
+            else:
+                t = np.array(train_set[0])
+                # t = t.flatten()
+                train_X.append(t)
+
+                train_Y.append(train_set[1])
+                train_TYPES.append(train_set[2])
+                q_id_train_list.append(query_ids_train)
+
+    train_Y = pd.get_dummies(train_Y)
+    train_Y = train_Y.values.tolist()
+
+    train_X = np.array(train_X)
+    train_Y = np.array(train_Y)
+
+    for query_ids_test in queries_for_test_set:
+        label_zero_count = 0
+        q_id_test_set = trainset_average_w2v[query_ids_test[0]]
+        for test_set in q_id_test_set:
+            if test_set[1] == "0":
+                label_zero_count += 1
+
+            # if (label_zero_count<=1):
+            t = np.array(test_set[0])
+            # t = t.flatten()
+
+            test_X.append(t)
+
+            test_Y.append(test_set[1])
+            test_TYPES.append(test_set[2])
+            q_id_test_list.append(query_ids_test[0])
+
+    test_Y_one_hot = pd.get_dummies(test_Y)
+    test_Y_one_hot = test_Y_one_hot.values.tolist()
+
+    test_X = np.array(test_X)
+    test_Y_one_hot = np.array(test_Y_one_hot)
+
+    return (train_X, train_Y, test_X, test_Y_one_hot, q_id_test_list, test_TYPES, np.array(test_Y))
+
+
 def get_train_test_data(queries_for_train, queries_for_test_set):
     global trainset_average_w2v
     if trainset_average_w2v is None:
@@ -952,6 +1248,15 @@ def get_train_test_data(queries_for_train, queries_for_test_set):
 
 # type_terms_avg_w2v_generator()
 # save_trainset_type_terms_w2v()
+
+# type_w2v_char_level_generator()
+# save_translation_matrix_type_terms(score_type="tf_idf", k=2)
+# save_translation_matrix_type_terms(score_type="tf_idf", k=5)
+# save_translation_matrix_type_terms(score_type="tf_idf", k=10)
+# save_translation_matrix_type_terms(score_type="tf_idf", k=20)
+# save_translation_matrix_type_terms(score_type="tf_idf", k=50)
+# save_translation_matrix_type_terms(score_type="tf_idf", k=100)
+# save_translation_matrix_type_terms(score_type="tf_idf", k=300)
 
 # print("eiffel")
 # wrd1 = getVector("eiffel")
