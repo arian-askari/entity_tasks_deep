@@ -5,10 +5,18 @@ from keras.layers import *
 from keras.models import *
 from keras import optimizers
 from keras.callbacks import CSVLogger
+from keras.layers import LeakyReLU
+from keras import backend as k
+
+
+import numpy as np
+from sklearn.preprocessing import LabelBinarizer
+from sklearn.metrics import make_scorer
+import keras.backend as keras_backend
 
 class Model_Generator():
     def __init__(self, layers, activation=[], optimizer="adam", loss="mse", learning_rate=0.0001,
-                 lambd=0, batch_size=100, epochs=1000, dropout=0.0, verbose=2, category="regression"):
+                 lambd=0, batch_size=100, epochs=1000, dropout=0.0, verbose=2, top_k = 0, category="regression"):
         """
             :param activation : [relu, relu, linear] means, first and second layers have activation relu, and third(output) layer have linear activation function
             :param layers: [1000,1000] means two layers, each layer have 1000 neurons
@@ -26,6 +34,7 @@ class Model_Generator():
         self.__dropout = dropout
         self.__verbose = verbose
         self.__category = category
+        self.__top_k = top_k
         self.__model_name = self.model_name()
         self.__network = None
         self.__history = None
@@ -33,36 +42,49 @@ class Model_Generator():
         self.__sess = None
         print("layers =", layers, ", activation =", activation, ", optimizer =", optimizer, ", loss =", loss,
               ", lambda =", lambd, ", learning_rate =", learning_rate, ", batch_size =", batch_size, " ,epochs =", epochs,
-              " ,dropout =", dropout, " ,verbose =", verbose, " ,category =", category)
+              " ,dropout =", dropout, " ,verbose =", verbose, " ,category =", category, " ,top_k=", top_k)
 
     def set_csv_log_path(self, csv_log_path):
         self.__csv_log_path = csv_log_path
 
-    def fit(self, train_x, train_y, input_dim): #input_dim example: (600,)
+    def fit(self, train_x, train_y, input_dim, test_x =None, test_y = None): #input_dim example: (600,)
         """ Performs training on train_x instances"""
-
         self.__network = Sequential()
         self.__network.add(Dense(self.__layers[0], input_shape=input_dim))
-        self.__network.add(Activation(self.__activation[0]))
         self.__network.add(Dropout(self.__dropout))
 
         for i in range(1, len(self.__layers)):
             self.__network.add(Dense(self.__layers[i]))
-            self.__network.add(Activation(self.__activation[i]))
+            if self.__activation[i] == "LeakyReLU":
+                self.__network.add(LeakyReLU(alpha=0.2))
+            else:
+                self.__network.add(Activation(self.__activation[i]))
             self.__network.add(Dropout(self.__dropout))
-
 
         if (self.__optimizer == "adam"):
             adam = optimizers.Adam(lr=self.__learning_rate)
             self.__network.compile(optimizer=adam, loss=self.__loss, metrics=["accuracy"])
-
-        self.__network.compile(optimizer=self.__optimizer, loss=self.__loss, metrics=["accuracy"])
+        elif(self.__optimizer == "rms"):
+            rms_prop = optimizers.RMSprop(lr=self.__learning_rate, rho=0.9, epsilon=None, decay=0.0)
+            self.__network.compile(optimizer=rms_prop, loss=self.__loss, metrics=["accuracy"])
+        else:
+            self.__network.compile(optimizer=self.__optimizer, loss=self.__loss, metrics=["accuracy"])
 
         if len(self.__csv_log_path) > 0:
             csv_logger = CSVLogger(self.__csv_log_path, append=False, separator=',')
-            self.__history = self.__network.fit(train_x, train_y, epochs=self.__epochs, batch_size=self.__batch_size, verbose=self.__verbose, callbacks=[csv_logger])
+
+            if test_x is not None:
+                self.__history = self.__network.fit(train_x, train_y, validation_data=(test_x, test_y),  epochs=self.__epochs, batch_size=self.__batch_size, verbose=self.__verbose, callbacks=[csv_logger])
+            else:
+
+                self.__history = self.__network.fit(train_x, train_y, epochs=self.__epochs, batch_size=self.__batch_size, verbose=self.__verbose, callbacks=[csv_logger])
         else:
-            self.__history = self.__network.fit(train_x, train_y, epochs=self.__epochs, batch_size=self.__batch_size, verbose=self.__verbose)
+            if test_x is not None:
+                self.__history = self.__network.fit(train_x, train_y, epochs=self.__epochs,
+                                                    batch_size=self.__batch_size, verbose=self.__verbose)
+            else:
+                print(test_y)
+                self.__history = self.__network.fit(train_x, train_y, validation_data=(test_x, test_y), epochs=self.__epochs, batch_size=self.__batch_size, verbose=self.__verbose)
 
         result = dict()
         result["model"] = self.__network
@@ -74,6 +96,7 @@ class Model_Generator():
         print(self.__network.summary())
 
         return result
+
 
 
     def get_train_loss_mean(self):
@@ -129,6 +152,7 @@ class Model_Generator():
         model_name += "_lr(" + str(self.__learning_rate) + ")"
         model_name += "_lambda(" + str(self.__lambd) + ")"
         model_name += "_loss(" + str(self.__loss) + ")"
+        model_name += "_topk(" + str(self.__top_k) + ")"
         model_name += "_" + str(self.__category)
         return model_name
 
@@ -161,22 +185,26 @@ class Model_Generator():
 
 
 
-def example():
-    layers = [100, 100, 1]  # regression sample
-    # layers = [100, 100, 2]  # classification sample
 
-    activation =  ["relu", "relu", "linear"]
-    # activation =  ["relu", "relu", "softmax"]
+# NDCG Scorer function
+
+
+def example():
+    # layers = [100, 100, 1]  # regression sample
+    layers = [100, 100, 2]  # classification sample
+
+    # activation =  ["relu", "relu", "linear"]
+    activation =  ["relu", "relu", "softmax"]
 
     X_Train = np.array([[1, 2, 3], [100, 300, 500]])
 
-    Y_Train = np.array([0, 1])  # regression sample
-    # Y_Train = np.array([[1, 0], [0, 1]])  # classification sample
+    # Y_Train = np.array([0, 1])  # regression sample
+    Y_Train = np.array([[1, 0], [0, 1]])  # classification sample
 
     X_Test = np.array([ [2, 4, 6], [200, 600, 1000]])
 
-    Y_Test = np.array([0, 1])  # regression sample
-    # Y_Test = np.array([[1, 0], [0, 1]])  # classification sample
+    # Y_Test = np.array([0, 1])  # regression sample
+    Y_Test = np.array([[1, 0], [0, 1]])  # classification sample
 
     input_dim = (3,)
 
