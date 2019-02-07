@@ -1,14 +1,13 @@
 import os, json, random, sys
 
-# os.environ['CUDA_VISIBLE_DE VICES'] = '-1'
+# os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 
 from keras.layers import *
 
 from utils import trec_output as trec
 from utils import file_utils
-from deep import train_set_generator as tsg
-# from deep.model_generator import Model_Generator
-from deep.model_generator_cnn import Model_Generator
+from deep import train_set_generator_qvec_is_avg as tsg
+from deep.model_generator import Model_Generator
 from utils.report_generator import Report_Generator
 report = Report_Generator()
 
@@ -19,13 +18,7 @@ models_path_from_root = os.path.join("./data", "runs", "")
 results_path_from_root = os.path.join("./data", "results", "")
 results_path= os.path.join("../data", "results", "")
 # input_name = "input(abstract_e_avg)_"
-k = 100
-input_name = "input(cosine_sim_" + str(k) + "dim)_"
 
-# input_dim = (q_token_cnt*k ,)
-# input_dim = (1,)
-category = "regression"
-# category = "classification"
 
 
 def substrac_dicts(dict1, dict2):
@@ -48,6 +41,7 @@ layers_for_evaluate = [[1, 8], [4, 8],[2, 8]]
 activation_for_evaluate = [["relu",  "softmax"], ["relu", "softmax"], ["relu", "softmax"]]
 dropout_rates = [0.1]
 batch_size = 100
+optimizer = "adam"
 loss_function = "mse"
 
 def nested_cross_fold_validation():
@@ -117,7 +111,7 @@ def nested_cross_fold_validation():
                         if category == "regression":
                             train_Y = np.argmax(train_Y, axis=1)
 
-
+                        #arian
                         model = Model_Generator(layers=layers, activation=activation, epochs=epoch_count, dropout=dropout_rate,
                                                 category=category, learning_rate=learning_rate, loss=loss_function, batch_size=batch_size,
                                                 optimizer=optimizer, top_k = k)  # regression sample
@@ -132,6 +126,7 @@ def nested_cross_fold_validation():
                             ressult_train = model.fit(train_X, train_Y, input_dim, test_X, test_Y)
                         else:
                             ressult_train = model.fit(train_X, train_Y, input_dim, test_X, test_Y_one_hot)
+
 
 
                         result_validation = None
@@ -308,9 +303,6 @@ def nested_cross_fold_validation():
         )
 
 #simple test
-# layers_for_evaluate_reg = [[100, 1], [500,1] , [1000,1], [1000, 1000, 1], [1000, 1000, 100, 1],  [1000, 1000, 500, 1],  [1000, 1000, 1000, 1]]
-# activation_for_evaluate_reg = [["relu","linear"],["relu","linear"],["relu","linear"],["relu", "relu", "linear"],["relu", "relu","relu", "linear"],["relu", "relu","relu", "linear"],["relu", "relu","relu", "linear"]]
-
 
 layers_for_evaluate_reg = [[100, 1]]
 activation_for_evaluate_reg = [["relu", "linear"]]
@@ -318,20 +310,19 @@ activation_for_evaluate_reg = [["relu", "linear"]]
 categories = ["regression"]
 layers_for_evaluates = [layers_for_evaluate_reg]
 activation_for_evaluates = [activation_for_evaluate_reg]
-dropout_rates = [0.0]
+dropout_rates = [0.0, 0.5, 0.4, 0.0, 0.2]
 batch_size = 128
 
-k_values = [50, 5,100, 2, 300, 5, 20, 50, 100.0]
+k_values = [2, 100, 300, 5, 20, 50, 100.0]
 epoch_count = 100
-optimizer = "adam"
+optimizer = "rms"
 learning_rate = 0.0001
-q_token_cnt = 14
-
 for cat, act, layers, k_v in zip(categories, activation_for_evaluates, layers_for_evaluates, k_values):
     k = k_v
-    # input_dim = (q_token_cnt * k,)
-    input_dim = (q_token_cnt, k)
+
     input_name = "input(cosine_sim_" + str(k) + "dim)_"
+    q_token_cnt = 1
+    input_dim = (q_token_cnt * k,)
 
     category = cat
     activation_for_evaluate = act
