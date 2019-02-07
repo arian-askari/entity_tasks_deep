@@ -81,7 +81,8 @@ print(terms)
 
 for term in terms:
 	vec1 = getVector(term)
-	print(term," vec len", len(vec1), "similar words: ", get_similiar([term]))
+	# print(term," vec len", len(vec1), "similar words: ", get_similiar([term]))
+	print(term," vec len", len(vec1))
 	for term2 in terms:
 		vec2 = getVector(term2)
 		cos_sim = get_cosine_similarity(vec1, vec2)
