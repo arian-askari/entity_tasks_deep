@@ -629,7 +629,26 @@ def save_translation_matrix_type_terms(score_type="tf_idf", k=100):
         json.dump(train_set_translation_matrix_dict, fp=open(path_dict, 'w'))
 
 #arian 3 arian3
+def get_trainset_translation_matrix_score_e_path(type, k): #"detail","detail_normal","e_score","e_score_normal"
+    if type=="detail": #e_score * cnt_entities_of_type
+        # train_set_translation_matrix_dict = json.load(open(trainset_translation_matrix_detail_path + str(k) + ".json"))
+        path = trainset_translation_matrix_detail_path + str(k) + ".json"
+        return path
 
+    if type=="detail_normal":
+        # train_set_translation_matrix_dict = json.load(open(trainset_translation_matrix_detail_normal_path + str(k) + ".json"))
+        path = trainset_translation_matrix_detail_normal_path + str(k) + ".json"
+        return path
+
+    if type=="e_score":
+        # train_set_translation_matrix_dict = json.load(open(trainset_translation_matrix_escore_path + str(k) + ".json"))
+        path = trainset_translation_matrix_escore_path + str(k) + ".json"
+        return path
+
+    if type=="e_score_normal":
+        # train_set_translation_matrix_dict = json.load(open(trainset_translation_matrix_escore_normal_path + str(k) + ".json"))
+        path = trainset_translation_matrix_escore_normal_path + str(k) + ".json"
+        return path
 
 def get_trainslation_matrix_score_e(q_id, type, queries_w2v_char_level_dict, queries_ret_100_entities_dict,
                                     entity_unique_avg_w2v_dict, type_ent_cnt_dict, k=100):
@@ -1029,26 +1048,6 @@ def get_trainset_translation_matrix_average_w2v():
     train_set_translation_matrix_dict = json.load(open(trainset_translation_matrix_path))
     return train_set_translation_matrix_dict
 
-def get_trainset_translation_matrix_score_e_average_w2v(type, k): #"detail","detail_normal","e_score","e_score_normal"
-    if type=="detail": #e_score * cnt_entities_of_type
-        train_set_translation_matrix_dict = json.load(open(trainset_translation_matrix_detail_path + str(k) + ".json"))
-        return train_set_translation_matrix_dict
-
-    if type=="detail_normal":
-        train_set_translation_matrix_dict = json.load(open(trainset_translation_matrix_detail_normal_path + str(k) + ".json"))
-        return train_set_translation_matrix_dict
-
-    if type=="e_score":
-        train_set_translation_matrix_dict = json.load(open(trainset_translation_matrix_escore_path + str(k) + ".json"))
-        return train_set_translation_matrix_dict
-
-    if type=="e_score_normal":
-        train_set_translation_matrix_dict = json.load(open(trainset_translation_matrix_escore_normal_path + str(k) + "k.json"))
-        return train_set_translation_matrix_dict
-
-
-
-
 ########################################3
 
 def save_trainset_average_w2v():
@@ -1176,12 +1175,8 @@ def save_trainset_type_terms_w2v():
     # json.dump(train_set_average_dict, fp=open(trainset_average_w2v_path, 'w'), indent=4, sort_keys=True)
 
 
-def get_train_test_data_translation_matric_type_centric(queries_for_train, queries_for_test_set, k):
-    global trainset_average_w2v
-    if trainset_average_w2v is None:
-        global trainset_average_w2v_path
-        trainset_average_w2v_path = trainset_translation_matrix_type_tfidf_terms_path + "_" + str(k) + ".json"
-        load_trainset_average_w2v()
+# arian 4 arian4
+def get_train_test_data(queries_for_train, queries_for_test_set):
     q_id_train_list = []
     train_X = []
     train_Y = []
@@ -1248,6 +1243,25 @@ def get_train_test_data_translation_matric_type_centric(queries_for_train, queri
 
     return (train_X, train_Y, test_X, test_Y_one_hot, q_id_test_list, test_TYPES, np.array(test_Y))
 
+def get_train_test_data_translation_matric_entity_centric(queries_for_train, queries_for_test_set, type, k):
+    global trainset_average_w2v
+    trainset_average_w2v = None  # in merge model cause bug :)
+    if trainset_average_w2v is None:
+        global trainset_average_w2v_path
+        trainset_average_w2v_path = get_trainset_translation_matrix_score_e_path(type=type, k=k)
+        load_trainset_average_w2v()
+
+    return get_train_test_data(queries_for_train, queries_for_test_set)
+
+def get_train_test_data_translation_matric_type_centric(queries_for_train, queries_for_test_set, k):
+    global trainset_average_w2v
+    trainset_average_w2v = None # in merge model cause bug :)
+    if trainset_average_w2v is None:
+        global trainset_average_w2v_path
+        trainset_average_w2v_path = trainset_translation_matrix_type_tfidf_terms_path + "_" + str(k) + ".json"
+        load_trainset_average_w2v()
+
+    return get_train_test_data(queries_for_train, queries_for_test_set)
 
 def get_train_test_data(queries_for_train, queries_for_test_set):
     global trainset_average_w2v
