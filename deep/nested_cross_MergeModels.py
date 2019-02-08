@@ -7,7 +7,7 @@ from utils import trec_output as trec
 from utils import file_utils
 from deep import train_set_generator as tsg
 # from deep.model_generator import Model_Generator
-from deep.model_generator_EntityScore import Model_Generator
+from deep.model_generator_MergeModels import Model_Generator
 from utils.report_generator import Report_Generator
 report = Report_Generator()
 
@@ -114,10 +114,12 @@ def nested_cross_fold_validation():
 
                         train_X_TC, train_Y_TC, test_X_TC, test_Y_TC_one_hot_TC, q_id_test_list, test_TYPES_TC, test_Y_TC = tsg.get_train_test_data_translation_matric_type_centric(queries_train_set, queries_validation_set, k=k)
 
-                        if not (test_Y_EC==test_Y_TC):
-                            print("Bug ! test TC must been equal test EC")
-                            print("test EC:", test_Y_EC)
-                            print("test TC:", test_Y_TC)
+                        # print("test EC:", test_Y_EC)
+                        # print("\n\ntest TC:", test_Y_TC)
+                        # if (test_Y_EC!=test_Y_TC):
+                        #     print("Bug ! test TC must been equal test EC")
+                        #     print("test EC:", test_Y_EC)
+                        #     print("test TC:", test_Y_TC)
 
 
                         if category == "regression":
@@ -136,10 +138,11 @@ def nested_cross_fold_validation():
                         model.set_csv_log_path(log_path)
 
                         train_X = [train_X_TC, train_X_EC]
+                        test_X = [test_X_TC, test_X_EC]
                         if category == "regression":
-                            ressult_train = model.fit(train_X, train_Y_EC, input_dim, test_X_EC, test_Y_EC)
+                            ressult_train = model.fit(train_X, train_Y_EC, input_dim, test_X, test_Y_EC)
                         else:
-                            ressult_train = model.fit(train_X, train_Y_EC, input_dim, test_X_EC, test_Y_EC_one_hot_EC)
+                            ressult_train = model.fit(train_X, train_Y_EC, input_dim, test_X, test_Y_EC_one_hot_EC)
 
 
                         result_validation = None

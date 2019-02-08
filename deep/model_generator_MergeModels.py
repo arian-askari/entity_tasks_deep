@@ -61,14 +61,15 @@ class Model_Generator():
         return data, input_shape
     def fit(self, train_x, train_y, input_dim, test_x =None, test_y = None): #input_dim example: (600,)
         """ Performs training on train_x instances"""
-
+        train_x = np.array(train_x)
+        test_x = np.array(test_x)
         ##First model Static
-        train_x[0], input_shape = self.__reshape_for_cnn(train_x[0])
-        test_x[0] , _ = self.__reshape_for_cnn(test_x[0])
+        train_x_tc, input_shape = self.__reshape_for_cnn(train_x[0])
+        test_x_tc , _ = self.__reshape_for_cnn(test_x[0])
 
 
         model_TC = Sequential()
-        model_TC.add(Conv2D(filters=64, kernel_size= (5,5),strides=(1,1), padding="same", activation="relu", input_shape=input_shape))
+        model_TC.add(Conv2D(filters=1, kernel_size= (5,5),strides=(1,1), padding="same", activation="relu", input_shape=input_shape))
         model_TC.add(MaxPooling2D())
         model_TC.add(Dropout(self.__dropout))
 
@@ -92,11 +93,11 @@ class Model_Generator():
         model_TC.add(Dropout(0.0))
 
         ##Second MOdel
-        train_x[1], input_shape = self.__reshape_for_cnn(train_x[1])
-        test_x[1], _ = self.__reshape_for_cnn(test_x[1])
+        train_x_ec, input_shape = self.__reshape_for_cnn(train_x[1])
+        test_x_ec, _ = self.__reshape_for_cnn(test_x[1])
 
         model_EC = Sequential()
-        model_EC.add(Conv2D(filters=64, kernel_size=(5, 5), strides=(1, 1), padding="same", activation="relu",
+        model_EC.add(Conv2D(filters=1, kernel_size=(5, 5), strides=(1, 1), padding="same", activation="relu",
                             input_shape=input_shape))
         model_EC.add(MaxPooling2D())
         model_EC.add(Dropout(self.__dropout))
@@ -135,6 +136,8 @@ class Model_Generator():
         self.__network = merged_TC_EC_new_model
         #Merged Model try to be Dynamic :)
 
+        train_x  = [train_x_tc, train_x_ec]
+        test_x = [test_x_tc, test_x_ec]
 
         ##########layers added static !
         # for i in range(0, len(self.__layers)):
@@ -145,6 +148,13 @@ class Model_Generator():
         #         self.__network.add(Activation(self.__activation[i]))
         #     self.__network.add(Dropout(self.__dropout))
         ##########layers added static !
+
+        # arrays = 2
+        # rows = train_x.shape[1]
+        # columns = train_x.shape[2]
+        # channels_cnt = 1
+        # input_shape = (2, rows, columns,1)
+
 
         if (self.__optimizer == "adam"):
             adam = optimizers.Adam(lr=self.__learning_rate)
@@ -202,7 +212,13 @@ class Model_Generator():
 
     def predict(self, test_x, test_y=None):
         """ Performs prediction."""
-        test_x , _ = self.__reshape_for_cnn(test_x)
+
+        test_x = np.array(test_x)
+        test_x_tc , _ = self.__reshape_for_cnn(test_x[0])
+        test_x_ec, _ = self.__reshape_for_cnn(test_x[1])
+
+        test_x = [test_x_tc, test_x_ec]
+        # test_x , _ = self.__reshape_for_cnn(test_x)
         result = dict()
 
         output_activation = self.__activation[len(self.__activation)-1]
