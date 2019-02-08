@@ -1,5 +1,4 @@
 import os, json, random, sys
-
 # os.environ['CUDA_VISIBLE_DE VICES'] = '-1'
 
 from keras.layers import *
@@ -340,7 +339,7 @@ for cat, act, layers, k_v in zip(categories, activation_for_evaluates, layers_fo
     k = k_v
     # input_dim = (q_token_cnt * k,)
     input_dim = (q_token_cnt, k)
-    input_name = "input(cosine_sim_" + str(k) + "dim)_"
+    input_name = "input(e_normal_" + str(k) + "dim)_"
 
     category = cat
     activation_for_evaluate = act

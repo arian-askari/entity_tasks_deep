@@ -47,13 +47,61 @@ class Model_Generator():
     def set_csv_log_path(self, csv_log_path):
         self.__csv_log_path = csv_log_path
 
+    def __reshape_for_cnn(self, data, channels_cnt = 1):
+        keras_backend.set_image_data_format("channels_last")
+
+        rows = data.shape[1]
+        columns = data.shape[2]
+        samples = len(data)
+        channels_cnt = 1
+
+        data = data.reshape(samples, rows, columns, channels_cnt)
+        input_shape = (rows, columns, channels_cnt)
+
+        return data, input_shape
     def fit(self, train_x, train_y, input_dim, test_x =None, test_y = None): #input_dim example: (600,)
         """ Performs training on train_x instances"""
+
         self.__network = Sequential()
-        self.__network.add(Dense(self.__layers[0], input_shape=input_dim))
+        # self.__network.add(Dense(self.__layers[0], input_shape=input_dim))
+        # self.__network.add(Dropout(self.__dropout))
+
+
+        ####################################################################################
+        # train_x = np.expand_dims(train_x, axis=2)
+        # test_x = np.expand_dims(test_y, axis=2)
+        # shp = train_x.shape
+        # print(shp)
+
+        train_x, input_shape = self.__reshape_for_cnn(train_x)
+        test_x , _ = self.__reshape_for_cnn(test_x)
+
+        self.__network.add(Conv2D(filters=64, kernel_size= (5,5),strides=(1,1), padding="same", activation="relu", input_shape=input_shape))
+        self.__network.add(MaxPooling2D())
         self.__network.add(Dropout(self.__dropout))
 
-        for i in range(1, len(self.__layers)):
+
+        self.__network.add(Conv2D(filters=16, kernel_size= (10,10),strides=(1,1), padding="same", activation="relu"))
+        self.__network.add(MaxPooling2D())
+        self.__network.add(Dropout(self.__dropout))
+
+        self.__network.add(Conv2D(filters=256, kernel_size= (32,32),strides=(1,1), padding="same", activation="relu"))
+        self.__network.add(MaxPooling2D())
+        self.__network.add(Dropout(self.__dropout))
+
+
+        self.__network.add(Flatten())
+
+        # self_network.add(MaxPooling1D(pool_size=(5), strides=(1)))
+
+        # if self.__activation[0] == "LeakyReLU":
+        #     self.__network.add(LeakyReLU(alpha=0.2))
+        # else:
+        #     self.__network.add(Activation(self.__activation[0]))
+        ####################################################################################
+
+
+        for i in range(0, len(self.__layers)):
             self.__network.add(Dense(self.__layers[i]))
             if self.__activation[i] == "LeakyReLU":
                 self.__network.add(LeakyReLU(alpha=0.2))
@@ -117,6 +165,7 @@ class Model_Generator():
 
     def predict(self, test_x, test_y=None):
         """ Performs prediction."""
+        test_x , _ = self.__reshape_for_cnn(test_x)
         result = dict()
 
         output_activation = self.__activation[len(self.__activation)-1]
