@@ -742,12 +742,12 @@ def save_translation_matrix_entity_score(k=100):
 
                 train_set_translation_matrix_normal_zscore_dict[q_id].append((translation_matrix_np_zscore_normal, q_type_rel_class, q_type))
                 train_set_translation_matrix_e_score_dict[q_id].append((translation_matrix_e_score, q_type_rel_class, q_type))
-                train_set_translation_matrix_e_score_normal_zscore_dict.append((translation_matrix_e_score_zscore_normal, q_type_rel_class, q_type))
+                train_set_translation_matrix_e_score_normal_zscore_dict[q_id].append((translation_matrix_e_score_zscore_normal, q_type_rel_class, q_type))
 
-        json.dump(train_set_translation_matrix_dict, fp=open(trainset_translation_matrix_detail_path + "k.json", 'w'))
-        json.dump(train_set_translation_matrix_dict, fp=open(trainset_translation_matrix_detail_normal_path + "k.json", 'w'))
-        json.dump(train_set_translation_matrix_dict, fp=open(trainset_translation_matrix_escore_path + "k.json", 'w'))
-        json.dump(train_set_translation_matrix_dict, fp=open(trainset_translation_matrix_escore_normal_path + "k.json", 'w'))
+        json.dump(train_set_translation_matrix_dict, fp=open(trainset_translation_matrix_detail_path + str(k) + ".json", 'w'))
+        json.dump(train_set_translation_matrix_dict, fp=open(trainset_translation_matrix_detail_normal_path + str(k) + ".json", 'w'))
+        json.dump(train_set_translation_matrix_dict, fp=open(trainset_translation_matrix_escore_path + str(k) + ".json", 'w'))
+        json.dump(train_set_translation_matrix_dict, fp=open(trainset_translation_matrix_escore_normal_path + str(k) + ".json", 'w'))
 
 
 def get_trainslation_matrix_type_terms(q_id, type, queries_w2v_char_level_dict, type_terms_k_top_char_level_w2v, k):
@@ -1031,19 +1031,19 @@ def get_trainset_translation_matrix_average_w2v():
 
 def get_trainset_translation_matrix_score_e_average_w2v(type, k): #"detail","detail_normal","e_score","e_score_normal"
     if type=="detail": #e_score * cnt_entities_of_type
-        train_set_translation_matrix_dict = json.load(open(trainset_translation_matrix_detail_path + "k.json"))
+        train_set_translation_matrix_dict = json.load(open(trainset_translation_matrix_detail_path + str(k) + ".json"))
         return train_set_translation_matrix_dict
 
     if type=="detail_normal":
-        train_set_translation_matrix_dict = json.load(open(trainset_translation_matrix_detail_normal_path + "k.json"))
+        train_set_translation_matrix_dict = json.load(open(trainset_translation_matrix_detail_normal_path + str(k) + ".json"))
         return train_set_translation_matrix_dict
 
     if type=="e_score":
-        train_set_translation_matrix_dict = json.load(open(trainset_translation_matrix_escore_path + "k.json"))
+        train_set_translation_matrix_dict = json.load(open(trainset_translation_matrix_escore_path + str(k) + ".json"))
         return train_set_translation_matrix_dict
 
     if type=="e_score_normal":
-        train_set_translation_matrix_dict = json.load(open(trainset_translation_matrix_escore_normal_path + "k.json"))
+        train_set_translation_matrix_dict = json.load(open(trainset_translation_matrix_escore_normal_path + str(k) + "k.json"))
         return train_set_translation_matrix_dict
 
 
