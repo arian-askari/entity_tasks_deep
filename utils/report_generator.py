@@ -1,8 +1,8 @@
 import os, json, random, sys, csv
 import utils.file_utils as file_utils
 
-validations_report_path = os.path.join("../data", "reports", "validation_reports_cnn.csv")
-test_report_path = os.path.join("../data", "reports", "test_reports_cnn.csv")
+validations_report_path = os.path.join("../data", "reports", "validation_reports_cnn_entityScoreNormal.csv")
+test_report_path = os.path.join("../data", "reports", "test_reports_cnn_entityScoreNormal.csv")
 trec_path = os.path.join("../data", "types", "qrels.test")
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 delimeter = "\t"

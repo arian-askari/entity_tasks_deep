@@ -81,13 +81,13 @@ class Model_Generator():
         self.__network.add(Dropout(self.__dropout))
 
 
-        self.__network.add(Conv2D(filters=16, kernel_size= (10,10),strides=(1,1), padding="same", activation="relu"))
-        self.__network.add(MaxPooling2D())
-        self.__network.add(Dropout(self.__dropout))
-
-        self.__network.add(Conv2D(filters=256, kernel_size= (32,32),strides=(1,1), padding="same", activation="relu"))
-        self.__network.add(MaxPooling2D())
-        self.__network.add(Dropout(self.__dropout))
+        # self.__network.add(Conv2D(filters=16, kernel_size= (10,10),strides=(1,1), padding="same", activation="relu"))
+        # self.__network.add(MaxPooling2D())
+        # self.__network.add(Dropout(self.__dropout))
+        #
+        # self.__network.add(Conv2D(filters=256, kernel_size= (32,32),strides=(1,1), padding="same", activation="relu"))
+        # self.__network.add(MaxPooling2D())
+        # self.__network.add(Dropout(self.__dropout))
 
 
         self.__network.add(Flatten())

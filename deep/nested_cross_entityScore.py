@@ -325,7 +325,7 @@ dropout_rates = [0]
 # dropout_rates = [0.0]
 batch_size = 128
 
-k_values = [50, 100, 5,100, 2, 300, 5, 20, 50, 100.0]
+k_values = [100, 100, 5,100, 2, 300, 5, 20, 50, 100.0]
 epoch_count = 100
 optimizer = "adam"
 learning_rate = 0.0001

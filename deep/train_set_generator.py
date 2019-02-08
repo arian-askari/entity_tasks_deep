@@ -1182,7 +1182,7 @@ def save_trainset_type_terms_w2v():
 
 
 # arian 4 arian4
-def get_train_test_data(queries_for_train, queries_for_test_set):
+def _get_train_testdata(queries_for_train, queries_for_test_set):
     q_id_train_list = []
     train_X = []
     train_Y = []
@@ -1251,21 +1251,25 @@ def get_train_test_data(queries_for_train, queries_for_test_set):
 
 def get_train_test_data_translation_matric_entity_centric(queries_for_train, queries_for_test_set, type, k):
     global trainset_average_w2v
-    trainset_average_w2v = None  # in merge model cause bug :)
     if trainset_average_w2v is None:
         global trainset_average_w2v_path
-        trainset_average_w2v_path = get_trainset_translation_matrix_score_e_path(type=type, k=k)
-        load_trainset_average_w2v()
+        tmp = get_trainset_translation_matrix_score_e_path(type=type, k=k)
+        if trainset_average_w2v_path != tmp:
+            trainset_average_w2v = None  # in merge model cause bug :)
+            trainset_average_w2v_path = tmp
+            load_trainset_average_w2v()
 
     return get_train_test_data(queries_for_train, queries_for_test_set)
 
 def get_train_test_data_translation_matric_type_centric(queries_for_train, queries_for_test_set, k):
     global trainset_average_w2v
-    trainset_average_w2v = None # in merge model cause bug :)
     if trainset_average_w2v is None:
         global trainset_average_w2v_path
-        trainset_average_w2v_path = trainset_translation_matrix_type_tfidf_terms_path + "_" + str(k) + ".json"
-        load_trainset_average_w2v()
+        tmp = trainset_translation_matrix_type_tfidf_terms_path + "_" + str(k) + ".json"
+        if trainset_average_w2v_path != tmp:
+            trainset_average_w2v = None  # in merge model cause bug :)
+            trainset_average_w2v_path = tmp
+            load_trainset_average_w2v()
 
     return get_train_test_data(queries_for_train, queries_for_test_set)
 
