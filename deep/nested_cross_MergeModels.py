@@ -1,5 +1,4 @@
 import os, json, random, sys
-
 # os.environ['CUDA_VISIBLE_DE VICES'] = '-1'
 
 from keras.layers import *
@@ -8,7 +7,7 @@ from utils import trec_output as trec
 from utils import file_utils
 from deep import train_set_generator as tsg
 # from deep.model_generator import Model_Generator
-from deep.model_generator_cnn import Model_Generator
+from deep.model_generator_EntityScore import Model_Generator
 from utils.report_generator import Report_Generator
 report = Report_Generator()
 
@@ -111,11 +110,19 @@ def nested_cross_fold_validation():
                         queries_for_select_validation_set = substrac_dicts(queries_for_select_validation_set, queries_validation_set)
 
                         queries_train_set = substrac_dicts(queries_for_train, queries_validation_set)
-                        train_X, train_Y, test_X, test_Y_one_hot, q_id_test_list, test_TYPES, test_Y = tsg.get_train_test_data_translation_matric_type_centric(
-                            queries_train_set, queries_validation_set, k=k)
+                        train_X_EC, train_Y_EC, test_X_EC, test_Y_EC_one_hot_EC, q_id_test_list, test_TYPES_EC, test_Y_EC = tsg.get_train_test_data_translation_matric_entity_centric(queries_train_set, queries_validation_set, type_matrixEntityScore, k)
+
+                        train_X_TC, train_Y_TC, test_X_TC, test_Y_TC_one_hot_TC, q_id_test_list, test_TYPES_TC, test_Y_TC = tsg.get_train_test_data_translation_matric_type_centric(queries_train_set, queries_validation_set, k=k)
+
+                        if not (test_Y_EC==test_Y_TC):
+                            print("Bug ! test TC must been equal test EC")
+                            print("test EC:", test_Y_EC)
+                            print("test TC:", test_Y_TC)
+
 
                         if category == "regression":
-                            train_Y = np.argmax(train_Y, axis=1)
+                            train_Y_EC = np.argmax(train_Y_EC, axis=1)
+                            train_Y_TC = np.argmax(train_Y_TC, axis=1)
 
 
                         model = Model_Generator(layers=layers, activation=activation, epochs=epoch_count, dropout=dropout_rate,
@@ -128,25 +135,28 @@ def nested_cross_fold_validation():
 
                         model.set_csv_log_path(log_path)
 
+                        train_X = [train_X_TC, train_X_EC]
                         if category == "regression":
-                            ressult_train = model.fit(train_X, train_Y, input_dim, test_X, test_Y)
+                            ressult_train = model.fit(train_X, train_Y_EC, input_dim, test_X_EC, test_Y_EC)
                         else:
-                            ressult_train = model.fit(train_X, train_Y, input_dim, test_X, test_Y_one_hot)
+                            ressult_train = model.fit(train_X, train_Y_EC, input_dim, test_X_EC, test_Y_EC_one_hot_EC)
 
 
                         result_validation = None
                         predict_values = None
                         predict_values = None
                         predict_probs = None
+
+                        test_X = [test_X_TC, test_X_EC]
                         if category == "regression":
-                            result_validation = model.predict(test_X, test_Y)
+                            result_validation = model.predict(test_X, test_Y_EC)
                             predict_values = result_validation["predict"]
-                            trec_output_validation += trec.get_trec_output_regression(q_id_test_list, test_TYPES, test_Y, predict_values)
+                            trec_output_validation += trec.get_trec_output_regression(q_id_test_list, test_TYPES_EC, test_Y_EC, predict_values)
                         else:
-                            result_validation = model.predict(test_X, test_Y_one_hot)
+                            result_validation = model.predict(test_X, test_Y_EC_one_hot_EC)
                             predict_values = result_validation["predict"]
                             predict_probs = result_validation["predict_prob"]
-                            trec_output_validation += trec.get_trec_output_classification(q_id_test_list, test_TYPES, test_Y, predict_values, predict_probs)
+                            trec_output_validation += trec.get_trec_output_classification(q_id_test_list, test_TYPES_EC, test_Y_EC, predict_values, predict_probs)
 
                         loss_train, acc_train = ressult_train["train_loss_latest"], ressult_train["train_acc_mean"]
                         loss_validation, acc_validation = result_validation["loss_mean"], result_validation["acc_mean"]
@@ -200,7 +210,9 @@ def nested_cross_fold_validation():
                     )
 
             ''' Evaluate best model on Test (unseen data :) ) '''
-            _, __, test_X, test_Y_one_hot, q_id_test_list, test_TYPES, test_Y = tsg.get_train_test_data_translation_matric_type_centric(queries_for_train, queries_for_test_set, k=k)
+
+            _, __, test_X_EC, test_Y_EC_one_hot_EC, q_id_test_list, test_TYPES_EC, test_Y_EC = tsg.get_train_test_data_translation_matric_entity_centric(queries_for_train, queries_for_test_set, type_matrixEntityScore, k)
+            _, __, test_X_TC, test_Y_TC_one_hot_TC, q_id_test_list, test_TYPES_TC, test_Y_TC = tsg.get_train_test_data_translation_matric_type_centric(queries_for_train, queries_for_test_set, k=k)
 
             # models_sorted = sorted(models_during_validation, key=lambda x: x[3])  # ascending sort
             models_sorted = sorted(models_during_validation, key=lambda x: x[5])  # sort by train loss - validation loss (abs value :))
@@ -219,17 +231,18 @@ def nested_cross_fold_validation():
             predict_probs = None
             result_test = None
 
+            test_X = [test_X_TC, test_X_EC]
             if category == "regression":
-                result_test = best_model.predict(test_X, test_Y)
+                result_test = best_model.predict(test_X, test_Y_EC)
                 predict_values = result_test["predict"]
-                trec_output_test_per_fold = trec.get_trec_output_regression(q_id_test_list, test_TYPES, test_Y, predict_values)
+                trec_output_test_per_fold = trec.get_trec_output_regression(q_id_test_list, test_TYPES_EC, test_Y_EC, predict_values)
                 trec_output_test += trec_output_test_per_fold
 
             else:
-                result_test = best_model.predict(test_X, test_Y_one_hot)
+                result_test = best_model.predict(test_X, test_Y_EC_one_hot_EC)
                 predict_values = result_test["predict"]
                 predict_probs = result_test["predict_prob"]
-                trec_output_test_per_fold = trec.get_trec_output_classification(q_id_test_list, test_TYPES, test_Y, predict_values, predict_probs)
+                trec_output_test_per_fold = trec.get_trec_output_classification(q_id_test_list, test_TYPES_EC, test_Y_EC, predict_values, predict_probs)
                 trec_output_test += trec_output_test_per_fold
                 ######################################################################################################
 
@@ -326,17 +339,21 @@ dropout_rates = [0]
 # dropout_rates = [0.0]
 batch_size = 128
 
-k_values = [50, 100, 5,100, 2, 300, 5, 20, 50, 100.0]
+k_values = [100, 100, 5,100, 2, 300, 5, 20, 50, 100.0]
 epoch_count = 100
 optimizer = "adam"
 learning_rate = 0.0001
 q_token_cnt = 14
 
+type_matrixEntityScore = "detail_normal"
+# type_matrixEntityScore = "detail"
+# type_matrixEntityScore = "e_score"
+# type_matrixEntityScore = "e_score_normal"
 for cat, act, layers, k_v in zip(categories, activation_for_evaluates, layers_for_evaluates, k_values):
     k = k_v
     # input_dim = (q_token_cnt * k,)
     input_dim = (q_token_cnt, k)
-    input_name = "input(cosine_sim_" + str(k) + "dim)_"
+    input_name = "input(e_normal_" + str(k) + "dim)_"
 
     category = cat
     activation_for_evaluate = act

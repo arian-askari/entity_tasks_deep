@@ -62,52 +62,89 @@ class Model_Generator():
     def fit(self, train_x, train_y, input_dim, test_x =None, test_y = None): #input_dim example: (600,)
         """ Performs training on train_x instances"""
 
-        self.__network = Sequential()
-        # self.__network.add(Dense(self.__layers[0], input_shape=input_dim))
-        # self.__network.add(Dropout(self.__dropout))
+        ##First model Static
+        train_x[0], input_shape = self.__reshape_for_cnn(train_x[0])
+        test_x[0] , _ = self.__reshape_for_cnn(test_x[0])
 
 
-        ####################################################################################
-        # train_x = np.expand_dims(train_x, axis=2)
-        # test_x = np.expand_dims(test_y, axis=2)
-        # shp = train_x.shape
-        # print(shp)
+        model_TC = Sequential()
+        model_TC.add(Conv2D(filters=64, kernel_size= (5,5),strides=(1,1), padding="same", activation="relu", input_shape=input_shape))
+        model_TC.add(MaxPooling2D())
+        model_TC.add(Dropout(self.__dropout))
 
-        train_x, input_shape = self.__reshape_for_cnn(train_x)
-        test_x , _ = self.__reshape_for_cnn(test_x)
+        model_TC.add(Conv2D(filters=16, kernel_size= (10,10),strides=(1,1), padding="same", activation="relu"))
+        model_TC.add(MaxPooling2D())
+        model_TC.add(Dropout(self.__dropout))
 
-        self.__network.add(Conv2D(filters=64, kernel_size= (5,5),strides=(1,1), padding="same", activation="relu", input_shape=input_shape))
-        self.__network.add(MaxPooling2D())
-        self.__network.add(Dropout(self.__dropout))
+        model_TC.add(Conv2D(filters=256, kernel_size= (32,32),strides=(1,1), padding="same", activation="relu"))
+        model_TC.add(MaxPooling2D())
+        model_TC.add(Dropout(self.__dropout))
+
+        model_TC.add(Flatten())
+
+        model_TC.add(Dense(100))
+        model_TC.add(Activation('relu'))
+        model_TC.add(Dropout(0.0))
+
+        #second try remove it
+        model_TC.add(Dense(1))
+        model_TC.add(Activation('linear'))
+        model_TC.add(Dropout(0.0))
+
+        ##Second MOdel
+        train_x[1], input_shape = self.__reshape_for_cnn(train_x[1])
+        test_x[1], _ = self.__reshape_for_cnn(test_x[1])
+
+        model_EC = Sequential()
+        model_EC.add(Conv2D(filters=64, kernel_size=(5, 5), strides=(1, 1), padding="same", activation="relu",
+                            input_shape=input_shape))
+        model_EC.add(MaxPooling2D())
+        model_EC.add(Dropout(self.__dropout))
+
+        model_EC.add(Conv2D(filters=16, kernel_size=(10, 10), strides=(1, 1), padding="same", activation="relu"))
+        model_EC.add(MaxPooling2D())
+        model_EC.add(Dropout(self.__dropout))
+
+        model_EC.add(Conv2D(filters=256, kernel_size=(32, 32), strides=(1, 1), padding="same", activation="relu"))
+        model_EC.add(MaxPooling2D())
+        model_EC.add(Dropout(self.__dropout))
+
+        model_EC.add(Flatten())
+
+        model_EC.add(Dense(100))
+        model_EC.add(Activation('relu'))
+        model_EC.add(Dropout(0.0))
+
+        #second try remove it
+        model_EC.add(Dense(1))
+        model_EC.add(Activation('linear'))
+        model_EC.add(Dropout(0.0))
+
+        #Merged Model try to be Dynamic :)
+        model_TC_EC = Add()([model_TC.output, model_EC.output])
+
+        model_TC_EC = Dense(100)(model_TC_EC)
+        model_TC_EC = Activation('relu')(model_TC_EC)
+
+        model_TC_EC = Dense(1)(model_TC_EC)
+        model_TC_EC = Activation('relu')(model_TC_EC)
+
+        merged_TC_EC_new_model = Sequential()
+        merged_TC_EC_new_model = Model([model_TC.input, model_EC.input], model_TC_EC)
+
+        self.__network = merged_TC_EC_new_model
+        #Merged Model try to be Dynamic :)
 
 
-        self.__network.add(Conv2D(filters=16, kernel_size= (10,10),strides=(1,1), padding="same", activation="relu"))
-        self.__network.add(MaxPooling2D())
-        self.__network.add(Dropout(self.__dropout))
-
-        self.__network.add(Conv2D(filters=256, kernel_size= (32,32),strides=(1,1), padding="same", activation="relu"))
-        self.__network.add(MaxPooling2D())
-        self.__network.add(Dropout(self.__dropout))
-
-
-        self.__network.add(Flatten())
-
-        # self_network.add(MaxPooling1D(pool_size=(5), strides=(1)))
-
-        # if self.__activation[0] == "LeakyReLU":
-        #     self.__network.add(LeakyReLU(alpha=0.2))
-        # else:
-        #     self.__network.add(Activation(self.__activation[0]))
-        ####################################################################################
-
-
-        for i in range(0, len(self.__layers)):
-            self.__network.add(Dense(self.__layers[i]))
-            if self.__activation[i] == "LeakyReLU":
-                self.__network.add(LeakyReLU(alpha=0.2))
-            else:
-                self.__network.add(Activation(self.__activation[i]))
-            self.__network.add(Dropout(self.__dropout))
+        ##########layers added static !
+        # for i in range(0, len(self.__layers)):
+        #     self.__network.add(Dense(self.__layers[i]))
+        #     if self.__activation[i] == "LeakyReLU":
+        #         self.__network.add(LeakyReLU(alpha=0.2))
+        #     else:
+        #         self.__network.add(Activation(self.__activation[i]))
+        #     self.__network.add(Dropout(self.__dropout))
+        ##########layers added static !
 
         if (self.__optimizer == "adam"):
             adam = optimizers.Adam(lr=self.__learning_rate)
