@@ -69,7 +69,7 @@ class Model_Generator():
 
 
         model_TC = Sequential()
-        model_TC.add(Conv2D(filters=1, kernel_size= (5,5),strides=(1,1), padding="same", activation="relu", input_shape=input_shape))
+        model_TC.add(Conv2D(filters=64, kernel_size= (5,5),strides=(1,1), padding="same", activation="relu", input_shape=input_shape))
         model_TC.add(MaxPooling2D())
         model_TC.add(Dropout(self.__dropout))
 
@@ -97,7 +97,7 @@ class Model_Generator():
         test_x_ec, _ = self.__reshape_for_cnn(test_x[1])
 
         model_EC = Sequential()
-        model_EC.add(Conv2D(filters=1, kernel_size=(5, 5), strides=(1, 1), padding="same", activation="relu",
+        model_EC.add(Conv2D(filters=64, kernel_size=(5, 5), strides=(1, 1), padding="same", activation="relu",
                             input_shape=input_shape))
         model_EC.add(MaxPooling2D())
         model_EC.add(Dropout(self.__dropout))
@@ -114,7 +114,7 @@ class Model_Generator():
 
         model_EC.add(Dense(100))
         model_EC.add(Activation('relu'))
-        model_EC.add(Dropout(0.0))
+        model_EC.add(Dropout(0))
 
         #second try remove it
         model_EC.add(Dense(1))

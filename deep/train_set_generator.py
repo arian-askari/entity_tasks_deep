@@ -133,6 +133,7 @@ def loadWord2Vec():
 
 
 def get_trainset_average_w2v():
+    print("trainset_average_w2v_path",trainset_average_w2v_path)
     train_set_average_dict = json.load(open(trainset_average_w2v_path))
     return train_set_average_dict
 
@@ -1250,24 +1251,24 @@ def _get_train_testdata(queries_for_train, queries_for_test_set):
     return (train_X, train_Y, test_X, test_Y_one_hot, q_id_test_list, test_TYPES, np.array(test_Y))
 
 def get_train_test_data_translation_matric_entity_centric(queries_for_train, queries_for_test_set, type, k):
-    global trainset_average_w2v
-    if trainset_average_w2v is None:
-        global trainset_average_w2v_path
-        tmp = get_trainset_translation_matrix_score_e_path(type=type, k=k)
-        if trainset_average_w2v_path != tmp:
-            trainset_average_w2v = None  # in merge model cause bug :)
+    tmp = get_trainset_translation_matrix_score_e_path(type=type, k=k)
+    if trainset_average_w2v_path != tmp:
+        trainset_average_w2v = None  # in merge model cause bug :)
+        global trainset_average_w2v
+        if trainset_average_w2v is None:
+            global trainset_average_w2v_path
             trainset_average_w2v_path = tmp
             load_trainset_average_w2v()
 
     return get_train_test_data(queries_for_train, queries_for_test_set)
 
 def get_train_test_data_translation_matric_type_centric(queries_for_train, queries_for_test_set, k):
-    global trainset_average_w2v
-    if trainset_average_w2v is None:
-        global trainset_average_w2v_path
-        tmp = trainset_translation_matrix_type_tfidf_terms_path + "_" + str(k) + ".json"
-        if trainset_average_w2v_path != tmp:
-            trainset_average_w2v = None  # in merge model cause bug :)
+    tmp = trainset_translation_matrix_type_tfidf_terms_path + "_" + str(k) + ".json"
+    if trainset_average_w2v_path != tmp:
+        trainset_average_w2v = None  # in merge model cause bug :)
+        global trainset_average_w2v
+        if trainset_average_w2v is None:
+            global trainset_average_w2v_path
             trainset_average_w2v_path = tmp
             load_trainset_average_w2v()
 
