@@ -158,7 +158,7 @@ def nested_cross_fold_validation():
                         acc_validation_total = np.append(acc_validation_total, float(acc_validation))
 
                         models_during_validation.append((model, loss_train,
-                                                         acc_train, loss_validation, acc_validation))
+                                                         acc_train, loss_validation, acc_validation, abs(loss_train-loss_validation)))
 
                         #inja mishe yek record baraye config rooye in Ti , V, ba in config ha, ezafe konim dar csv e report :) !
                         print("\n-----------------------------------------------\n\n\n")
@@ -202,11 +202,12 @@ def nested_cross_fold_validation():
             ''' Evaluate best model on Test (unseen data :) ) '''
             _, __, test_X, test_Y_one_hot, q_id_test_list, test_TYPES, test_Y = tsg.get_train_test_data_translation_matric_type_centric(queries_for_train, queries_for_test_set, k=k)
 
-            models_sorted = sorted(models_during_validation, key=lambda x: x[3])  # ascending sort
+            # models_sorted = sorted(models_during_validation, key=lambda x: x[3])  # ascending sort
+            models_sorted = sorted(models_during_validation, key=lambda x: x[5])  # sort by train loss - validation loss (abs value :))
 
 
 
-            best_model, loss_train, acc_train, loss_validation, acc_validation = models_sorted[0]
+            best_model, loss_train, acc_train, loss_validation, acc_validation, difference_loss_train_loss_validation = models_sorted[0]
             best_model_name = best_model.get_model_name()
 
             model_test_fold_run_path = models_path + input_name + "_T" + str(i+1) + "(bestModel)_" + best_model_name + ".run"
@@ -312,16 +313,20 @@ def nested_cross_fold_validation():
 # activation_for_evaluate_reg = [["relu","linear"],["relu","linear"],["relu","linear"],["relu", "relu", "linear"],["relu", "relu","relu", "linear"],["relu", "relu","relu", "linear"],["relu", "relu","relu", "linear"]]
 
 
-layers_for_evaluate_reg = [[100, 1]]
+# layers_for_evaluate_reg = [[10, 1]]
+# activation_for_evaluate_reg = [["relu", "linear"]]
+
+layers_for_evaluate_reg = [[100,1]]
 activation_for_evaluate_reg = [["relu", "linear"]]
 
 categories = ["regression"]
 layers_for_evaluates = [layers_for_evaluate_reg]
 activation_for_evaluates = [activation_for_evaluate_reg]
-dropout_rates = [0.0]
+dropout_rates = [0]
+# dropout_rates = [0.0]
 batch_size = 128
 
-k_values = [50, 5,100, 2, 300, 5, 20, 50, 100.0]
+k_values = [50, 100, 5,100, 2, 300, 5, 20, 50, 100.0]
 epoch_count = 100
 optimizer = "adam"
 learning_rate = 0.0001

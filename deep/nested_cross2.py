@@ -303,6 +303,9 @@ def nested_cross_fold_validation():
         )
 
 #simple test
+# layers_for_evaluate_reg = [[100, 1], [500,1] , [1000,1], [1000, 1000, 1], [1000, 1000, 100, 1],  [1000, 1000, 500, 1],  [1000, 1000, 1000, 1]]
+# activation_for_evaluate_reg = [["relu","linear"],["relu","linear"],["relu","linear"],["relu", "relu", "linear"],["relu", "relu","relu", "linear"],["relu", "relu","relu", "linear"],["relu", "relu","relu", "linear"]]
+
 
 layers_for_evaluate_reg = [[100, 1]]
 activation_for_evaluate_reg = [["relu", "linear"]]
@@ -310,17 +313,20 @@ activation_for_evaluate_reg = [["relu", "linear"]]
 categories = ["regression"]
 layers_for_evaluates = [layers_for_evaluate_reg]
 activation_for_evaluates = [activation_for_evaluate_reg]
-dropout_rates = [0.0, 0.5, 0.4, 0.0, 0.2]
+dropout_rates = [0]
+# dropout_rates = [0.0]
 batch_size = 128
 
-k_values = [2, 100, 300, 5, 20, 50, 100.0]
+k_values = [50, 100, 5,100, 2, 300, 5, 20, 50, 100.0]
 epoch_count = 100
-optimizer = "rms"
+optimizer = "adam"
 learning_rate = 0.0001
+q_token_cnt = 14
+
 for cat, act, layers, k_v in zip(categories, activation_for_evaluates, layers_for_evaluates, k_values):
     k = k_v
 
-    input_name = "input(cosine_sim_" + str(k) + "dim)_"
+    input_name = "input(cosine_sim_" + str(k) + "dim)_ qavg_"
     q_token_cnt = 1
     input_dim = (q_token_cnt * k,)
 
