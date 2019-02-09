@@ -168,11 +168,11 @@ def nested_cross_fold_validation():
                             test_X_EC = flat_input(test_X_EC)
                         test_X = [test_X_TC, test_X_EC]
                         if category == "regression":
-                            result_validation = model.predict(test_X, test_Y_EC)
+                            result_validation = model.predict(test_x_TC=test_X_TC, test_x_EC=test_X_EC, test_y=test_Y_EC)
                             predict_values = result_validation["predict"]
                             trec_output_validation += trec.get_trec_output_regression(q_id_test_list, test_TYPES_EC, test_Y_EC, predict_values)
                         else:
-                            result_validation = model.predict(test_X, test_Y_EC_one_hot_EC)
+                            result_validation = model.predict(test_x_TC=test_X_TC, test_x_EC=test_X_EC, test_y=test_Y_EC_one_hot_EC)
                             predict_values = result_validation["predict"]
                             predict_probs = result_validation["predict_prob"]
                             trec_output_validation += trec.get_trec_output_classification(q_id_test_list, test_TYPES_EC, test_Y_EC, predict_values, predict_probs)
@@ -254,13 +254,13 @@ def nested_cross_fold_validation():
 
             test_X = [test_X_TC, test_X_EC]
             if category == "regression":
-                result_test = best_model.predict(test_X, test_Y_EC)
+                result_test = best_model.predict(test_x_TC=test_X_TC, test_x_EC=test_X_EC, test_y=test_Y_EC)
                 predict_values = result_test["predict"]
                 trec_output_test_per_fold = trec.get_trec_output_regression(q_id_test_list, test_TYPES_EC, test_Y_EC, predict_values)
                 trec_output_test += trec_output_test_per_fold
 
             else:
-                result_test = best_model.predict(test_X, test_Y_EC_one_hot_EC)
+                result_test = best_model.predict(test_x_TC=test_X_TC, test_x_EC=test_X_EC, test_y=test_Y_EC_one_hot_EC)
                 predict_values = result_test["predict"]
                 predict_probs = result_test["predict_prob"]
                 trec_output_test_per_fold = trec.get_trec_output_classification(q_id_test_list, test_TYPES_EC, test_Y_EC, predict_values, predict_probs)

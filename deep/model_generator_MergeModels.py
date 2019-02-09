@@ -231,12 +231,11 @@ class Model_Generator():
         return self.__network
 
 
-    def predict(self, test_x, test_y=None):
+    def predict(self, test_x_TC, test_x_EC, test_y=None):
         """ Performs prediction."""
 
-        test_x = np.array(test_x)
-        test_x_tc , _ = self.__reshape_for_cnn(np.array(test_x[0]))
-        test_x_ec, _ = self.__reshape_for_cnn(test_x[1])
+        test_x_tc , _ = self.__reshape_for_cnn(test_x_TC)
+        test_x_ec, _ = self.__reshape_for_cnn(test_x_EC)
 
         ###########
         # test_x_ec = np.array(test_x[1])
