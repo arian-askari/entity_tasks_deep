@@ -45,9 +45,17 @@ epoch_count = 1
 layers_for_evaluate = [[1, 8], [4, 8],[2, 8]]
 # activation_for_evaluate = [["relu",  "linear"], ["relu", "linear"], ["relu", "linear"]]
 activation_for_evaluate = [["relu",  "softmax"], ["relu", "softmax"], ["relu", "softmax"]]
-dropout_rates = [0.1]
 batch_size = 100
 loss_function = "mse"
+
+def flat_input(list_data):
+    list_data = list_data.tolist()
+    list_data_flat = []
+    for lst in list_data:
+        list_data_flat.append(np.array(lst).flatten())
+
+    return np.array(list_data_flat)
+
 
 def nested_cross_fold_validation():
     loss_train_best_models_total = np.array([])
@@ -110,7 +118,12 @@ def nested_cross_fold_validation():
                         queries_for_select_validation_set = substrac_dicts(queries_for_select_validation_set, queries_validation_set)
 
                         queries_train_set = substrac_dicts(queries_for_train, queries_validation_set)
-                        train_X, train_Y, test_X, test_Y_one_hot, q_id_test_list, test_TYPES, test_Y = tsg.get_train_test_data_translation_matric_entity_centric(queries_train_set, queries_validation_set, type_matrixEntityScore, k)
+                        # train_X, train_Y, test_X, test_Y_one_hot, q_id_test_list, test_TYPES, test_Y = tsg.get_train_test_data_translation_matric_entity_centric(queries_train_set, queries_validation_set, type_matrixEntityScore, k)
+                        train_X, train_Y, test_X, test_Y_one_hot, q_id_test_list, test_TYPES, test_Y = tsg.get_train_test_data_translation_matric_entity_centric_qavg(queries_train_set, queries_validation_set, type_matrixEntityScore, k)
+
+                        if set_input_flat==True:
+                            train_X = flat_input(train_X)
+                            test_X = flat_input(test_X)
 
                         if category == "regression":
                             train_Y = np.argmax(train_Y, axis=1)
@@ -199,10 +212,13 @@ def nested_cross_fold_validation():
 
             ''' Evaluate best model on Test (unseen data :) ) '''
 
-            _, __, test_X, test_Y_one_hot, q_id_test_list, test_TYPES, test_Y = tsg.get_train_test_data_translation_matric_entity_centric(queries_for_train, queries_for_test_set, type_matrixEntityScore, k)
+            # _, __, test_X, test_Y_one_hot, q_id_test_list, test_TYPES, test_Y = tsg.get_train_test_data_translation_matric_entity_centric(queries_for_train, queries_for_test_set, type_matrixEntityScore, k)
+            _, __, test_X, test_Y_one_hot, q_id_test_list, test_TYPES, test_Y = tsg.get_train_test_data_translation_matric_entity_centric_qavg(queries_for_train, queries_for_test_set, type_matrixEntityScore, k)
 
-            # models_sorted = sorted(models_during_validation, key=lambda x: x[3])  # ascending sort
-            models_sorted = sorted(models_during_validation, key=lambda x: x[5])  # sort by train loss - validation loss (abs value :))
+            if set_input_flat == True:
+                test_X = flat_input(test_X)
+            models_sorted = sorted(models_during_validation, key=lambda x: x[3])  # ascending sort
+            # models_sorted = sorted(models_during_validation, key=lambda x: x[5])  # sort by train loss - validation loss (abs value :))
 
 
 
@@ -315,31 +331,43 @@ def nested_cross_fold_validation():
 # layers_for_evaluate_reg = [[10, 1]]
 # activation_for_evaluate_reg = [["relu", "linear"]]
 
-layers_for_evaluate_reg = [[100,1]]
-activation_for_evaluate_reg = [["relu", "linear"]]
+# layers_for_evaluate_reg = [[1000,100,1]]
+# activation_for_evaluate_reg = [["relu","relu","linear"]]
+
+layers_for_evaluate_reg = [[700,400, 1]]
+activation_for_evaluate_reg = [["relu","relu", "linear"]]
+
+dropout_rates = [0]
 
 categories = ["regression"]
 layers_for_evaluates = [layers_for_evaluate_reg]
 activation_for_evaluates = [activation_for_evaluate_reg]
-dropout_rates = [0]
-# dropout_rates = [0.0]
 batch_size = 128
 
-k_values = [100, 100, 5,100, 2, 300, 5, 20, 50, 100.0]
+k_values = [20, 5,100, 2, 300, 5, 20, 50, 100.0]
 epoch_count = 100
 optimizer = "adam"
 learning_rate = 0.0001
-q_token_cnt = 14
+q_token_cnt = 1
 
-type_matrixEntityScore = "detail_normal"
 # type_matrixEntityScore = "detail"
 # type_matrixEntityScore = "e_score"
+
+# type_matrixEntityScore = "detail_normal"
 # type_matrixEntityScore = "e_score_normal"
+
+type_matrixEntityScore = "cosine_detail"
+# type_matrixEntityScore = "cosine_detail_normal"
+
+set_input_flat = False
 for cat, act, layers, k_v in zip(categories, activation_for_evaluates, layers_for_evaluates, k_values):
     k = k_v
-    # input_dim = (q_token_cnt * k,)
-    input_dim = (q_token_cnt, k)
-    input_name = "input(e_normal_" + str(k) + "dim)_"
+    input_dim = None
+    if set_input_flat:
+        input_dim = (q_token_cnt * k,)
+    else:
+        input_dim = (q_token_cnt, k)
+    input_name = "input(" + type_matrixEntityScore + str(k) + "dim)_"
 
     category = cat
     activation_for_evaluate = act

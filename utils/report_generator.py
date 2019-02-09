@@ -1,8 +1,8 @@
 import os, json, random, sys, csv
 import utils.file_utils as file_utils
 
-validations_report_path = os.path.join("../data", "reports", "validation_reports_cnn_entityScoreNormal.csv")
-test_report_path = os.path.join("../data", "reports", "test_reports_cnn_entityScoreNormal.csv")
+validations_report_path = os.path.join("../data", "reports", "validation_reports_cnn_entityCosine_qavg.csv")
+test_report_path = os.path.join("../data", "reports", "test_reports_cnn_entityCosine_qavg.csv")
 trec_path = os.path.join("../data", "types", "qrels.test")
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 delimeter = "\t"
@@ -21,7 +21,7 @@ class Report_Generator():
         self.__create_result_file(run_path_validation, result_path_validation)
         n_5_validation = self.__get_n5(result_path_validation)
 
-        header = "input_name" + delimeter + "layers" + delimeter + "activations" + delimeter +\
+        header = "sep=\"\\t\"\ninput_name" + delimeter + "layers" + delimeter + "activations" + delimeter +\
                         "category" + delimeter + "fold_outer_i" + delimeter + "loss_train_avg" + delimeter +\
                         "loss_validation_avg" + delimeter + "dropout" + delimeter +\
                         "n5_validation" + delimeter + "acc_train_avg" + delimeter + \
@@ -59,7 +59,7 @@ class Report_Generator():
         n_5_test = self.__get_n5(result_path_test)
 
 
-        header = "input_name" + delimeter +\
+        header = "sep=\"\\t\"\ninput_name" + delimeter +\
                  "layers" + delimeter + "activations" + delimeter + "category" +\
                  delimeter + "fold_outer_i" + delimeter + "loss_train_best_model" +\
                  delimeter + "loss_validation_best_model" + delimeter + "dropout" +\

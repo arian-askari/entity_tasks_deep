@@ -17,6 +17,8 @@ import utils.type_retrieval as tp
 import utils.entity_retrieval as er_detailed
 import utils.preprocess as preprocess
 
+COUNT_ENTITES_OF_TYPES = 14762041
+
 def isfloat(value):
     try:
         float(value)
@@ -54,6 +56,8 @@ trainset_translation_matrix_detail_normal_path = os.path.join(dirname, '../data/
 trainset_translation_matrix_escore_path = os.path.join(dirname, '../data/types/sig17/trainset_translation_matrix_score_e_raw_')
 trainset_translation_matrix_escore_normal_path = os.path.join(dirname, '../data/types/sig17/trainset_translation_matrix_score_e_normal_')
 
+trainset_translation_matrix_cosine_typeDetail_path = os.path.join(dirname, '../data/types/sig17/trainset_translation_matrix_cosine_typeDetail_raw_')
+trainset_translation_matrix_cosine_typeDetail_normal_path = os.path.join(dirname, '../data/types/sig17/trainset_translation_matrix_cosine_typeDetail_normal_')
 
 ###
 type_terms_raw_path = os.path.join(dirname, '../data/types/sig17/types_unique_terms_sig17.csv')
@@ -651,6 +655,46 @@ def get_trainset_translation_matrix_score_e_path(type, k): #"detail","detail_nor
         path = trainset_translation_matrix_escore_normal_path + str(k) + ".json"
         return path
 
+    if type == "cosine_detail":
+        path = trainset_translation_matrix_cosine_typeDetail_path + str(k) + ".json"
+        return path
+
+    if type == "cosine_detail_normal":
+        path = trainset_translation_matrix_cosine_typeDetail_normal_path + str(k) + ".json"
+        return path
+
+
+def get_trainset_translation_matrix_score_e_qavg_path(type, k): #"detail","detail_normal","e_score","e_score_normal"
+    if type=="detail": #e_score * cnt_entities_of_type
+        # train_set_translation_matrix_dict = json.load(open(trainset_translation_matrix_detail_path + str(k) + ".json"))
+        path = trainset_translation_matrix_detail_path + "qavg_" +  str(k) + ".json"
+        return path
+
+    if type=="detail_normal":
+        # train_set_translation_matrix_dict = json.load(open(trainset_translation_matrix_detail_normal_path + str(k) + ".json"))
+        path = trainset_translation_matrix_detail_normal_path  + "qavg_" + str(k) + ".json"
+        return path
+
+    if type=="e_score":
+        # train_set_translation_matrix_dict = json.load(open(trainset_translation_matrix_escore_path + str(k) + ".json"))
+        path = trainset_translation_matrix_escore_path  + "qavg_" + str(k) + ".json"
+        return path
+
+    if type=="e_score_normal":
+        # train_set_translation_matrix_dict = json.load(open(trainset_translation_matrix_escore_normal_path + str(k) + ".json"))
+        path = trainset_translation_matrix_escore_normal_path  + "qavg_" + str(k) + ".json"
+        return path
+
+    if type == "cosine_detail":
+        path = trainset_translation_matrix_cosine_typeDetail_path  + "qavg_" + str(k) + ".json"
+        return path
+
+    if type == "cosine_detail_normal":
+        path = trainset_translation_matrix_cosine_typeDetail_normal_path  + "qavg_" + str(k) + ".json"
+        return path
+
+
+
 def get_trainslation_matrix_score_e(q_id, type, queries_w2v_char_level_dict, queries_ret_100_entities_dict,
                                     entity_unique_avg_w2v_dict, type_ent_cnt_dict, k=100):
     query_max_len = 14
@@ -663,9 +707,7 @@ def get_trainslation_matrix_score_e(q_id, type, queries_w2v_char_level_dict, que
 
     translation_matrix_np = np.zeros([row_size, column_size])
     translation_matrix_e_score = np.zeros([row_size, column_size])
-
-    translation_matrix_np_zscore_normal = np.zeros([row_size, column_size])
-    translation_matrix_e_score_zscore_normal = np.zeros([row_size, column_size])
+    translation_matrix_cosine_typeDetail = np.zeros([row_size, column_size])
 
     # queries_w2v_char_level_dict,   { q_id: (q_body,q_body_w2v_char_level_list_of_list)}
     # queries_ret_100_entities_dict, {q_id: [(q_body, retrieved_entity, [types of retrieved entity], abstract, relevant_score, rank)]}
@@ -686,6 +728,7 @@ def get_trainslation_matrix_score_e(q_id, type, queries_w2v_char_level_dict, que
 
         row_np = np.zeros(column_size)
         row_np_e_score = np.zeros(column_size)
+        row_np_cosine_typedetail = np.zeros(column_size)
 
         for retrieved in q_retrieved_entities[:k]:
             current_column += 1
@@ -700,18 +743,93 @@ def get_trainslation_matrix_score_e(q_id, type, queries_w2v_char_level_dict, que
 
             row_np[current_column] = (relevant_score) * (float(type_ent_cnt_dict[type][0]))
             row_np_e_score[current_column] = relevant_score
+            row_np_cosine_typedetail[current_column] = cosine_sim * (math.log10(COUNT_ENTITES_OF_TYPES/float(type_ent_cnt_dict[type][0])))
 
         translation_matrix_np[current_row, :] = row_np
         translation_matrix_e_score[current_row, :] = row_np_e_score
-    
+        translation_matrix_cosine_typeDetail[current_row, :] = row_np_cosine_typedetail
+
     translation_matrix_np_zscore_normal = preprocess.get_normalize2D(translation_matrix_np)
     translation_matrix_e_score_zscore_normal = preprocess.get_normalize2D(translation_matrix_e_score)
-        
+    translation_matrix_cosine_typeDetail_zscore_normal = preprocess.get_normalize2D(translation_matrix_cosine_typeDetail)
+
     # cosine_sim_row = np.random.rand(w2v_dim_len)
     # translation_matrix_np[row_number,:] = cosine_sim_row
 
 
-    return (translation_matrix_np,translation_matrix_np_zscore_normal, translation_matrix_e_score, translation_matrix_e_score_zscore_normal)
+    return (translation_matrix_np,translation_matrix_np_zscore_normal, translation_matrix_e_score
+            , translation_matrix_e_score_zscore_normal, translation_matrix_cosine_typeDetail, translation_matrix_cosine_typeDetail_zscore_normal)
+
+
+def get_trainslation_matrix_score_e_qavg(q_id, type, queries_w2v_char_level_dict, queries_ret_100_entities_dict,
+                                    entity_unique_avg_w2v_dict, type_ent_cnt_dict, k=100):
+    query_max_len = 1
+    entity_max_retrieve = k
+
+    w2v_dim_len = 300
+
+    column_size = entity_max_retrieve
+    row_size = query_max_len
+
+    translation_matrix_np = np.zeros([row_size, column_size])
+    translation_matrix_e_score = np.zeros([row_size, column_size])
+    translation_matrix_cosine_typeDetail = np.zeros([row_size, column_size])
+
+    translation_matrix_np_zscore_normal = np.zeros([row_size, column_size])
+    translation_matrix_e_score_zscore_normal = np.zeros([row_size, column_size])
+    translation_matrix_cosine_typeDetail_zscore_normal = np.zeros([row_size, column_size])
+
+    # queries_w2v_char_level_dict,   { q_id: (q_body,q_body_w2v_char_level_list_of_list)}
+    # queries_ret_100_entities_dict, {q_id: [(q_body, retrieved_entity, [types of retrieved entity], abstract, relevant_score, rank)]}
+    # entity_unique_avg_w2v_dict,     {entity_name: w2v_abstract_e}
+
+    current_row = 0
+
+    q_w2v_words = queries_w2v_char_level_dict[q_id][1]
+    q_retrieved_entities = queries_ret_100_entities_dict[q_id]
+
+    #######################################
+    current_column = -1
+    if (all(v == 0 for v in q_w2v_words)):
+        return (translation_matrix_np, translation_matrix_np_zscore_normal, translation_matrix_e_score
+                , translation_matrix_e_score_zscore_normal, translation_matrix_cosine_typeDetail,
+                translation_matrix_cosine_typeDetail_zscore_normal)  # skip this row zeros, because query w2v doesn't exist !
+
+    row_np = np.zeros(column_size)
+    row_np_e_score = np.zeros(column_size)
+    row_np_cosine_typedetail = np.zeros(column_size)
+
+    for retrieved in q_retrieved_entities[:k]:
+        current_column += 1
+
+        q_body, retrieved_entity, types_of_retrieved_entity, abstract, relevant_score, rank = retrieved
+
+        if type not in types_of_retrieved_entity:
+            continue
+
+        entity_avg_w2v = entity_unique_avg_w2v_dict[retrieved_entity]
+        cosine_sim = get_cosine_similarity(q_w2v_words, entity_avg_w2v)
+
+        row_np[current_column] = (relevant_score) * (float(type_ent_cnt_dict[type][0]))
+        row_np_e_score[current_column] = relevant_score
+        row_np_cosine_typedetail[current_column] = cosine_sim * (math.log10(COUNT_ENTITES_OF_TYPES/float(type_ent_cnt_dict[type][0])))
+
+    translation_matrix_np[current_row, :] = row_np
+    translation_matrix_e_score[current_row, :] = row_np_e_score
+    translation_matrix_cosine_typeDetail[current_row, :] = row_np_cosine_typedetail
+    #######################################
+
+
+    translation_matrix_np_zscore_normal = preprocess.get_normalize2D(translation_matrix_np)
+    translation_matrix_e_score_zscore_normal = preprocess.get_normalize2D(translation_matrix_e_score)
+    translation_matrix_cosine_typeDetail_zscore_normal = preprocess.get_normalize2D(translation_matrix_cosine_typeDetail)
+
+    # cosine_sim_row = np.random.rand(w2v_dim_len)
+    # translation_matrix_np[row_number,:] = cosine_sim_row
+
+
+    return (translation_matrix_np,translation_matrix_np_zscore_normal, translation_matrix_e_score
+            , translation_matrix_e_score_zscore_normal, translation_matrix_cosine_typeDetail, translation_matrix_cosine_typeDetail_zscore_normal)
 
 
 def save_translation_matrix_entity_score(k=100):
@@ -732,6 +850,9 @@ def save_translation_matrix_entity_score(k=100):
     train_set_translation_matrix_e_score_dict = dict()
     train_set_translation_matrix_e_score_normal_zscore_dict = dict()
 
+    train_set_translation_matrix_cosine_typeDetail_dict = dict()
+    train_set_translation_matrix_cosine_typeDetail_normal_zscore_dict = dict()
+
     with open(train_set_row_path) as tsv:
         for line in csv.reader(tsv, dialect="excel-tab"):  # can also
             q_id = str(line[0])
@@ -741,7 +862,8 @@ def save_translation_matrix_entity_score(k=100):
             q_type_rel_class = str(line[3])
 
             translation_matrix_np, translation_matrix_np_zscore_normal,\
-            translation_matrix_e_score, translation_matrix_e_score_zscore_normal\
+            translation_matrix_e_score, translation_matrix_e_score_zscore_normal,\
+            translation_matrix_cosine_typeDetail, translation_matrix_cosine_typeDetail_zscore_normal\
                 = get_trainslation_matrix_score_e(q_id, q_type,
                                                   queries_w2v_char_level_dict,
                                                   queries_ret_100_entities_dict,
@@ -753,6 +875,9 @@ def save_translation_matrix_entity_score(k=100):
             translation_matrix_e_score = translation_matrix_e_score.tolist()
             translation_matrix_e_score_zscore_normal = translation_matrix_e_score_zscore_normal.tolist()
 
+            translation_matrix_cosine_typeDetail = translation_matrix_cosine_typeDetail.tolist()
+            translation_matrix_cosine_typeDetail_zscore_normal = translation_matrix_cosine_typeDetail_zscore_normal.tolist()
+
             if q_id not in train_set_translation_matrix_dict:
                 train_set_translation_matrix_dict[q_id] = [(translation_matrix_list, q_type_rel_class, q_type)]
                 train_set_translation_matrix_normal_zscore_dict[q_id] = [(translation_matrix_np_zscore_normal, q_type_rel_class, q_type)]
@@ -760,6 +885,8 @@ def save_translation_matrix_entity_score(k=100):
                 train_set_translation_matrix_e_score_dict[q_id] = [(translation_matrix_e_score, q_type_rel_class, q_type)]
                 train_set_translation_matrix_e_score_normal_zscore_dict[q_id] = [(translation_matrix_e_score_zscore_normal, q_type_rel_class, q_type)]
 
+                train_set_translation_matrix_cosine_typeDetail_dict[q_id] = [(translation_matrix_cosine_typeDetail, q_type_rel_class, q_type)]
+                train_set_translation_matrix_cosine_typeDetail_normal_zscore_dict[q_id] = [(translation_matrix_cosine_typeDetail_zscore_normal, q_type_rel_class, q_type)]
             else:
                 train_set_translation_matrix_dict[q_id].append((translation_matrix_list, q_type_rel_class, q_type))
 
@@ -767,13 +894,106 @@ def save_translation_matrix_entity_score(k=100):
                 train_set_translation_matrix_e_score_dict[q_id].append((translation_matrix_e_score, q_type_rel_class, q_type))
                 train_set_translation_matrix_e_score_normal_zscore_dict[q_id].append((translation_matrix_e_score_zscore_normal, q_type_rel_class, q_type))
 
+                train_set_translation_matrix_cosine_typeDetail_dict[q_id].append((translation_matrix_cosine_typeDetail, q_type_rel_class, q_type))
+                train_set_translation_matrix_cosine_typeDetail_normal_zscore_dict[q_id].append((translation_matrix_cosine_typeDetail_zscore_normal, q_type_rel_class, q_type))
 
         json.dump(train_set_translation_matrix_normal_zscore_dict, fp=open(trainset_translation_matrix_detail_normal_path + str(k) + ".json", 'w'))
         json.dump(train_set_translation_matrix_e_score_normal_zscore_dict, fp=open(trainset_translation_matrix_escore_normal_path + str(k) + ".json", 'w'))
         json.dump(train_set_translation_matrix_dict, fp=open(trainset_translation_matrix_detail_path + str(k) + ".json", 'w'))
         json.dump(train_set_translation_matrix_e_score_dict, fp=open(trainset_translation_matrix_escore_path + str(k) + ".json", 'w'))
 
+        json.dump(train_set_translation_matrix_cosine_typeDetail_dict, fp=open(trainset_translation_matrix_cosine_typeDetail_path + str(k) + ".json", 'w'))
+        json.dump(train_set_translation_matrix_cosine_typeDetail_normal_zscore_dict, fp=open(trainset_translation_matrix_cosine_typeDetail_normal_path + str(k) + ".json", 'w'))
 
+
+def save_translation_matrix_entity_score_qavg(k=100):
+    queries_w2v_char_level_dict = get_queries_feature_dict()
+    # { q_id: (q_body,q_body_w2v_char_level_list_of_list)}
+
+    queries_ret_100_entities_dict = get_queries_ret_100_entities_dict()
+    # {q_id: [(q_body, retrieved_entity, [types of retrieved entity], abstract, relevant_score, rank)]}
+
+    entity_unique_avg_w2v_dict = get_entity_unique_avg_w2v_dict()
+    # {entity_name: w2v_abstract_e}
+
+    type_ent_cnt_dict = get_type_entity_cnt_dict()
+
+    train_set_translation_matrix_dict = dict()
+    train_set_translation_matrix_normal_zscore_dict = dict()
+
+    train_set_translation_matrix_e_score_dict = dict()
+    train_set_translation_matrix_e_score_normal_zscore_dict = dict()
+
+    train_set_translation_matrix_cosine_typeDetail_dict = dict()
+    train_set_translation_matrix_cosine_typeDetail_normal_zscore_dict = dict()
+
+    with open(train_set_row_path) as tsv:
+        for line in csv.reader(tsv, dialect="excel-tab"):  # can also
+            q_id = str(line[0])
+
+            q_body = str(line[1])
+            q_type = str(line[2])
+            q_type_rel_class = str(line[3])
+
+            translation_matrix_np, translation_matrix_np_zscore_normal, \
+            translation_matrix_e_score, translation_matrix_e_score_zscore_normal, \
+            translation_matrix_cosine_typeDetail, translation_matrix_cosine_typeDetail_zscore_normal \
+                = get_trainslation_matrix_score_e_qavg(q_id, q_type,
+                                                  queries_w2v_char_level_dict,
+                                                  queries_ret_100_entities_dict,
+                                                  entity_unique_avg_w2v_dict,
+                                                  type_ent_cnt_dict, k=k)
+
+            translation_matrix_list = translation_matrix_np.tolist()
+            translation_matrix_np_zscore_normal = translation_matrix_np_zscore_normal.tolist()
+            translation_matrix_e_score = translation_matrix_e_score.tolist()
+            translation_matrix_e_score_zscore_normal = translation_matrix_e_score_zscore_normal.tolist()
+
+            translation_matrix_cosine_typeDetail = translation_matrix_cosine_typeDetail.tolist()
+            translation_matrix_cosine_typeDetail_zscore_normal = translation_matrix_cosine_typeDetail_zscore_normal.tolist()
+
+            if q_id not in train_set_translation_matrix_dict:
+                train_set_translation_matrix_dict[q_id] = [(translation_matrix_list, q_type_rel_class, q_type)]
+                train_set_translation_matrix_normal_zscore_dict[q_id] = [
+                    (translation_matrix_np_zscore_normal, q_type_rel_class, q_type)]
+
+                train_set_translation_matrix_e_score_dict[q_id] = [
+                    (translation_matrix_e_score, q_type_rel_class, q_type)]
+                train_set_translation_matrix_e_score_normal_zscore_dict[q_id] = [
+                    (translation_matrix_e_score_zscore_normal, q_type_rel_class, q_type)]
+
+                train_set_translation_matrix_cosine_typeDetail_dict[q_id] = [
+                    (translation_matrix_cosine_typeDetail, q_type_rel_class, q_type)]
+                train_set_translation_matrix_cosine_typeDetail_normal_zscore_dict[q_id] = [
+                    (translation_matrix_cosine_typeDetail_zscore_normal, q_type_rel_class, q_type)]
+            else:
+                train_set_translation_matrix_dict[q_id].append((translation_matrix_list, q_type_rel_class, q_type))
+
+                train_set_translation_matrix_normal_zscore_dict[q_id].append(
+                    (translation_matrix_np_zscore_normal, q_type_rel_class, q_type))
+                train_set_translation_matrix_e_score_dict[q_id].append(
+                    (translation_matrix_e_score, q_type_rel_class, q_type))
+                train_set_translation_matrix_e_score_normal_zscore_dict[q_id].append(
+                    (translation_matrix_e_score_zscore_normal, q_type_rel_class, q_type))
+
+                train_set_translation_matrix_cosine_typeDetail_dict[q_id].append(
+                    (translation_matrix_cosine_typeDetail, q_type_rel_class, q_type))
+                train_set_translation_matrix_cosine_typeDetail_normal_zscore_dict[q_id].append(
+                    (translation_matrix_cosine_typeDetail_zscore_normal, q_type_rel_class, q_type))
+
+        json.dump(train_set_translation_matrix_normal_zscore_dict,
+                  fp=open(trainset_translation_matrix_detail_normal_path + "qavg_" + str(k) + ".json", 'w'))
+        json.dump(train_set_translation_matrix_e_score_normal_zscore_dict,
+                  fp=open(trainset_translation_matrix_escore_normal_path + "qavg_" +str(k) + ".json", 'w'))
+        json.dump(train_set_translation_matrix_dict,
+                  fp=open(trainset_translation_matrix_detail_path + "qavg_" + str(k) + ".json", 'w'))
+        json.dump(train_set_translation_matrix_e_score_dict,
+                  fp=open(trainset_translation_matrix_escore_path  + "qavg_" + str(k) + ".json", 'w'))
+
+        json.dump(train_set_translation_matrix_cosine_typeDetail_dict,
+                  fp=open(trainset_translation_matrix_cosine_typeDetail_path + "qavg_" + str(k) + ".json", 'w'))
+        json.dump(train_set_translation_matrix_cosine_typeDetail_normal_zscore_dict,
+                  fp=open(trainset_translation_matrix_cosine_typeDetail_normal_path + "qavg_" + str(k) + ".json", 'w'))
 
 
 def get_trainslation_matrix_type_terms(q_id, type, queries_w2v_char_level_dict, type_terms_k_top_char_level_w2v, k):
@@ -1251,28 +1471,36 @@ def _get_train_testdata(queries_for_train, queries_for_test_set):
     return (train_X, train_Y, test_X, test_Y_one_hot, q_id_test_list, test_TYPES, np.array(test_Y))
 
 def get_train_test_data_translation_matric_entity_centric(queries_for_train, queries_for_test_set, type, k):
+    global trainset_average_w2v_path
     tmp = get_trainset_translation_matrix_score_e_path(type=type, k=k)
     if trainset_average_w2v_path != tmp:
-        trainset_average_w2v = None  # in merge model cause bug :)
         global trainset_average_w2v
-        if trainset_average_w2v is None:
-            global trainset_average_w2v_path
-            trainset_average_w2v_path = tmp
-            load_trainset_average_w2v()
+        trainset_average_w2v = None  # in merge model cause bug :)
+        trainset_average_w2v_path = tmp
+        load_trainset_average_w2v()
 
-    return get_train_test_data(queries_for_train, queries_for_test_set)
+    return _get_train_testdata(queries_for_train, queries_for_test_set)
+
+def get_train_test_data_translation_matric_entity_centric_qavg(queries_for_train, queries_for_test_set, type, k):
+    global trainset_average_w2v_path
+    tmp = get_trainset_translation_matrix_score_e_qavg_path(type=type, k=k)
+    if trainset_average_w2v_path != tmp:
+        global trainset_average_w2v
+        trainset_average_w2v = None  # in merge model cause bug :)
+        trainset_average_w2v_path = tmp
+        load_trainset_average_w2v()
+
+    return _get_train_testdata(queries_for_train, queries_for_test_set)
 
 def get_train_test_data_translation_matric_type_centric(queries_for_train, queries_for_test_set, k):
+    global trainset_average_w2v_path
     tmp = trainset_translation_matrix_type_tfidf_terms_path + "_" + str(k) + ".json"
     if trainset_average_w2v_path != tmp:
-        trainset_average_w2v = None  # in merge model cause bug :)
         global trainset_average_w2v
-        if trainset_average_w2v is None:
-            global trainset_average_w2v_path
-            trainset_average_w2v_path = tmp
-            load_trainset_average_w2v()
+        trainset_average_w2v_path = tmp
+        load_trainset_average_w2v()
 
-    return get_train_test_data(queries_for_train, queries_for_test_set)
+    return _get_train_testdata(queries_for_train, queries_for_test_set)
 
 def get_train_test_data(queries_for_train, queries_for_test_set):
     global trainset_average_w2v
@@ -1358,6 +1586,13 @@ def get_train_test_data(queries_for_train, queries_for_test_set):
 # save_translation_matrix_entity_score(k=20)
 # save_translation_matrix_entity_score(k=50)
 # save_translation_matrix_entity_score(k=100)
+
+# save_translation_matrix_entity_score_qavg(k=5)
+# save_translation_matrix_entity_score_qavg(k=20)
+# save_translation_matrix_entity_score_qavg(k=50)
+# save_translation_matrix_entity_score_qavg(k=100)
+
+
 
 # type_terms_avg_w2v_generator()
 # save_trainset_type_terms_w2v()

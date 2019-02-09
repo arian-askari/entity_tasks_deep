@@ -63,43 +63,84 @@ class Model_Generator():
         """ Performs training on train_x instances"""
 
         self.__network = Sequential()
-        # self.__network.add(Dense(self.__layers[0], input_shape=input_dim))
-        # self.__network.add(Dropout(self.__dropout))
+
+        ###################################################################################
 
 
         ####################################################################################
-        # train_x = np.expand_dims(train_x, axis=2)
-        # test_x = np.expand_dims(test_y, axis=2)
-        # shp = train_x.shape
-        # print(shp)
-
         train_x, input_shape = self.__reshape_for_cnn(train_x)
         test_x , _ = self.__reshape_for_cnn(test_x)
+        print(input_shape)
+        # self.__network.add(Conv2D(filters=64, kernel_size= (1,1),strides=(1,1), padding="same", activation="relu", input_shape=input_shape))
+        # self.__network.add(Conv2D(filters=64, kernel_size= (12,1),strides=(1,1), padding="same", activation="relu", input_shape=input_shape))
+        # self.__network.add(Conv2D(filters=32, kernel_size= (9,1),strides=(1,1), padding="same", activation="relu", input_shape=input_shape))
+        # self.__network.add(Conv2D(filters=16, kernel_size= (5,1),strides=(1,1), padding="same", activation="relu", input_shape=input_shape))
+        # self.__network.add(Conv2D(filters=8, kernel_size= (2,1),strides=(1,1), padding="same", activation="relu", input_shape=input_shape))
 
-        self.__network.add(Conv2D(filters=64, kernel_size= (5,5),strides=(1,1), padding="same", activation="relu", input_shape=input_shape))
-        self.__network.add(MaxPooling2D())
-        self.__network.add(Dropout(self.__dropout))
+
+        # self.__network.add(Conv2D(filters=128, kernel_size= (1,1),strides=(1,1), padding="same", activation="relu", input_shape=input_shape))
+        # self.__network.add(Conv2D(filters=64, kernel_size= (12,1),strides=(1,1), padding="same", activation="relu", input_shape=input_shape))
+        # self.__network.add(Conv2D(filters=32, kernel_size= (9,1),strides=(1,1), padding="same", activation="relu", input_shape=input_shape))
+        # self.__network.add(Conv2D(filters=16, kernel_size= (5,1),strides=(1,1), padding="same", activation="relu", input_shape=input_shape))
+        # self.__network.add(Conv2D(filters=8, kernel_size= (2,1),strides=(1,1), padding="same", activation="relu", input_shape=input_shape))
 
 
-        # self.__network.add(Conv2D(filters=16, kernel_size= (10,10),strides=(1,1), padding="same", activation="relu"))
-        # self.__network.add(MaxPooling2D())
-        # self.__network.add(Dropout(self.__dropout))
-        #
-        # self.__network.add(Conv2D(filters=256, kernel_size= (32,32),strides=(1,1), padding="same", activation="relu"))
-        # self.__network.add(MaxPooling2D())
-        # self.__network.add(Dropout(self.__dropout))
-
+        self.__network.add(Conv2D(filters=256, kernel_size= (1,1),strides=(1,1), padding="same", activation="relu", input_shape=input_shape))
+        self.__network.add(Conv2D(filters=128, kernel_size= (15,1),strides=(1,1), padding="same", activation="relu", input_shape=input_shape))
+        self.__network.add(Conv2D(filters=64, kernel_size= (12,1),strides=(1,1), padding="same", activation="relu", input_shape=input_shape))
+        self.__network.add(Conv2D(filters=32, kernel_size= (9,1),strides=(1,1), padding="same", activation="relu", input_shape=input_shape))
+        self.__network.add(Conv2D(filters=16, kernel_size= (5,1),strides=(1,1), padding="same", activation="relu", input_shape=input_shape))
+        self.__network.add(Conv2D(filters=8, kernel_size= (2,1),strides=(1,1), padding="same", activation="relu", input_shape=input_shape))
 
         self.__network.add(Flatten())
 
-        # self_network.add(MaxPooling1D(pool_size=(5), strides=(1)))
+        # self.__network.add(Conv2D(filters=512, kernel_size= (3,1),strides=(1,1), padding="same", activation="relu", input_shape=input_shape))
+        # self.__network.add(Conv2D(filters=256, kernel_size= (5,1),strides=(1,1), padding="same", activation="relu", input_shape=input_shape))
+        # self.__network.add(Conv2D(filters=256, kernel_size= (7,1),strides=(1,1), padding="same", activation="relu", input_shape=input_shape))
 
+        # self.__network.add(Conv2D(filters=128, kernel_size= (3,1),strides=(1,1), padding="same", activation="relu", input_shape=input_shape))
+        # self.__network.add(Conv2D(filters=16, kernel_size= (3,1),strides=(1,1), padding="same", activation="relu", input_shape=input_shape))
+
+        # self.__network.add(Dropout(self.__dropout))
+
+
+        # self.__network.add(Conv2D(filters=128, kernel_size= (16,1),strides=(1,1), padding="same", activation="relu", input_shape=input_shape))
+        # self.__network.add(Conv2D(filters=128, kernel_size= (9,1),strides=(1,1), padding="same", activation="relu", input_shape=input_shape))
+        # self.__network.add(Conv2D(filters=128, kernel_size= (3,1),strides=(1,1), padding="same", activation="relu", input_shape=input_shape))
+
+
+        # self.__network.add(Conv2D(filters=128, kernel_size= (32,1),strides=(1,1), padding="same", activation="relu", input_shape=input_shape))
+
+        # self.__network.add(Conv2D(filters=128, kernel_size= (3,1),strides=(1,1), padding="same", activation="relu"))
+        # self.__network.add(GlobalAveragePooling2D())
+
+        # self.__network.add(Conv2D(filters=256, kernel_size= (10,10),strides=(1,1), padding="valid", activation="relu"))
+        # self.__network.add(AveragePooling2D())
+        # self.__network.add(Dropout(self.__dropout))
+        #
+        #
+        # self.__network.add(Conv2D(filters=256, kernel_size= (32,32),strides=(1,1), padding="valid", activation="relu"))
+        # self.__network.add(AveragePooling2D())
+        # self.__network.add(Dropout(self.__dropout))
+
+        # self.__network.add(Flatten())
+        ####################################################################################
+
+
+
+        ####################################################################################
+        # self.__network.add(Dense(self.__layers[0], input_shape=input_dim))
+        # self.__network.add(Dropout(self.__dropout))
+        # if self.__activation[0] == "LeakyReLU":
+        #     self.__network.add(LeakyReLU(alpha=0.2))
+        # else:
+        #     self.__network.add(Dense(self.__layers[0], input_shape=input_dim))
+        # self.__network.add(Dropout(self.__dropout))
         # if self.__activation[0] == "LeakyReLU":
         #     self.__network.add(LeakyReLU(alpha=0.2))
         # else:
         #     self.__network.add(Activation(self.__activation[0]))
         ####################################################################################
-
 
         for i in range(0, len(self.__layers)):
             self.__network.add(Dense(self.__layers[i]))
@@ -110,6 +151,7 @@ class Model_Generator():
             self.__network.add(Dropout(self.__dropout))
 
         if (self.__optimizer == "adam"):
+            # adam = optimizers.Adam(lr=self.__learning_rate, decay=0.5)
             adam = optimizers.Adam(lr=self.__learning_rate)
             self.__network.compile(optimizer=adam, loss=self.__loss, metrics=["accuracy"])
         elif(self.__optimizer == "rms"):

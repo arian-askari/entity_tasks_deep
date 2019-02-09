@@ -49,6 +49,15 @@ dropout_rates = [0.1]
 batch_size = 100
 loss_function = "mse"
 
+def flat_input(list_data):
+    list_data = list_data.tolist()
+    list_data_flat = []
+    for lst in list_data:
+        list_data_flat.append(np.array(lst).flatten())
+
+    return np.array(list_data_flat)
+
+
 def nested_cross_fold_validation():
     loss_train_best_models_total = np.array([])
     acc_validation_best_models_total = np.array([])
@@ -137,6 +146,10 @@ def nested_cross_fold_validation():
 
                         model.set_csv_log_path(log_path)
 
+                        if set_input_flat == True:
+                            train_X_EC = flat_input(train_X_EC)
+                            test_X_EC = flat_input(test_X_EC)
+
                         train_X = [train_X_TC, train_X_EC]
                         test_X = [test_X_TC, test_X_EC]
                         if category == "regression":
@@ -150,6 +163,8 @@ def nested_cross_fold_validation():
                         predict_values = None
                         predict_probs = None
 
+                        if set_input_flat == True:
+                            test_X_EC = flat_input(test_X_EC)
                         test_X = [test_X_TC, test_X_EC]
                         if category == "regression":
                             result_validation = model.predict(test_X, test_Y_EC)
@@ -217,8 +232,8 @@ def nested_cross_fold_validation():
             _, __, test_X_EC, test_Y_EC_one_hot_EC, q_id_test_list, test_TYPES_EC, test_Y_EC = tsg.get_train_test_data_translation_matric_entity_centric(queries_for_train, queries_for_test_set, type_matrixEntityScore, k)
             _, __, test_X_TC, test_Y_TC_one_hot_TC, q_id_test_list, test_TYPES_TC, test_Y_TC = tsg.get_train_test_data_translation_matric_type_centric(queries_for_train, queries_for_test_set, k=k)
 
-            # models_sorted = sorted(models_during_validation, key=lambda x: x[3])  # ascending sort
-            models_sorted = sorted(models_during_validation, key=lambda x: x[5])  # sort by train loss - validation loss (abs value :))
+            models_sorted = sorted(models_during_validation, key=lambda x: x[3])  # ascending sort
+            # models_sorted = sorted(models_during_validation, key=lambda x: x[5])  # sort by train loss - validation loss (abs value :))
 
 
 
@@ -233,6 +248,8 @@ def nested_cross_fold_validation():
             predict_values = None
             predict_probs = None
             result_test = None
+            if set_input_flat == True:
+                test_X_EC = flat_input(test_X_EC)
 
             test_X = [test_X_TC, test_X_EC]
             if category == "regression":
@@ -348,10 +365,16 @@ optimizer = "adam"
 learning_rate = 0.0001
 q_token_cnt = 14
 
-type_matrixEntityScore = "detail_normal"
+# type_matrixEntityScore = "detail_normal"
 # type_matrixEntityScore = "detail"
 # type_matrixEntityScore = "e_score"
 # type_matrixEntityScore = "e_score_normal"
+
+# type_matrixEntityScore = "cosine_detail"
+type_matrixEntityScore = "cosine_detail_normal"
+
+
+set_input_flat = True
 for cat, act, layers, k_v in zip(categories, activation_for_evaluates, layers_for_evaluates, k_values):
     k = k_v
     # input_dim = (q_token_cnt * k,)

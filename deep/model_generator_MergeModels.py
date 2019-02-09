@@ -61,11 +61,14 @@ class Model_Generator():
         return data, input_shape
     def fit(self, train_x, train_y, input_dim, test_x =None, test_y = None): #input_dim example: (600,)
         """ Performs training on train_x instances"""
-        train_x = np.array(train_x)
-        test_x = np.array(test_x)
+        # train_x = np.array(train_x)
+        # test_x = np.array(test_x)
         ##First model Static
-        train_x_tc, input_shape = self.__reshape_for_cnn(train_x[0])
-        test_x_tc , _ = self.__reshape_for_cnn(test_x[0])
+        # train_x_tc, input_shape = self.__reshape_for_cnn(train_x[0])
+        # test_x_tc , _ = self.__reshape_for_cnn(test_x[0])
+
+        train_x_tc, input_shape = self.__reshape_for_cnn(np.array(train_x[0]))
+        test_x_tc , _ = self.__reshape_for_cnn(np.array(test_x[0]))
 
 
         model_TC = Sequential()
@@ -85,41 +88,54 @@ class Model_Generator():
 
         model_TC.add(Dense(100))
         model_TC.add(Activation('relu'))
-        model_TC.add(Dropout(0.0))
+        model_TC.add(Dropout(0))
 
         #second try remove it
         model_TC.add(Dense(1))
         model_TC.add(Activation('linear'))
         model_TC.add(Dropout(0.0))
 
+
+
         ##Second MOdel
-        train_x_ec, input_shape = self.__reshape_for_cnn(train_x[1])
-        test_x_ec, _ = self.__reshape_for_cnn(test_x[1])
+        # train_x_ec, input_shape = self.__reshape_for_cnn(train_x[1])
+        # test_x_ec, _ = self.__reshape_for_cnn(test_x[1])
 
         model_EC = Sequential()
-        model_EC.add(Conv2D(filters=64, kernel_size=(5, 5), strides=(1, 1), padding="same", activation="relu",
-                            input_shape=input_shape))
-        model_EC.add(MaxPooling2D())
-        model_EC.add(Dropout(self.__dropout))
 
-        model_EC.add(Conv2D(filters=16, kernel_size=(10, 10), strides=(1, 1), padding="same", activation="relu"))
-        model_EC.add(MaxPooling2D())
-        model_EC.add(Dropout(self.__dropout))
+        ##########################################################
+        train_x_ec = np.array(train_x[1])
+        test_x_ec = np.array(test_x[1])
 
-        model_EC.add(Conv2D(filters=256, kernel_size=(32, 32), strides=(1, 1), padding="same", activation="relu"))
-        model_EC.add(MaxPooling2D())
-        model_EC.add(Dropout(self.__dropout))
-
-        model_EC.add(Flatten())
-
-        model_EC.add(Dense(100))
+        model_EC.add(Dense(50, input_shape =(700, )))
         model_EC.add(Activation('relu'))
         model_EC.add(Dropout(0))
+        ##########################################################
+
+
+        # model_EC.add(Conv2D(filters=64, kernel_size=(5, 5), strides=(1, 1), padding="same", activation="relu",
+        #                     input_shape=input_shape))
+        # model_EC.add(MaxPooling2D())
+        # model_EC.add(Dropout(self.__dropout))
+
+        # model_EC.add(Conv2D(filters=16, kernel_size=(10, 10), strides=(1, 1), padding="same", activation="relu"))
+        # model_EC.add(MaxPooling2D())
+        # model_EC.add(Dropout(self.__dropout))
+        #
+        # model_EC.add(Conv2D(filters=256, kernel_size=(32, 32), strides=(1, 1), padding="same", activation="relu"))
+        # model_EC.add(MaxPooling2D())
+        # model_EC.add(Dropout(self.__dropout))
+
+        # model_EC.add(Flatten())
+
+        # model_EC.add(Dense(100))
+        # model_EC.add(Activation('relu'))
+        # model_EC.add(Dropout(0))
 
         #second try remove it
         model_EC.add(Dense(1))
         model_EC.add(Activation('linear'))
-        model_EC.add(Dropout(0.0))
+        model_EC.add(Dropout(0))
 
         #Merged Model try to be Dynamic :)
         model_TC_EC = Add()([model_TC.output, model_EC.output])
@@ -213,9 +229,14 @@ class Model_Generator():
     def predict(self, test_x, test_y=None):
         """ Performs prediction."""
 
-        test_x = np.array(test_x)
-        test_x_tc , _ = self.__reshape_for_cnn(test_x[0])
-        test_x_ec, _ = self.__reshape_for_cnn(test_x[1])
+        # test_x = np.array(test_x)
+        test_x_tc , _ = self.__reshape_for_cnn(np.array(test_x[0]))
+        # test_x_ec, _ = self.__reshape_for_cnn(test_x[1])
+
+        ###########
+        test_x_ec = np.array(test_x[1])
+        ###########
+
 
         test_x = [test_x_tc, test_x_ec]
         # test_x , _ = self.__reshape_for_cnn(test_x)
