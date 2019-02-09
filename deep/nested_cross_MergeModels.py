@@ -18,10 +18,11 @@ models_path_from_root = os.path.join("./data", "runs", "")
 results_path_from_root = os.path.join("./data", "results", "")
 results_path= os.path.join("../data", "results", "")
 # input_name = "input(abstract_e_avg)_"
-k = 100
-input_name = "input(cosine_sim_" + str(k) + "dim)_"
+k_TC = 50
+k_EC = 20
+input_name = "input(cosine_sim_" + str(k_TC) + "dim)_"
 
-# input_dim = (q_token_cnt*k ,)
+# input_dim = (q_token_cnt*k_TC ,)
 # input_dim = (1,)
 category = "regression"
 # category = "classification"
@@ -119,9 +120,9 @@ def nested_cross_fold_validation():
                         queries_for_select_validation_set = substrac_dicts(queries_for_select_validation_set, queries_validation_set)
 
                         queries_train_set = substrac_dicts(queries_for_train, queries_validation_set)
-                        train_X_EC, train_Y_EC, test_X_EC, test_Y_EC_one_hot_EC, q_id_test_list, test_TYPES_EC, test_Y_EC = tsg.get_train_test_data_translation_matric_entity_centric(queries_train_set, queries_validation_set, type_matrixEntityScore, k)
+                        train_X_EC, train_Y_EC, test_X_EC, test_Y_EC_one_hot_EC, q_id_test_list, test_TYPES_EC, test_Y_EC = tsg.get_train_test_data_translation_matric_entity_centric_qavg(queries_train_set, queries_validation_set, type_matrixEntityScore, 20)
 
-                        train_X_TC, train_Y_TC, test_X_TC, test_Y_TC_one_hot_TC, q_id_test_list, test_TYPES_TC, test_Y_TC = tsg.get_train_test_data_translation_matric_type_centric(queries_train_set, queries_validation_set, k=k)
+                        train_X_TC, train_Y_TC, test_X_TC, test_Y_TC_one_hot_TC, q_id_test_list, test_TYPES_TC, test_Y_TC = tsg.get_train_test_data_translation_matric_type_centric(queries_train_set, queries_validation_set, k=50)
 
                         # print("test EC:", test_Y_EC)
                         # print("\n\ntest TC:", test_Y_TC)
@@ -138,7 +139,7 @@ def nested_cross_fold_validation():
 
                         model = Model_Generator(layers=layers, activation=activation, epochs=epoch_count, dropout=dropout_rate,
                                                 category=category, learning_rate=learning_rate, loss=loss_function, batch_size=batch_size,
-                                                optimizer=optimizer, top_k = k)  # regression sample
+                                                optimizer=optimizer, top_k = k_TC)  # regression sample
 
                         model_name = model.get_model_name()
 
@@ -153,9 +154,9 @@ def nested_cross_fold_validation():
                         train_X = [train_X_TC, train_X_EC]
                         test_X = [test_X_TC, test_X_EC]
                         if category == "regression":
-                            ressult_train = model.fit(train_X, train_Y_EC, input_dim, test_X, test_Y_EC)
+                            ressult_train = model.fit(train_xTC = train_X_TC,trainxEC=train_X_EC, train_y = train_Y_EC, input_dim = input_dim, test_x_TC = test_X_TC,test_x_EC=test_X_EC, test_y = test_Y_EC)
                         else:
-                            ressult_train = model.fit(train_X, train_Y_EC, input_dim, test_X, test_Y_EC_one_hot_EC)
+                            ressult_train = model.fit(train_xTC = train_X_TC,trainxEC=train_X_EC, train_y = train_Y_EC, input_dim = input_dim, test_x_TC = test_X_TC,test_x_EC=test_X_EC, test_y = test_Y_EC_one_hot_EC)
 
 
                         result_validation = None
@@ -224,13 +225,13 @@ def nested_cross_fold_validation():
                         , epoch=str(epoch_count)
                         , optimizer=optimizer
                         , loss_function=loss_function
-                        , top_k= str(k)
+                        , top_k= str(k_TC)
                     )
 
             ''' Evaluate best model on Test (unseen data :) ) '''
 
-            _, __, test_X_EC, test_Y_EC_one_hot_EC, q_id_test_list, test_TYPES_EC, test_Y_EC = tsg.get_train_test_data_translation_matric_entity_centric(queries_for_train, queries_for_test_set, type_matrixEntityScore, k)
-            _, __, test_X_TC, test_Y_TC_one_hot_TC, q_id_test_list, test_TYPES_TC, test_Y_TC = tsg.get_train_test_data_translation_matric_type_centric(queries_for_train, queries_for_test_set, k=k)
+            _, __, test_X_EC, test_Y_EC_one_hot_EC, q_id_test_list, test_TYPES_EC, test_Y_EC = tsg.get_train_test_data_translation_matric_entity_centric_qavg(queries_for_train, queries_for_test_set, type_matrixEntityScore, 20)
+            _, __, test_X_TC, test_Y_TC_one_hot_TC, q_id_test_list, test_TYPES_TC, test_Y_TC = tsg.get_train_test_data_translation_matric_type_centric(queries_for_train, queries_for_test_set, k=50)
 
             models_sorted = sorted(models_during_validation, key=lambda x: x[3])  # ascending sort
             # models_sorted = sorted(models_during_validation, key=lambda x: x[5])  # sort by train loss - validation loss (abs value :))
@@ -295,7 +296,7 @@ def nested_cross_fold_validation():
                 , epoch=str(best_model.get_epoch_count())
                 , optimizer=str(best_model.get_optimizer())
                 , loss_function=str(best_model.get_loss_function())
-                , top_k=str(k)
+                , top_k=str(k_TC)
             )
 
             loss_train_best_models_total = np.append(loss_train_best_models_total, float(loss_train))
@@ -338,7 +339,7 @@ def nested_cross_fold_validation():
             , epoch=""
             , optimizer=""
             , loss_function=""
-            , top_k=str(k)
+            , top_k=str(k_TC)
         )
 
 #simple test
@@ -359,7 +360,9 @@ dropout_rates = [0]
 # dropout_rates = [0.0]
 batch_size = 128
 
-k_values = [50, 100, 5,100, 2, 300, 5, 20, 50, 100.0]
+k_values_EC = [20, 100, 5,100, 2, 300, 5, 20, 50, 100.0]
+k_values_TC = [50, 100, 5,100, 2, 300, 5, 20, 50, 100.0]
+
 epoch_count = 100
 optimizer = "adam"
 learning_rate = 0.0001
@@ -370,16 +373,18 @@ q_token_cnt = 14
 # type_matrixEntityScore = "e_score"
 # type_matrixEntityScore = "e_score_normal"
 
-# type_matrixEntityScore = "cosine_detail"
-type_matrixEntityScore = "cosine_detail_normal"
+type_matrixEntityScore = "cosine_detail"
+# type_matrixEntityScore = "cosine_detail_normal"
 
 
-set_input_flat = True
-for cat, act, layers, k_v in zip(categories, activation_for_evaluates, layers_for_evaluates, k_values):
-    k = k_v
-    # input_dim = (q_token_cnt * k,)
-    input_dim = (q_token_cnt, k)
-    input_name = "input(e_normal_" + str(k) + "dim)_"
+set_input_flat = False
+for cat, act, layers, k_v_ec,  k_v_tc in zip(categories, activation_for_evaluates, layers_for_evaluates, k_values_EC, k_values_TC):
+    k_TC = k_v_tc
+    k_EC = k_v_ec
+
+    # input_dim = (q_token_cnt * k_TC,)
+    input_dim = (q_token_cnt, k_TC)
+    input_name = "input(" + type_matrixEntityScore + str(k_TC) + "dim)_" + str(k_EC) + "_)"
 
     category = cat
     activation_for_evaluate = act

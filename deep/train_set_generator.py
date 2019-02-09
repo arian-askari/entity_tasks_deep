@@ -1497,6 +1497,7 @@ def get_train_test_data_translation_matric_type_centric(queries_for_train, queri
     tmp = trainset_translation_matrix_type_tfidf_terms_path + "_" + str(k) + ".json"
     if trainset_average_w2v_path != tmp:
         global trainset_average_w2v
+        trainset_average_w2v = None  # in merge model cause bug :)
         trainset_average_w2v_path = tmp
         load_trainset_average_w2v()
 
