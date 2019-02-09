@@ -7,7 +7,7 @@ from utils import trec_output as trec
 from utils import file_utils
 from deep import train_set_generator as tsg
 # from deep.model_generator import Model_Generator
-from deep.model_generator_MergeModels import Model_Generator
+from deep.model_generator_MergeModels_TwoStep import Model_Generator
 from utils.report_generator import Report_Generator
 report = Report_Generator()
 
@@ -225,7 +225,7 @@ def nested_cross_fold_validation():
                         , epoch=str(epoch_count)
                         , optimizer=optimizer
                         , loss_function=loss_function
-                        , top_k= str(k_TC)
+                        , top_k = "KTC(50),KEC(20)"
                     )
 
             ''' Evaluate best model on Test (unseen data :) ) '''
@@ -236,9 +236,9 @@ def nested_cross_fold_validation():
             models_sorted = sorted(models_during_validation, key=lambda x: x[3])  # ascending sort
             # models_sorted = sorted(models_during_validation, key=lambda x: x[5])  # sort by train loss - validation loss (abs value :))
 
-
-
             best_model, loss_train, acc_train, loss_validation, acc_validation, difference_loss_train_loss_validation = models_sorted[0]
+            if loss_train>10:
+                best_model, loss_train, acc_train, loss_validation, acc_validation, difference_loss_train_loss_validation = models_sorted[1]
             best_model_name = best_model.get_model_name()
 
             model_test_fold_run_path = models_path + input_name + "_T" + str(i+1) + "(bestModel)_" + best_model_name + ".run"
@@ -375,16 +375,17 @@ q_token_cnt = 14
 
 type_matrixEntityScore = "cosine_detail"
 # type_matrixEntityScore = "cosine_detail_normal"
-
-
 set_input_flat = False
 for cat, act, layers, k_v_ec,  k_v_tc in zip(categories, activation_for_evaluates, layers_for_evaluates, k_values_EC, k_values_TC):
-    k_TC = k_v_tc
-    k_EC = k_v_ec
+    k_TC = 50
+    k_EC = 20
 
     # input_dim = (q_token_cnt * k_TC,)
-    input_dim = (q_token_cnt, k_TC)
-    input_name = "input(" + type_matrixEntityScore + str(k_TC) + "dim)_" + str(k_EC) + "_)"
+    # input_dim = (q_token_cnt, k_TC)
+    input_dim = (500, )
+
+    input_name = "input(mergeTwoStep" + type_matrixEntityScore + str(k_TC) + "dim)_" + str(k_EC) + "_)"
+    # input_name = "input(mergeTwoStep:)_)"
 
     category = cat
     activation_for_evaluate = act
