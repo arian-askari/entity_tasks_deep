@@ -144,7 +144,7 @@ class Model_Generator():
         model_EC.add(Flatten())
         model_EC.add(Dense(700))
         model_EC.add(Activation('relu'))
-        model_EC.add(Dense(400))
+        model_EC.add(Dense(100))
         model_EC.add(Activation('relu'))
         model_EC.add(Dense(1))
         model_EC.add(Activation('linear'))
@@ -171,7 +171,7 @@ class Model_Generator():
         self.__network_EC.add(Flatten(weights=model_EC.layers[6].get_weights()))
         self.__network_EC.add(Dense(700, weights=model_EC.layers[7].get_weights()))
         self.__network_EC.add(Activation('relu', weights=model_EC.layers[8].get_weights()))
-        self.__network_EC.add(Dense(400, weights=model_EC.layers[9].get_weights()))
+        self.__network_EC.add(Dense(100, weights=model_EC.layers[9].get_weights()))
         self.__network_EC.add(Activation('relu', weights=model_EC.layers[10].get_weights()))
 
         new_train_part2_ec = self.__network_EC.predict(train_x_ec)
@@ -202,6 +202,14 @@ class Model_Generator():
         test_y = new_test_Y_for_model3
 
         self.__network = Sequential()
+
+        ############CNN ADDED#############
+        # train_x = np.expand_dims(train_x, axis=2)
+        # test_x = np.expand_dims(test_x, axis=2)
+        # self.__network.add(Conv1D(filters= 128, kernel_size=5, input_shape = (200, 1)))
+        # self.__network.add(Flatten())
+        ############CNN ADDED#############
+
 
         ##########layers added static !
         for i in range(0, len(self.__layers)):
@@ -299,6 +307,13 @@ class Model_Generator():
 
         new_test_X_for_model3 = np.array(new_test_X_for_model3)
         test_x = new_test_X_for_model3
+
+        #################CNN ADDED ########################
+        # test_x = np.expand_dims(test_x, axis=2)
+        #################CNN ADDED ########################
+
+
+
 
         # test_x , _ = self.__reshape_for_cnn(test_x)
         result = dict()

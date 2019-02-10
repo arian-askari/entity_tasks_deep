@@ -7,6 +7,7 @@ from keras import optimizers
 from keras.callbacks import CSVLogger
 from keras.layers import LeakyReLU
 from keras import backend as k
+import tensorflow as tf
 
 
 import numpy as np
@@ -75,27 +76,36 @@ class Model_Generator():
 
 
         model_TC = Sequential()
-        model_TC.add(Conv2D(filters=64, kernel_size= (5,5),strides=(1,1), padding="same", activation="relu", input_shape=input_shape))
+        model_TC.add(Conv2D(filters=64, kernel_size= (5,5),strides=(1,1), padding="same", activation="relu", input_shape=input_shape, kernel_initializer='uniform'))
         model_TC.add(MaxPooling2D())
-        model_TC.add(Dropout(self.__dropout))
+        model_TC.add(Dropout(0))
 
         model_TC.add(Conv2D(filters=16, kernel_size= (10,10),strides=(1,1), padding="same", activation="relu"))
         model_TC.add(MaxPooling2D())
-        model_TC.add(Dropout(self.__dropout))
+        model_TC.add(Dropout(0))
 
         model_TC.add(Conv2D(filters=256, kernel_size= (32,32),strides=(1,1), padding="same", activation="relu"))
         model_TC.add(MaxPooling2D())
-        model_TC.add(Dropout(self.__dropout))
+        model_TC.add(Dropout(0))
 
         model_TC.add(Flatten())
 
         model_TC.add(Dense(100))
         model_TC.add(Activation('relu'))
-        model_TC.add(Dropout(0))
+        model_TC.add(Dropout(self.__dropout))
+
+        # model_TC.add(Dense(500))
+        # model_TC.add(Activation('relu'))
+        # model_TC.add(Dropout(self.__dropout))
+
+
+        # model_TC.add(Dense(100))
+        # model_TC.add(Activation('relu'))
+        # model_TC.add(Dropout(0))
 
         #second try remove it
-        model_TC.add(Dense(1))
-        model_TC.add(Activation('linear'))
+        model_TC.add(Dense(100))
+        model_TC.add(Activation('relu'))
         model_TC.add(Dropout(0.0))
 
 
@@ -118,15 +128,15 @@ class Model_Generator():
 
         model_EC.add(Conv2D(filters=256, kernel_size=(1, 1), strides=(1, 1), padding="same", activation="relu",
                             input_shape=input_shape))
-        model_EC.add(Conv2D(filters=128, kernel_size= (15,1),strides=(1,1), padding="same", activation="relu", input_shape=input_shape))
-        model_EC.add(Conv2D(filters=64, kernel_size= (12,1),strides=(1,1), padding="same", activation="relu", input_shape=input_shape))
-        model_EC.add(Conv2D(filters=32, kernel_size= (9,1),strides=(1,1), padding="same", activation="relu", input_shape=input_shape))
-        model_EC.add(Conv2D(filters=16, kernel_size= (5,1),strides=(1,1), padding="same", activation="relu", input_shape=input_shape))
-        model_EC.add(Conv2D(filters=8, kernel_size= (2,1),strides=(1,1), padding="same", activation="relu", input_shape=input_shape))
+        model_EC.add(Conv2D(filters=128, kernel_size= (15,1),strides=(1,1), padding="same", activation="relu", input_shape=input_shape, kernel_initializer ='uniform'))
+        model_EC.add(Conv2D(filters=64, kernel_size= (12,1),strides=(1,1), padding="same", activation="relu"))
+        model_EC.add(Conv2D(filters=32, kernel_size= (9,1),strides=(1,1), padding="same", activation="relu"))
+        model_EC.add(Conv2D(filters=16, kernel_size= (5,1),strides=(1,1), padding="same", activation="relu"))
+        model_EC.add(Conv2D(filters=8, kernel_size= (2,1),strides=(1,1), padding="same", activation="relu"))
 
         model_EC.add(Flatten())
 
-
+        #
         model_EC.add(Dense(700))
         model_EC.add(Activation('relu'))
         model_EC.add(Dropout(0))
@@ -135,9 +145,23 @@ class Model_Generator():
         model_EC.add(Activation('relu'))
         model_EC.add(Dropout(0))
 
+        # model_EC.add(Dense(500))
+        # model_EC.add(Activation('relu'))
+        # model_EC.add(Dropout(0))
+        #
+        # model_EC.add(Dense(10))
+        # model_EC.add(Activation('relu'))
+        # model_EC.add(Dropout(self.__dropout))
+
+
+
+        #
+        # model_EC.add(Dense(10))
+        # model_EC.add(Activation('relu'))
+        # model_EC.add(Dropout(0))
         #second try remove it
-        model_EC.add(Dense(1))
-        model_EC.add(Activation('linear'))
+        model_EC.add(Dense(100))
+        model_EC.add(Activation('relu'))
         model_EC.add(Dropout(0))
 
 
@@ -145,11 +169,21 @@ class Model_Generator():
         #Merged Model try to be Dynamic :)
         model_TC_EC = Add()([model_TC.output, model_EC.output])
 
-        model_TC_EC = Dense(100)(model_TC_EC)
-        model_TC_EC = Activation('relu')(model_TC_EC)
+        # model_TC_EC = BatchNormalization()(model_TC_EC) ##TODO:: Test konam ! chon noghtei hast ke daran 2ta model merge mishan shayad kare khassi kard!
+
+        # model_TC_EC = Dense(100)(model_TC_EC)
+        # model_TC_EC = Activation('relu')(model_TC_EC)
+
+
+
+        #
+        # model_TC_EC = Dense(100)(model_TC_EC)
+        # model_TC_EC = Activation('relu')(model_TC_EC)
+
 
         model_TC_EC = Dense(1)(model_TC_EC)
-        model_TC_EC = Activation('relu')(model_TC_EC)
+        # model_TC_EC = Activation('relu')(model_TC_EC)
+        model_TC_EC = Activation('linear')(model_TC_EC)
 
         merged_TC_EC_new_model = Sequential()
         merged_TC_EC_new_model = Model([model_TC.input, model_EC.input], model_TC_EC)
@@ -211,6 +245,15 @@ class Model_Generator():
         # print("\nmodel summary:\n--------------")
         print(self.__network.summary())
 
+
+        # outputs = [layer.output for layer in self.__network.layers]  # all layer outputs
+        # for i in range(len(outputs)):
+        #     print(i)
+        #     # tf.Session.run(outputs[i].output)
+        #
+        #     print(outputs[i].get_output())
+        #
+        # kkkkk =0
         return result
 
 

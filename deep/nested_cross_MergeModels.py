@@ -241,6 +241,8 @@ def nested_cross_fold_validation():
                 best_model, loss_train, acc_train, loss_validation, acc_validation, difference_loss_train_loss_validation = models_sorted[1]
             best_model_name = best_model.get_model_name()
 
+            print("####################################################\n\t\tbest model selected ! :)\n####################################################")
+
             model_test_fold_run_path = models_path + input_name + "_T" + str(i+1) + "(bestModel)_" + best_model_name + ".run"
 
             #####################################################################################
@@ -347,17 +349,18 @@ def nested_cross_fold_validation():
 # activation_for_evaluate_reg = [["relu","linear"],["relu","linear"],["relu","linear"],["relu", "relu", "linear"],["relu", "relu","relu", "linear"],["relu", "relu","relu", "linear"],["relu", "relu","relu", "linear"]]
 
 
-# layers_for_evaluate_reg = [[10, 1]]
-# activation_for_evaluate_reg = [["relu", "linear"]]
-
 layers_for_evaluate_reg = [[100,1]]
 activation_for_evaluate_reg = [["relu", "linear"]]
+dropout_rates = [0]
+
+# layers_for_evaluate_reg = [[1], [100,1], [500,1], [1000,1], [2048,1],  [10,1], [20,1],[50,1], [1000,100, 1],[1000,100,500,1]]
+# activation_for_evaluate_reg = [["linear"], ["relu", "linear"], ["relu", "linear"], ["relu", "linear"], ["relu", "linear"], ["relu", "linear"], ["relu", "linear"]
+#                                ,["relu", "linear"], ["relu","relu","linear"], ["relu","relu","relu","linear"]]
+# dropout_rates = [0, 0.1, 0.2, 0.3, 0.4, 0.5]
 
 categories = ["regression"]
 layers_for_evaluates = [layers_for_evaluate_reg]
 activation_for_evaluates = [activation_for_evaluate_reg]
-dropout_rates = [0]
-# dropout_rates = [0.0]
 batch_size = 128
 
 k_values_EC = [20, 100, 5,100, 2, 300, 5, 20, 50, 100.0]
@@ -376,13 +379,16 @@ q_token_cnt = 14
 type_matrixEntityScore = "cosine_detail"
 # type_matrixEntityScore = "cosine_detail_normal"
 set_input_flat = False
-for cat, act, layers, k_v_ec,  k_v_tc in zip(categories, activation_for_evaluates, layers_for_evaluates, k_values_EC, k_values_TC):
+# for cat, act, layers, k_v_ec,  k_v_tc in zip(categories, activation_for_evaluates, layers_for_evaluates, k_values_EC, k_values_TC):
+for cat, act, layers in zip(categories, activation_for_evaluates, layers_for_evaluates):
     k_TC = 50
     k_EC = 20
 
     # input_dim = (q_token_cnt * k_TC,)
     # input_dim = (q_token_cnt, k_TC)
-    input_dim = (500, )
+
+    # input_dim = (500, )
+    input_dim = (500, 1 )
 
     input_name = "input(mergeTwoStep" + type_matrixEntityScore + str(k_TC) + "dim)_" + str(k_EC) + "_)"
     # input_name = "input(mergeTwoStep:)_)"
