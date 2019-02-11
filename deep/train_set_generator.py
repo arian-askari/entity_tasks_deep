@@ -89,6 +89,10 @@ type_entity_cnt_path = os.path.join(dirname, '../data/types/sig17/types_details_
 # trainset_average_w2v_path = trainset_type_terms_avg_q_avg_w2v_path
 # trainset_average_w2v_path = trainset_cosine_sim_average_w2v_path
 
+entity_unique_word_level_w2v_path = os.path.join(dirname, '../data/types/sig17/entity_unique_word_level_w2v_k')
+
+trainset_translation_matrix_3d_path = os.path.join(dirname, '../data/types/sig17/trainset_translation_matrix_3d_')
+
 
 ##################################################################################################
 
@@ -497,7 +501,6 @@ def q_w2v_char_level_generator():
             f_train_set_feature.close()
 
 
-# arian
 def hasNumbers(inputString):
     return any(char.isdigit() for char in inputString)
 
@@ -633,7 +636,6 @@ def save_translation_matrix_type_terms(score_type="tf_idf", k=100):
         # {q_id: [(translation_matrix_list, q_type_rel_class, q_type)]}
         json.dump(train_set_translation_matrix_dict, fp=open(path_dict, 'w'))
 
-#arian 3 arian3
 def get_trainset_translation_matrix_score_e_path(type, k): #"detail","detail_normal","e_score","e_score_normal"
     if type=="detail": #e_score * cnt_entities_of_type
         # train_set_translation_matrix_dict = json.load(open(trainset_translation_matrix_detail_path + str(k) + ".json"))
@@ -1103,7 +1105,7 @@ def get_raw_trainset_dict():
 def q_rel_entities_generator():
     q_rel_entities_dict = {}
     '''
-        {q_id: [(q_body, retrieved_entity, [types of retrieved entity], abstract, relevant_score, rank)]}
+        {q_id: [(q_body, retrieved_entity, [types of retrieved entity], abstract, relevant_score, rank, abstract_tf_idf_sorted)]}
     '''
     with open(queries_unique_raw_path) as tsv:
         cnt = 0
@@ -1115,7 +1117,6 @@ def q_rel_entities_generator():
             q_rel_entities_dict[q_id] = er_detailed.retrieve_entities(q_body, k=100)
 
     json.dump(q_rel_entities_dict, fp=open(q_ret_100_entities_path, 'w'))
-
 
 def entity_unique_avg_w2v():
     entity_avg_w2v_dict = {}
@@ -1133,8 +1134,6 @@ def entity_unique_avg_w2v():
 
     json.dump(entity_avg_w2v_dict, fp=open(entity_unique_avg_w2v_path, 'w'))
 
-
-########################################
 def get_queries_char_level_w2v_dict():
     queries_w2v_char_level_dict = dict()
     '''
@@ -1164,8 +1163,6 @@ def get_entity_unique_avg_w2v_dict():
         entity_unique_avg_w2v_dict = json.load(ff)
         return entity_unique_avg_w2v_dict
 
-
-# arian 2
 def get_type_entity_cnt_dict():
     '''
     { type: (cnt_entities, 1/cnt_entities)}
@@ -1402,7 +1399,176 @@ def save_trainset_type_terms_w2v():
     # json.dump(train_set_average_dict, fp=open(trainset_average_w2v_path, 'w'), indent=4, sort_keys=True)
 
 
-# arian 4 arian4
+
+# arian
+def get_entity_character_level_w2v_dict(k=100):
+    '''
+    { entity: w2v_top_k_word_level_list_of_list}
+    entities_w2v_char_level_dict['<dbpedia:Albert_Einstein>']//get list of list of  w2v of q_id terms !
+    '''
+    with open(entity_unique_word_level_w2v_path + str(k) + ".json", 'r') as ff:
+        queries_ret_100_entities_dict = json.load(ff)
+        return queries_ret_100_entities_dict
+
+def get_entity_character_level_w2v(entity, k=100):
+    tokens = list_utils.unique_preserve_order(entity)
+
+    words_have_vec = ""
+    t_w2v_character_level_list = []  # store list of w2v vector(300-D) for each q_word
+    cnt_type_have_vec = 0
+
+    for token in tokens:
+        if cnt_type_have_vec == k:
+            return (words_have_vec, t_w2v_character_level_list)
+
+        vec = get_vec_several_try(token)
+        if len(vec) > 0:  # try to find original term, w2c
+            t_w2v_character_level_list.append(vec.tolist())
+            words_have_vec += token + " "
+            cnt_type_have_vec += 1
+            continue
+    return (words_have_vec, t_w2v_character_level_list)
+
+
+def get_entity_word_level_w2v(e_abstract, k=100):
+    if type(e_abstract) is not list:
+        tokens = e_abstract.split(" ") #abstract is preprossed in entity_retrieval funciton in uitls, so split by space is enough
+
+    e_avg_w2v = get_entity_character_level_w2v(tokens, k)
+    return e_avg_w2v
+
+def entity_unique_word_level_w2v_generator(top_k, use_tfidf = False):
+    entity_word_level_w2v_dict = {}
+    '''
+        {entity_name: w2v_abstract_e}
+    '''
+    with open(q_ret_100_entities_path, 'r') as ff:
+        q_rel_entities_dict = json.load(ff)
+
+        for q_id, q_ret in q_rel_entities_dict.items():
+            for ret in q_ret:
+                q_body, retrieved_entity, types_of_retrieved_entity, abstract, relevant_score, rank, abstract_tf_idf_sorted = ret
+                if retrieved_entity not in entity_word_level_w2v_dict:
+                    if use_tfidf == False:
+                        entity_word_level_w2v_dict[retrieved_entity] = get_entity_word_level_w2v(abstract, k=top_k).tolist()
+                    else:
+                        tokens = [token[0] for token in abstract_tf_idf_sorted]
+                        entity_word_level_w2v_dict[retrieved_entity] = get_entity_word_level_w2v(tokens, k=top_k).tolist()
+
+    if use_tfidf == False:
+        json.dump(entity_word_level_w2v_dict, fp=open(entity_unique_word_level_w2v_path + str(top_k) + ".json", 'w'))
+    else:
+        json.dump(entity_word_level_w2v_dict, fp=open(entity_unique_word_level_w2v_path + str(top_k) + "_tfidf.json", 'w'))
+
+
+
+def get_trainslation_matrix_3d(q_id, type, queries_w2v_char_level_dict, queries_ret_100_entities_dict,
+                               entity_unique_word_level_w2v_dict, type_ent_cnt_dict, top_entities=20, top_k_term = 50):
+    query_max_len = 14
+    entity_max_retrieve = top_entities
+
+    w2v_dim_len = 300
+
+    channels = entity_max_retrieve
+    column_size = top_k_term
+    row_size = query_max_len
+
+    translation_matrix3d_np = np.zeros([channels, row_size, column_size])
+
+    # queries_w2v_char_level_dict,   { q_id: (q_body,q_body_w2v_char_level_list_of_list)}
+    # queries_ret_100_entities_dict, {q_id: [(q_body, retrieved_entity, [types of retrieved entity], abstract, relevant_score, rank, [abstrac_tf_sorted_tokens])]}
+    # entity_unique_word_level_w2v_dict,     {entity_name: w2v_abstract_e}
+
+
+    q_w2v_words = queries_w2v_char_level_dict[q_id][1]
+    q_retrieved_entities = queries_ret_100_entities_dict[q_id]
+
+
+
+    for current_channel in range(channels):
+        #current_channel
+
+        for retrieved in q_retrieved_entities[:top_entities]:
+            current_row = -1
+
+            translation_matrix_np = np.zeros([row_size, column_size])
+
+            for q_w2v_word in q_w2v_words:
+                current_column = -1
+
+                current_row += 1
+
+                if (all(v == 0 for v in q_w2v_word)):
+                    continue  # skip this row zeros, because query w2v doesn't exist !
+
+                row_np = np.zeros(column_size)
+
+                for entity_w2v_word in entity_unique_word_level_w2v_dict[:column_size]:
+
+                    current_column += 1
+
+                    q_body, retrieved_entity, types_of_retrieved_entity, abstract,\
+                    relevant_score, rank, tf_idf_ranked_terms = retrieved
+
+                    if type not in types_of_retrieved_entity:
+                        continue
+
+                    cosine_sim = get_cosine_similarity(q_w2v_word, entity_w2v_word)
+
+                    row_np[current_column] = (cosine_sim) * (1 / float(type_ent_cnt_dict[type][0]))
+                    # cosine_sim * (math.log10(COUNT_ENTITES_OF_TYPES/float(type_ent_cnt_dict[type][0])))
+
+                translation_matrix_np[current_row, :] = row_np
+
+        translation_matrix3d_np[current_channel, :, :] = translation_matrix_np
+    return translation_matrix3d_np
+
+def save_translation_matrix_entity_3d(top_entities = 20, top_k_term_per_entity = 50):
+    queries_w2v_char_level_dict = get_queries_char_level_w2v_dict()
+    # { q_id: (q_body,q_body_w2v_char_level_list_of_list)}
+
+    queries_ret_100_entities_dict = get_queries_ret_100_entities_dict()
+    # {q_id: [(q_body, retrieved_entity, [types of retrieved entity], abstract, relevant_score, rank)]}
+
+    entity_unique_word_level_w2v_dict = get_entity_character_level_w2v(k = top_k_term_per_entity)
+    # {entity_name: w2v_abstract_e}
+
+    type_ent_cnt_dict = get_type_entity_cnt_dict()
+
+    train_set_translation_matrix_dict = dict()
+
+    with open(train_set_row_path) as tsv:
+        for line in csv.reader(tsv, dialect="excel-tab"):  # can also
+            q_id = str(line[0])
+
+            q_body = str(line[1])
+            q_type = str(line[2])
+            q_type_rel_class = str(line[3])
+
+            translation_matrix_np = get_trainslation_matrix_3d(q_id, q_type,
+                                                  queries_w2v_char_level_dict,
+                                                  queries_ret_100_entities_dict,
+                                                    entity_unique_word_level_w2v_dict,
+                                                  type_ent_cnt_dict, top_entities = top_entities, top_k_term = top_k_term_per_entity)
+
+            translation_matrix_list = translation_matrix_np.tolist()
+
+            if q_id not in train_set_translation_matrix_dict:
+                train_set_translation_matrix_dict[q_id] = [(translation_matrix_list, q_type_rel_class, q_type)]
+
+            else:
+                train_set_translation_matrix_dict[q_id].append((translation_matrix_list, q_type_rel_class, q_type))
+
+        json.dump(train_set_translation_matrix_dict,
+                  fp=open(trainset_translation_matrix_3d_path + "tope(" +
+                          str(top_entities) + "topterm(" + str(top_k_term_per_entity) + ".json", 'w'))
+
+def get_trainset_translation_matrix3d(top_entities=20, top_k_term_per_entity=50):
+    train_set_translation_matrix_3d_dict = json.load(open(trainset_translation_matrix_3d_path + "tope(" +
+                          str(top_entities) + "topterm(" + str(top_k_term_per_entity) + ".json"))
+    return train_set_translation_matrix_3d_dict
+
+
 def _get_train_testdata(queries_for_train, queries_for_test_set):
     q_id_train_list = []
     train_X = []
@@ -1563,6 +1729,8 @@ def get_train_test_data(queries_for_train, queries_for_test_set):
 
     return (train_X, train_Y, test_X, test_Y_one_hot, q_id_test_list, test_TYPES, np.array(test_Y))
 
+
+
 # w2v_train_set_generator()
 # types_avg_w2v_generator()
 
@@ -1577,9 +1745,9 @@ def get_train_test_data(queries_for_train, queries_for_test_set):
 
 # q_w2v_char_level_generator()
 #
+
 # q_rel_entities_generator()
 # entity_unique_avg_w2v()
-#
 # save_translation_matrix()
 # save_translation_matrix()
 # save_translation_matrix_entity_score()
@@ -1606,6 +1774,29 @@ def get_train_test_data(queries_for_train, queries_for_test_set):
 # save_translation_matrix_type_terms(score_type="tf_idf", k=50)
 # save_translation_matrix_type_terms(score_type="tf_idf", k=100)
 # save_translation_matrix_type_terms(score_type="tf_idf", k=300)
+
+
+
+
+#new matrix stpes
+q_rel_entities_generator()
+entity_unique_word_level_w2v_generator(top_k=20, use_tfidf = False)
+entity_unique_word_level_w2v_generator(top_k=20, use_tfidf = True)
+entity_unique_word_level_w2v_generator(top_k=50, use_tfidf = False)
+entity_unique_word_level_w2v_generator(top_k=50, use_tfidf = True)
+entity_unique_word_level_w2v_generator(top_k=100, use_tfidf = False)
+entity_unique_word_level_w2v_generator(top_k=100, use_tfidf = True)
+entity_unique_word_level_w2v_generator(top_k=200, use_tfidf = False)
+entity_unique_word_level_w2v_generator(top_k=200, use_tfidf = True)
+save_translation_matrix_entity_3d(top_entities=20, top_k_term_per_entity=50)
+save_translation_matrix_entity_3d(top_entities=20, top_k_term_per_entity=100)
+save_translation_matrix_entity_3d(top_entities=10, top_k_term_per_entity=50)
+save_translation_matrix_entity_3d(top_entities=10, top_k_term_per_entity=100)
+save_translation_matrix_entity_3d(top_entities=50, top_k_term_per_entity=50)
+save_translation_matrix_entity_3d(top_entities=50, top_k_term_per_entity=100)
+save_translation_matrix_entity_3d(top_entities=100, top_k_term_per_entity=50)
+save_translation_matrix_entity_3d(top_entities=100, top_k_term_per_entity=100)
+
 
 # print("eiffel")
 # wrd1 = getVector("eiffel")
