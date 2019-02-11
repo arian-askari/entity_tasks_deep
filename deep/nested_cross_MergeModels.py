@@ -349,8 +349,10 @@ def nested_cross_fold_validation():
 # activation_for_evaluate_reg = [["relu","linear"],["relu","linear"],["relu","linear"],["relu", "relu", "linear"],["relu", "relu","relu", "linear"],["relu", "relu","relu", "linear"],["relu", "relu","relu", "linear"]]
 
 
-layers_for_evaluate_reg = [[100,1]]
+layers_for_evaluate_reg = [[100, 1]]
 activation_for_evaluate_reg = [["relu", "linear"]]
+# layers_for_evaluate_reg = [[128, 64, 1]]
+# activation_for_evaluate_reg = [["relu","relu", "linear"]]
 dropout_rates = [0]
 
 # layers_for_evaluate_reg = [[1], [100,1], [500,1], [1000,1], [2048,1],  [10,1], [20,1],[50,1], [1000,100, 1],[1000,100,500,1]]
@@ -366,7 +368,7 @@ batch_size = 128
 k_values_EC = [20, 100, 5,100, 2, 300, 5, 20, 50, 100.0]
 k_values_TC = [50, 100, 5,100, 2, 300, 5, 20, 50, 100.0]
 
-epoch_count = 100
+epoch_count = 300
 optimizer = "adam"
 learning_rate = 0.0001
 q_token_cnt = 14

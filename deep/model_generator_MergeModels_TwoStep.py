@@ -182,12 +182,14 @@ class Model_Generator():
         #create new train set from pediction of two models
         new_train_X_for_model3 = []
         for instance_tc, instance_ec in zip(new_train_part1_tc.tolist(), new_train_part2_ec.tolist()):
-            new_instance = instance_tc + instance_ec
+            # new_instance = instance_tc + instance_ec
+            new_instance = np.array([instance_tc , instance_ec]).mean(axis=0)
             new_train_X_for_model3.append(new_instance)
 
         new_test_X_for_model3 = []
         for instance_test_tc, instance_ec_test in zip(new_test_part1_tc.tolist(), new_test_part2_ec.tolist()):
-            new_test_instance = instance_test_tc + instance_ec_test
+            # new_test_instance = instance_test_tc + instance_ec_test
+            new_test_instance = np.array([instance_test_tc , instance_ec_test]).mean(axis=0)
             new_test_X_for_model3.append(new_test_instance)
 
         new_train_X_for_model3 = np.array(new_train_X_for_model3)
@@ -206,7 +208,8 @@ class Model_Generator():
         ############CNN ADDED#############
         # train_x = np.expand_dims(train_x, axis=2)
         # test_x = np.expand_dims(test_x, axis=2)
-        # self.__network.add(Conv1D(filters= 128, kernel_size=5, input_shape = (200, 1)))
+        # # self.__network.add(Conv1D(filters= 128, kernel_size=5, input_shape = (200, 1)))
+        # self.__network.add(Conv1D(filters= 128, kernel_size=5, input_shape = (300, 1)))
         # self.__network.add(Flatten())
         ############CNN ADDED#############
 
@@ -302,7 +305,8 @@ class Model_Generator():
         new_test_part2_ec = self.__network_EC.predict(test_x_ec)
         new_test_X_for_model3 = []
         for instance_test_tc, instance_ec_test in zip(new_test_part1_tc.tolist(), new_test_part2_ec.tolist()):
-            new_test_instance = instance_test_tc + instance_ec_test
+            # new_test_instance = instance_test_tc + instance_ec_test
+            new_test_instance = np.array([instance_test_tc , instance_ec_test]).mean(axis=0)
             new_test_X_for_model3.append(new_test_instance)
 
         new_test_X_for_model3 = np.array(new_test_X_for_model3)
