@@ -12,62 +12,62 @@ word2vec_train_set_path = os.path.join(dirname, '../data/GoogleNews-vectors-nega
 word_vectors = None
 
 def loadWord2Vec():
-    global word_vectors
-    if word_vectors is None:
-        print("w2v loading...")
-        word_vectors = KeyedVectors.load_word2vec_format(word2vec_train_set_path, binary=True)
-        print("w2v loaded...")
+	global word_vectors
+	if word_vectors is None:
+		print("w2v loading...")
+		word_vectors = KeyedVectors.load_word2vec_format(word2vec_train_set_path, binary=True)
+		print("w2v loaded...")
 
 def getVector(word):
-    loadWord2Vec()
-    if word in word_vectors:
-        vector = word_vectors[word]
-        return vector
-    else:
-        # print(word + "\t not in w2v google news vocab !")
-        return []
+	loadWord2Vec()
+	if word in word_vectors:
+		vector = word_vectors[word]
+		return vector
+	else:
+		# print(word + "\t not in w2v google news vocab !")
+		return []
 
 
 def get_cosine_similarity(q_w2v_word, entity_avg_w2v):
-    cosine_sim = 1 - spatial.distance.cosine(q_w2v_word, entity_avg_w2v)
-    return cosine_sim
+	cosine_sim = 1 - spatial.distance.cosine(q_w2v_word, entity_avg_w2v)
+	return cosine_sim
 
 def get_average_w2v(tokens):
-    token_resume = 0
+	token_resume = 0
 
-    vector = []
-    np_array = None
+	vector = []
+	np_array = None
 
-    # print("tokens: ", tokens)
-    # print("\n\n")
-    # print("tokens len: ", len(tokens))
+	# print("tokens: ", tokens)
+	# print("\n\n")
+	# print("tokens len: ", len(tokens))
 
-    while ((len(vector) == 0)):
-        if (token_resume == len(tokens)):
-            break
+	while ((len(vector) == 0)):
+		if (token_resume == len(tokens)):
+			break
 
-        first_token_exist_in_w2v = tokens[token_resume]
-        # print("token_resume: ", token_resume)
+		first_token_exist_in_w2v = tokens[token_resume]
+		# print("token_resume: ", token_resume)
 
-        vector = getVector(first_token_exist_in_w2v)
+		vector = getVector(first_token_exist_in_w2v)
 
-        if len(vector) > 0:
-            np_array = np.array([np.array(vector)])
+		if len(vector) > 0:
+			np_array = np.array([np.array(vector)])
 
-        token_resume += 1
-    if len(vector) == 0:
-        print("tamame token haye query dar w2v nabudand ! :(, tokens:", tokens)
-        return np.zeros(300)  # kare ghalati vali vase inke ta akhar run ejra beshe felan!
+		token_resume += 1
+	if len(vector) == 0:
+		print("tamame token haye query dar w2v nabudand ! :(, tokens:", tokens)
+		return np.zeros(300)  # kare ghalati vali vase inke ta akhar run ejra beshe felan!
 
-    for token in tokens[token_resume:]:
-        # print('token ', token)
-        vector = getVector(token)
-        if len(vector) > 0:
-            tmp_array = np.array(vector)
-            np_array = np.concatenate((np_array, [tmp_array]))
+	for token in tokens[token_resume:]:
+		# print('token ', token)
+		vector = getVector(token)
+		if len(vector) > 0:
+			tmp_array = np.array(vector)
+			np_array = np.concatenate((np_array, [tmp_array]))
 
-    vector_mn = np_array.mean(axis=0)  # to take the mean of each row, 300D vec
-    return vector_mn
+	vector_mn = np_array.mean(axis=0)  # to take the mean of each row, 300D vec
+	return vector_mn
 
 def get_similiar(tokens):
 	loadWord2Vec()
@@ -85,7 +85,10 @@ for term in terms:
 	print(term," vec len", len(vec1))
 	for term2 in terms:
 		vec2 = getVector(term2)
-		cos_sim = get_cosine_similarity(vec1, vec2)
+		cos_sim = "doesnt have w2v "
+		if len(vec1)==300 and len(vec2)==300:
+			cos_sim = get_cosine_similarity(vec1, vec2)
+
 		print("\tcos(",term,",",term2,")=", str(cos_sim))
 
 
