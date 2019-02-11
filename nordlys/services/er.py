@@ -105,7 +105,7 @@ class ER(object):
         if config.get("start", None) is None:
             config["start"] = 0
         if config.get("model", None) is None:
-            config["model"] = "lm"
+            config["model"] = "lm" #amalan bm25 mishavad ! core ra taghir dadam !
         # Todo: Check the ELR params
         return config
 

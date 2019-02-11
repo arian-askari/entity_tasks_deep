@@ -86,6 +86,10 @@ class Retrieval(object):
         self.__first_pass_model = config["first_pass"]["model"]
         self.__start = int(config["start"])
         self.__model = config.get("model", None)
+
+        self.__model = "bm25"
+
+
         self.__num_docs = int(config.get("num_docs", None))
         self.__query_file = config.get("query_file", None)
         self.__output_file = config.get("output_file", None)
