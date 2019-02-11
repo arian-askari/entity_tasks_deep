@@ -1401,14 +1401,20 @@ def save_trainset_type_terms_w2v():
 
 
 # arian
-def get_entity_character_level_w2v_dict(k=100):
-    '''
-    { entity: w2v_top_k_word_level_list_of_list}
-    entities_w2v_char_level_dict['<dbpedia:Albert_Einstein>']//get list of list of  w2v of q_id terms !
-    '''
-    with open(entity_unique_word_level_w2v_path + str(k) + ".json", 'r') as ff:
-        queries_ret_100_entities_dict = json.load(ff)
-        return queries_ret_100_entities_dict
+# def get_entity_character_level_w2v_dict(k=100, use_tfidf= False):
+#     '''
+#     { entity: w2v_top_k_word_level_list_of_list}
+#     entities_w2v_char_level_dict['<dbpedia:Albert_Einstein>']//get list of list of  w2v of q_id terms !
+#     '''
+#     if use_tfidf == False:
+#         with open(entity_unique_word_level_w2v_path + str(k) + ".json", 'r') as ff:
+#             queries_ret_100_entities_dict = json.load(ff)
+#             return queries_ret_100_entities_dict
+#     else:
+#         with open(entity_unique_word_level_w2v_path + str(top_k) + "_tfidf.json", 'r') as ff:
+#             queries_ret_100_entities_dict = json.load(ff)
+#             return queries_ret_100_entities_dict
+
 
 def get_entity_character_level_w2v(entity, k=100):
     tokens = list_utils.unique_preserve_order(entity)
@@ -1431,11 +1437,14 @@ def get_entity_character_level_w2v(entity, k=100):
 
 
 def get_entity_word_level_w2v(e_abstract, k=100):
+    tokens = None
     if type(e_abstract) is not list:
         tokens = e_abstract.split(" ") #abstract is preprossed in entity_retrieval funciton in uitls, so split by space is enough
+    else:
+        tokens = e_abstract #az oonvar token ferestade shode !
 
-    e_avg_w2v = get_entity_character_level_w2v(tokens, k)
-    return e_avg_w2v
+    words_have_w2v, e_words_level_w2v = get_entity_character_level_w2v(tokens, k)
+    return np.array(e_words_level_w2v)
 
 def entity_unique_word_level_w2v_generator(top_k, use_tfidf = False):
     entity_word_level_w2v_dict = {}
@@ -1460,6 +1469,16 @@ def entity_unique_word_level_w2v_generator(top_k, use_tfidf = False):
     else:
         json.dump(entity_word_level_w2v_dict, fp=open(entity_unique_word_level_w2v_path + str(top_k) + "_tfidf.json", 'w'))
 
+
+def get_entity_unique_word_level_w2v(top_k_term = 50, use_tfidf = False):
+    if use_tfidf == False:
+        path = entity_unique_word_level_w2v_path + str(top_k_term) + ".json"
+        entity_unique_word_level_w2v_dict = json.load(fp=open(path, "r"))
+        return entity_unique_word_level_w2v_dict
+    else:
+        path = entity_unique_word_level_w2v_path + str(top_k_term) + "_tfidf.json"
+        entity_unique_word_level_w2v_dict = json.load(fp=open(path, "r"))
+        return entity_unique_word_level_w2v_dict
 
 
 def get_trainslation_matrix_3d(q_id, type, queries_w2v_char_level_dict, queries_ret_100_entities_dict,
@@ -1523,14 +1542,15 @@ def get_trainslation_matrix_3d(q_id, type, queries_w2v_char_level_dict, queries_
         translation_matrix3d_np[current_channel, :, :] = translation_matrix_np
     return translation_matrix3d_np
 
-def save_translation_matrix_entity_3d(top_entities = 20, top_k_term_per_entity = 50):
+def save_translation_matrix_entity_3d(top_entities = 20, top_k_term_per_entity = 50, use_tfidf = False):
     queries_w2v_char_level_dict = get_queries_char_level_w2v_dict()
     # { q_id: (q_body,q_body_w2v_char_level_list_of_list)}
 
     queries_ret_100_entities_dict = get_queries_ret_100_entities_dict()
     # {q_id: [(q_body, retrieved_entity, [types of retrieved entity], abstract, relevant_score, rank)]}
 
-    entity_unique_word_level_w2v_dict = get_entity_character_level_w2v(k = top_k_term_per_entity)
+
+    entity_unique_word_level_w2v_dict = get_entity_unique_word_level_w2v(k = top_k_term_per_entity, use_tfidf=use_tfidf)
     # {entity_name: w2v_abstract_e}
 
     type_ent_cnt_dict = get_type_entity_cnt_dict()
@@ -1559,13 +1579,18 @@ def save_translation_matrix_entity_3d(top_entities = 20, top_k_term_per_entity =
             else:
                 train_set_translation_matrix_dict[q_id].append((translation_matrix_list, q_type_rel_class, q_type))
 
-        json.dump(train_set_translation_matrix_dict,
-                  fp=open(trainset_translation_matrix_3d_path + "tope(" +
-                          str(top_entities) + "topterm(" + str(top_k_term_per_entity) + ".json", 'w'))
+        if use_tfidf == True:
+            json.dump(train_set_translation_matrix_dict,
+                      fp=open(trainset_translation_matrix_3d_path + "tope(" +
+                              str(top_entities) + "topterm(" + str(top_k_term_per_entity) + "_tfidf.json", 'w'))
+        else:
+            json.dump(train_set_translation_matrix_dict,
+                      fp=open(trainset_translation_matrix_3d_path + "tope(" +
+                              str(top_entities) + "topterm(" + str(top_k_term_per_entity) + ".json", 'w'))
 
 def get_trainset_translation_matrix3d(top_entities=20, top_k_term_per_entity=50):
-    train_set_translation_matrix_3d_dict = json.load(open(trainset_translation_matrix_3d_path + "tope(" +
-                          str(top_entities) + "topterm(" + str(top_k_term_per_entity) + ".json"))
+    path = trainset_translation_matrix_3d_path + "tope(" + str(top_entities) + "topterm(" + str(top_k_term_per_entity) + ".json"
+    train_set_translation_matrix_3d_dict = json.load(open(path, "r"))
     return train_set_translation_matrix_3d_dict
 
 
@@ -1779,23 +1804,34 @@ def get_train_test_data(queries_for_train, queries_for_test_set):
 
 
 #new matrix stpes
-q_rel_entities_generator()
-entity_unique_word_level_w2v_generator(top_k=20, use_tfidf = False)
-entity_unique_word_level_w2v_generator(top_k=20, use_tfidf = True)
+# q_rel_entities_generator()
+# entity_unique_word_level_w2v_generator(top_k=20, use_tfidf = False)
+# entity_unique_word_level_w2v_generator(top_k=20, use_tfidf = True)
 entity_unique_word_level_w2v_generator(top_k=50, use_tfidf = False)
-entity_unique_word_level_w2v_generator(top_k=50, use_tfidf = True)
-entity_unique_word_level_w2v_generator(top_k=100, use_tfidf = False)
-entity_unique_word_level_w2v_generator(top_k=100, use_tfidf = True)
-entity_unique_word_level_w2v_generator(top_k=200, use_tfidf = False)
-entity_unique_word_level_w2v_generator(top_k=200, use_tfidf = True)
-save_translation_matrix_entity_3d(top_entities=20, top_k_term_per_entity=50)
-save_translation_matrix_entity_3d(top_entities=20, top_k_term_per_entity=100)
-save_translation_matrix_entity_3d(top_entities=10, top_k_term_per_entity=50)
-save_translation_matrix_entity_3d(top_entities=10, top_k_term_per_entity=100)
-save_translation_matrix_entity_3d(top_entities=50, top_k_term_per_entity=50)
-save_translation_matrix_entity_3d(top_entities=50, top_k_term_per_entity=100)
-save_translation_matrix_entity_3d(top_entities=100, top_k_term_per_entity=50)
-save_translation_matrix_entity_3d(top_entities=100, top_k_term_per_entity=100)
+# entity_unique_word_level_w2v_generator(top_k=50, use_tfidf = True)
+# entity_unique_word_level_w2v_generator(top_k=100, use_tfidf = False)
+# entity_unique_word_level_w2v_generator(top_k=100, use_tfidf = True)
+# entity_unique_word_level_w2v_generator(top_k=200, use_tfidf = False)
+# entity_unique_word_level_w2v_generator(top_k=200, use_tfidf = True)
+
+save_translation_matrix_entity_3d(top_entities=20, top_k_term_per_entity=50, use_tfidf=False)
+# save_translation_matrix_entity_3d(top_entities=20, top_k_term_per_entity=100, use_tfidf=False)
+save_translation_matrix_entity_3d(top_entities=10, top_k_term_per_entity=50, use_tfidf=False)
+# save_translation_matrix_entity_3d(top_entities=10, top_k_term_per_entity=100, use_tfidf=False)
+# save_translation_matrix_entity_3d(top_entities=50, top_k_term_per_entity=50, use_tfidf=False)
+# save_translation_matrix_entity_3d(top_entities=50, top_k_term_per_entity=100, use_tfidf=False)
+# save_translation_matrix_entity_3d(top_entities=100, top_k_term_per_entity=50, use_tfidf=False)
+# save_translation_matrix_entity_3d(top_entities=100, top_k_term_per_entity=100, use_tfidf=False)
+
+
+# save_translation_matrix_entity_3d(top_entities=20, top_k_term_per_entity=50, use_tfidf=True)
+# save_translation_matrix_entity_3d(top_entities=20, top_k_term_per_entity=100, use_tfidf=True)
+# save_translation_matrix_entity_3d(top_entities=10, top_k_term_per_entity=50, use_tfidf=True)
+# save_translation_matrix_entity_3d(top_entities=10, top_k_term_per_entity=100, use_tfidf=True)
+# save_translation_matrix_entity_3d(top_entities=50, top_k_term_per_entity=50, use_tfidf=True)
+# save_translation_matrix_entity_3d(top_entities=50, top_k_term_per_entity=100, use_tfidf=True)
+# save_translation_matrix_entity_3d(top_entities=100, top_k_term_per_entity=50, use_tfidf=True)
+# save_translation_matrix_entity_3d(top_entities=100, top_k_term_per_entity=100, use_tfidf=True)
 
 
 # print("eiffel")
