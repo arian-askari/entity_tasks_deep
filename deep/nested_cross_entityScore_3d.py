@@ -335,8 +335,8 @@ def nested_cross_fold_validation():
 # layers_for_evaluate_reg = [[1000,100,1]]
 # activation_for_evaluate_reg = [["relu","relu","linear"]]
 
-layers_for_evaluate_reg = [[2048, 1]]
-activation_for_evaluate_reg = [["relu", "linear"]]
+layers_for_evaluate_reg = [[1]]
+activation_for_evaluate_reg = [["linear"]]
 
 dropout_rates = [0]
 
@@ -346,13 +346,13 @@ activation_for_evaluates = [activation_for_evaluate_reg]
 batch_size = 128
 
 k_values = [10, 5, 100, 2, 300, 5, 20, 50, 100.0]
-epoch_count = 1
+epoch_count = 300
 optimizer = "adam"
 learning_rate = 0.0001
 q_token_cnt = 1
 
-top_entities= 20 # age ok bood code jadid, 100 esh konam bebinam chi mishe !
-top_k_term_per_entity = 10
+top_entities= 50 # age ok bood code jadid, 100 esh konam bebinam chi mishe !
+top_k_term_per_entity = 50
 
 # type_matrixEntityScore = "detail"
 # type_matrixEntityScore = "e_score"
@@ -364,7 +364,7 @@ type_matrixEntityScore = "cosine_detail"
 # type_matrixEntityScore = "cosine_detail_normal"
 
 set_input_flat = False
-use_tfidf = True
+use_tfidf = False
 for cat, act, layers, k_v in zip(categories, activation_for_evaluates, layers_for_evaluates, k_values):
     k = k_v
     input_dim = None

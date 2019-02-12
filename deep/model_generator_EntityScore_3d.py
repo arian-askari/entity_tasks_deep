@@ -97,7 +97,11 @@ class Model_Generator():
         # self.__network.add(Conv2D(filters=16, kernel_size= (5,1),strides=(1,1), padding="same", activation="relu", input_shape=input_shape))
         # self.__network.add(Conv2D(filters=8, kernel_size= (2,1),strides=(1,1), padding="same", activation="relu", input_shape=input_shape))
 
-        # self.__network.add(Conv2D(filters=128, kernel_size= (5,5),strides=(1,1), padding="same", activation="relu", input_shape=input_shape))
+        self.__network.add(Conv2D(filters=16, kernel_size= (2,1),strides=(1,1), padding="same", activation="relu", input_shape=input_shape))
+        # self.__network.add(MaxPooling2D())
+
+        # self.__network.add(Conv2D(filters=64, kernel_size= (10,1),strides=(1,1), padding="same", activation="relu", input_shape=input_shape))
+        # self.__network.add(Conv2D(filters=32, kernel_size= (5,1),strides=(1,1), padding="same", activation="relu", input_shape=input_shape))
 
         # self.__network.add(Conv2D(filters=128, kernel_size= (5,5),strides=(1,1), padding="same", activation="relu"))
         # self.__network.add(MaxPooling2D())

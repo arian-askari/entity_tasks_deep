@@ -1490,7 +1490,8 @@ def get_entity_unique_word_level_w2v(top_k_term = 50, use_tfidf = False):
 
 def get_trainslation_matrix_3d(q_id, type, queries_w2v_char_level_dict, queries_ret_100_entities_dict,
                                entity_unique_word_level_w2v_dict, type_ent_cnt_dict, top_entities=20, top_k_term = 50):
-    query_max_len = 14
+    # query_max_len = 14
+    query_max_len = 1
     entity_max_retrieve = top_entities
 
     w2v_dim_len = 300
@@ -1506,7 +1507,8 @@ def get_trainslation_matrix_3d(q_id, type, queries_w2v_char_level_dict, queries_
     # entity_unique_word_level_w2v_dict,     {entity_name: w2v_abstract_e}
 
 
-    q_w2v_words = queries_w2v_char_level_dict[q_id][1]
+    # q_w2v_words = queries_w2v_char_level_dict[q_id][1]
+    q_w2v = queries_w2v_char_level_dict[q_id][1]
     q_retrieved_entities = queries_ret_100_entities_dict[q_id]
 
 
@@ -1524,33 +1526,53 @@ def get_trainslation_matrix_3d(q_id, type, queries_w2v_char_level_dict, queries_
                 translation_matrix3d_np[current_channel, :, :] = translation_matrix_np
                 continue
 
-            for q_w2v_word in q_w2v_words:
-                current_column = -1
+            # for q_w2v_word in q_w2v_words:
+            #     current_column = -1
+            #
+            #     current_row += 1
+            #
+            #     if (all(v == 0 for v in q_w2v_word)):
+            #         continue  # skip this row zeros, because query w2v doesn't exist !
+            #
+            #     row_np = np.zeros(column_size)
+            #
+            #     for entity_w2v_word in entity_unique_word_level_w2v_dict[retrieved_entity][:column_size]:
+            #
+            #         current_column += 1
+            #
+            #         cosine_sim = get_cosine_similarity(q_w2v_word, entity_w2v_word)
+            #
+            #         row_np[current_column] = (cosine_sim) * (1 / float(type_ent_cnt_dict[type][0]))
+            #         # cosine_sim * (math.log10(COUNT_ENTITES_OF_TYPES/float(type_ent_cnt_dict[type][0])))
+            #
+            #     translation_matrix_np[current_row, :] = row_np
+            current_column = -1
 
-                current_row += 1
+            current_row =  0
 
-                if (all(v == 0 for v in q_w2v_word)):
-                    continue  # skip this row zeros, because query w2v doesn't exist !
+            if (all(v == 0 for v in q_w2v)):
+                continue  # skip this row zeros, because query w2v doesn't exist !
 
-                row_np = np.zeros(column_size)
+            row_np = np.zeros(column_size)
 
-                for entity_w2v_word in entity_unique_word_level_w2v_dict[retrieved_entity][:column_size]:
+            for entity_w2v_word in entity_unique_word_level_w2v_dict[retrieved_entity][:column_size]:
 
-                    current_column += 1
+                current_column += 1
 
-                    cosine_sim = get_cosine_similarity(q_w2v_word, entity_w2v_word)
+                cosine_sim = get_cosine_similarity(q_w2v, entity_w2v_word)
 
-                    row_np[current_column] = (cosine_sim) * (1 / float(type_ent_cnt_dict[type][0]))
-                    # cosine_sim * (math.log10(COUNT_ENTITES_OF_TYPES/float(type_ent_cnt_dict[type][0])))
+                row_np[current_column] = (cosine_sim) * (1 / float(type_ent_cnt_dict[type][0]))
+                # cosine_sim * (math.log10(COUNT_ENTITES_OF_TYPES/float(type_ent_cnt_dict[type][0])))
 
-                translation_matrix_np[current_row, :] = row_np
+            translation_matrix_np[current_row, :] = row_np
 
             translation_matrix3d_np[current_channel, :, :] = translation_matrix_np
 
     return translation_matrix3d_np
 
 def save_translation_matrix_entity_3d(top_entities = 20, top_k_term_per_entity = 50, use_tfidf = False):
-    queries_w2v_char_level_dict = get_queries_char_level_w2v_dict()
+    # queries_w2v_char_level_dict = get_queries_char_level_w2v_dict()
+    queries_w2v_char_level_dict = get_queries_feature_dict()
     # { q_id: (q_body,q_body_w2v_char_level_list_of_list)}
 
     queries_ret_100_entities_dict = get_queries_ret_100_entities_dict()
@@ -1846,6 +1868,7 @@ def get_train_test_data(queries_for_train, queries_for_test_set):
 # entity_unique_word_level_w2v_generator(top_k=200, use_tfidf = False)
 # entity_unique_word_level_w2v_generator(top_k=200, use_tfidf = True)
 # entity_unique_word_level_w2v_generator(top_k=10, use_tfidf = True)
+# entity_unique_word_level_w2v_generator(top_k=5, use_tfidf = True)
 
 # save_translation_matrix_entity_3d(top_entities=20, top_k_term_per_entity=50, use_tfidf=False)
 # save_translation_matrix_entity_3d(top_entities=20, top_k_term_per_entity=100, use_tfidf=False)
@@ -1866,7 +1889,11 @@ def get_train_test_data(queries_for_train, queries_for_test_set):
 # save_translation_matrix_entity_3d(top_entities=100, top_k_term_per_entity=50, use_tfidf=True)
 # save_translation_matrix_entity_3d(top_entities=100, top_k_term_per_entity=100, use_tfidf=True)
 
-# save_translation_matrix_entity_3d(top_entities=20, top_k_term_per_entity=10, use_tfidf=True)
+# save_translation_matrix_entity_3d(top_entities=100, top_k_term_per_entity=5, use_tfidf=True)
+
+#really average of q
+# save_translation_matrix_entity_3d(top_entities=50, top_k_term_per_entity=50, use_tfidf=False)
+# save_translation_matrix_entity_3d(top_entities=100, top_k_term_per_entity=50, use_tfidf=False)
 
 # print("eiffel")
 # wrd1 = getVector("eiffel")
