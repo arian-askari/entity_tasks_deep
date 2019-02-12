@@ -19,12 +19,15 @@ def analyze_translation_matrix():
     # types_rel_any_values_non_zero_path = os.path.join(dirname, '../data/analyze/translation_matrix_types_rel_any_values_non_zero.tsv')
     # types_non_rel_all_values_zero_path = os.path.join(dirname, '../data/analyze/translation_matrix_types_non_rel_all_values_zero.tsv')
 
-    trainset_translation_matrix_path = os.path.join(dirname, '../data/types/sig17/trainset_translation_matrix_3d_tope(100topterm(50.json')
-    types_rel_all_values_zero_path = os.path.join(dirname, '../data/analyze/translation_matrix_types_rel_all_values_zero3D.tsv')
-    types_non_rel_any_values_non_zero_path = os.path.join(dirname, '../data/analyze/translation_matrix_types_non_rel_any_values_non_zero3D.tsv')
 
-    types_rel_any_values_non_zero_path = os.path.join(dirname, '../data/analyze/translation_matrix_types_rel_any_values_non_zero3D.tsv')
-    types_non_rel_all_values_zero_path = os.path.join(dirname, '../data/analyze/translation_matrix_types_non_rel_all_values_zero3D.tsv')
+    # trainset_translation_matrix_path = os.path.join(dirname, '../data/types/sig17/trainset_translation_matrix_3d_tope(100topterm(50.json')
+    trainset_translation_matrix_path = os.path.join('C:\\', 'cygwin64', 'trainset_translation_matrix_3d_tope(20topterm(50.json')
+    extension = "Top20"
+    types_rel_all_values_zero_path = os.path.join(dirname, '..', 'data', 'analyze', 'translation_matrix_types_rel_all_values_zero3D' + extension +  '.tsv')
+    types_non_rel_any_values_non_zero_path = os.path.join(dirname, '..', 'data', 'analyze', 'translation_matrix_types_non_rel_any_values_non_zero3D' + extension +  '.tsv')
+
+    types_rel_any_values_non_zero_path = os.path.join(dirname, '..' , 'data', 'analyze', 'translation_matrix_types_rel_any_values_non_zero3D' + extension +  '.tsv')
+    types_non_rel_all_values_zero_path = os.path.join(dirname, '..', 'data', 'analyze', 'translation_matrix_types_non_rel_all_values_zero3D' + extension +  '.tsv')
 
     train_set_translation_matrix_dict = json.load(open(trainset_translation_matrix_path))
 
