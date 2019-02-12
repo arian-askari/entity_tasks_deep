@@ -89,9 +89,12 @@ type_entity_cnt_path = os.path.join(dirname, '../data/types/sig17/types_details_
 # trainset_average_w2v_path = trainset_type_terms_avg_q_avg_w2v_path
 # trainset_average_w2v_path = trainset_cosine_sim_average_w2v_path
 
-entity_unique_word_level_w2v_path = os.path.join(dirname, '../data/types/sig17/entity_unique_word_level_w2v_k')
-
-trainset_translation_matrix_3d_path = os.path.join(dirname, '../data/types/sig17/trainset_translation_matrix_3d_')
+# entity_unique_word_level_w2v_path = os.path.join(dirname, '../data/types/sig17/entity_unique_word_level_w2v_k')
+entity_unique_word_level_w2v_path = os.path.join('C:\\', 'cygwin64', 'entity_unique_word_level_w2v_k')
+print(entity_unique_word_level_w2v_path)
+# sys.exit(1)
+# trainset_translation_matrix_3d_path = os.path.join(dirname, '../data/types/sig17/trainset_translation_matrix_3d_')
+trainset_translation_matrix_3d_path = os.path.join('C:\\', 'cygwin64', 'trainset_translation_matrix_3d_')
 
 
 ##################################################################################################
@@ -1154,8 +1157,12 @@ def get_queries_char_level_w2v_dict():
 
 def get_queries_ret_100_entities_dict():
     with open(q_ret_100_entities_path, 'r') as ff:
-        queries_ret_100_entities_dict = json.load(ff)
-        return queries_ret_100_entities_dict
+        q_rel_entities_dict = json.load(ff)
+        return q_rel_entities_dict
+
+    # with open(q_ret_100_entities_path, 'r') as ff:
+    #     queries_ret_100_entities_dict = json.load(ff)
+    #     return queries_ret_100_entities_dict
 
 
 def get_entity_unique_avg_w2v_dict():
@@ -1503,14 +1510,19 @@ def get_trainslation_matrix_3d(q_id, type, queries_w2v_char_level_dict, queries_
     q_retrieved_entities = queries_ret_100_entities_dict[q_id]
 
 
-
-    for current_channel in range(channels):
-        #current_channel
-
-        for retrieved in q_retrieved_entities[:top_entities]:
+    current_channel = -1
+    for retrieved in q_retrieved_entities[:top_entities]:
+            current_channel +=1
             current_row = -1
 
             translation_matrix_np = np.zeros([row_size, column_size])
+
+            q_body, retrieved_entity, types_of_retrieved_entity, abstract, \
+            relevant_score, rank, tf_idf_ranked_terms = retrieved
+
+            if type not in types_of_retrieved_entity:
+                translation_matrix3d_np[current_channel, :, :] = translation_matrix_np
+                continue
 
             for q_w2v_word in q_w2v_words:
                 current_column = -1
@@ -1522,15 +1534,9 @@ def get_trainslation_matrix_3d(q_id, type, queries_w2v_char_level_dict, queries_
 
                 row_np = np.zeros(column_size)
 
-                for entity_w2v_word in entity_unique_word_level_w2v_dict[:column_size]:
+                for entity_w2v_word in entity_unique_word_level_w2v_dict[retrieved_entity][:column_size]:
 
                     current_column += 1
-
-                    q_body, retrieved_entity, types_of_retrieved_entity, abstract,\
-                    relevant_score, rank, tf_idf_ranked_terms = retrieved
-
-                    if type not in types_of_retrieved_entity:
-                        continue
 
                     cosine_sim = get_cosine_similarity(q_w2v_word, entity_w2v_word)
 
@@ -1539,7 +1545,8 @@ def get_trainslation_matrix_3d(q_id, type, queries_w2v_char_level_dict, queries_
 
                 translation_matrix_np[current_row, :] = row_np
 
-        translation_matrix3d_np[current_channel, :, :] = translation_matrix_np
+            translation_matrix3d_np[current_channel, :, :] = translation_matrix_np
+
     return translation_matrix3d_np
 
 def save_translation_matrix_entity_3d(top_entities = 20, top_k_term_per_entity = 50, use_tfidf = False):
@@ -1550,7 +1557,9 @@ def save_translation_matrix_entity_3d(top_entities = 20, top_k_term_per_entity =
     # {q_id: [(q_body, retrieved_entity, [types of retrieved entity], abstract, relevant_score, rank)]}
 
 
-    entity_unique_word_level_w2v_dict = get_entity_unique_word_level_w2v(k = top_k_term_per_entity, use_tfidf=use_tfidf)
+    entity_unique_word_level_w2v_dict = get_entity_unique_word_level_w2v(top_k_term = top_k_term_per_entity, use_tfidf=use_tfidf)
+    print(type(entity_unique_word_level_w2v_dict))
+
     # {entity_name: w2v_abstract_e}
 
     type_ent_cnt_dict = get_type_entity_cnt_dict()
@@ -1565,11 +1574,11 @@ def save_translation_matrix_entity_3d(top_entities = 20, top_k_term_per_entity =
             q_type = str(line[2])
             q_type_rel_class = str(line[3])
 
-            translation_matrix_np = get_trainslation_matrix_3d(q_id, q_type,
-                                                  queries_w2v_char_level_dict,
-                                                  queries_ret_100_entities_dict,
-                                                    entity_unique_word_level_w2v_dict,
-                                                  type_ent_cnt_dict, top_entities = top_entities, top_k_term = top_k_term_per_entity)
+            translation_matrix_np = get_trainslation_matrix_3d(q_id = q_id, type = q_type,
+                                              queries_w2v_char_level_dict = queries_w2v_char_level_dict,
+                                              queries_ret_100_entities_dict = queries_ret_100_entities_dict,
+                                               entity_unique_word_level_w2v_dict = entity_unique_word_level_w2v_dict,
+                                               type_ent_cnt_dict = type_ent_cnt_dict, top_entities = top_entities, top_k_term = top_k_term_per_entity)
 
             translation_matrix_list = translation_matrix_np.tolist()
 
@@ -1682,6 +1691,29 @@ def get_train_test_data_translation_matric_entity_centric_qavg(queries_for_train
         load_trainset_average_w2v()
 
     return _get_train_testdata(queries_for_train, queries_for_test_set)
+
+
+def get_train_test_data_translation_matrix_3d(queries_for_train, queries_for_test_set, top_entities=20, top_k_term_per_entity=50, use_tfidf=False):
+    global trainset_average_w2v_path
+    tmp = get_train_test_data_translation_matrix_3d_pat(top_entities=top_entities, top_k_term_per_entity=top_k_term_per_entity, use_tfidf = use_tfidf)
+    if trainset_average_w2v_path != tmp:
+        global trainset_average_w2v
+        trainset_average_w2v = None  # in merge model cause bug :)
+        trainset_average_w2v_path = tmp
+        load_trainset_average_w2v()
+
+    return _get_train_testdata(queries_for_train, queries_for_test_set)
+
+
+
+
+def get_train_test_data_translation_matrix_3d_pat(top_entities=20, top_k_term_per_entity=50, use_tfidf = False):
+    path = ""
+    if use_tfidf == False:
+        path = trainset_translation_matrix_3d_path + "tope(" + str(top_entities) + "topterm(" + str(top_k_term_per_entity) + ".json"
+    else:
+        path = trainset_translation_matrix_3d_path + "tope(" + str(top_entities) + "topterm(" + str(top_k_term_per_entity) + "_tfidf.json"
+    return path
 
 def get_train_test_data_translation_matric_type_centric(queries_for_train, queries_for_test_set, k):
     global trainset_average_w2v_path
@@ -1807,22 +1839,23 @@ def get_train_test_data(queries_for_train, queries_for_test_set):
 # q_rel_entities_generator()
 # entity_unique_word_level_w2v_generator(top_k=20, use_tfidf = False)
 # entity_unique_word_level_w2v_generator(top_k=20, use_tfidf = True)
-entity_unique_word_level_w2v_generator(top_k=50, use_tfidf = False)
+# entity_unique_word_level_w2v_generator(top_k=50, use_tfidf = False)
 # entity_unique_word_level_w2v_generator(top_k=50, use_tfidf = True)
 # entity_unique_word_level_w2v_generator(top_k=100, use_tfidf = False)
 # entity_unique_word_level_w2v_generator(top_k=100, use_tfidf = True)
 # entity_unique_word_level_w2v_generator(top_k=200, use_tfidf = False)
 # entity_unique_word_level_w2v_generator(top_k=200, use_tfidf = True)
+# entity_unique_word_level_w2v_generator(top_k=10, use_tfidf = True)
 
-save_translation_matrix_entity_3d(top_entities=20, top_k_term_per_entity=50, use_tfidf=False)
+# save_translation_matrix_entity_3d(top_entities=20, top_k_term_per_entity=50, use_tfidf=False)
 # save_translation_matrix_entity_3d(top_entities=20, top_k_term_per_entity=100, use_tfidf=False)
-save_translation_matrix_entity_3d(top_entities=10, top_k_term_per_entity=50, use_tfidf=False)
+# save_translation_matrix_entity_3d(top_entities=10, top_k_term_per_entity=50, use_tfidf=False)
 # save_translation_matrix_entity_3d(top_entities=10, top_k_term_per_entity=100, use_tfidf=False)
 # save_translation_matrix_entity_3d(top_entities=50, top_k_term_per_entity=50, use_tfidf=False)
 # save_translation_matrix_entity_3d(top_entities=50, top_k_term_per_entity=100, use_tfidf=False)
 # save_translation_matrix_entity_3d(top_entities=100, top_k_term_per_entity=50, use_tfidf=False)
 # save_translation_matrix_entity_3d(top_entities=100, top_k_term_per_entity=100, use_tfidf=False)
-
+# save_translation_matrix_entity_3d(top_entities=20, top_k_term_per_entity=10, use_tfidf=True)
 
 # save_translation_matrix_entity_3d(top_entities=20, top_k_term_per_entity=50, use_tfidf=True)
 # save_translation_matrix_entity_3d(top_entities=20, top_k_term_per_entity=100, use_tfidf=True)
@@ -1833,6 +1866,7 @@ save_translation_matrix_entity_3d(top_entities=10, top_k_term_per_entity=50, use
 # save_translation_matrix_entity_3d(top_entities=100, top_k_term_per_entity=50, use_tfidf=True)
 # save_translation_matrix_entity_3d(top_entities=100, top_k_term_per_entity=100, use_tfidf=True)
 
+# save_translation_matrix_entity_3d(top_entities=20, top_k_term_per_entity=10, use_tfidf=True)
 
 # print("eiffel")
 # wrd1 = getVector("eiffel")
