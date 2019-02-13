@@ -5,6 +5,8 @@ import pandas as pd
 from scipy import spatial
 import utils.file_utils as file_utils
 import utils.list_utils as list_utils
+import numpy as np
+import matplotlib.pyplot as plt
 
 np.set_printoptions(threshold=np.inf)
 # np.set_printoptions(precision=3)
@@ -91,6 +93,11 @@ type_entity_cnt_path = os.path.join(dirname, '../data/types/sig17/types_details_
 
 # entity_unique_word_level_w2v_path = os.path.join(dirname, '../data/types/sig17/entity_unique_word_level_w2v_k')
 entity_unique_word_level_w2v_path = os.path.join('C:\\', 'cygwin64', 'entity_unique_word_level_w2v_k')
+
+# entity_unique_attentive_level_w2v_path = os.path.join('C:\\', 'cygwin64', 'entity_unique_attentive_level_w2v_k')
+entity_unique_attentive_level_w2v_path = os.path.join(dirname, '../data/types/sig17/entity_unique_attentive_level_w2v_k')
+
+
 print(entity_unique_word_level_w2v_path)
 # sys.exit(1)
 # trainset_translation_matrix_3d_path = os.path.join(dirname, '../data/types/sig17/trainset_translation_matrix_3d_')
@@ -1462,6 +1469,73 @@ def entity_unique_word_level_w2v_generator(top_k, use_tfidf = False):
     '''
         {entity_name: w2v_abstract_e}
     '''
+    q_rel_per_type_entities_dict = json.load(open(q_ret_100_per_type_entities_path))
+    for q_id, q_types in q_rel_per_type_entities_dict.items():
+        for q_type, retrieved_entities in q_types.items():
+            for ret in retrieved_entities:
+                query, retrieved_entity, type_keys_list, abstract, score, rank, abstract_tf_idf_sorted = ret
+                if retrieved_entity not in entity_word_level_w2v_dict:
+                    entity_word_level_w2v_dict[retrieved_entity] = get_entity_word_level_w2v(abstract, k=top_k).tolist()
+
+    json.dump(entity_word_level_w2v_dict, fp=open(entity_unique_attentive_level_w2v_path + str(top_k) + ".json", 'w'))
+
+#arian attentive
+def get_entity_attentive_level_w2v(entity, k=20):
+    tokens = list_utils.unique_preserve_order(entity)
+
+    words_have_vec = ""
+    t_w2v_character_level_list = []  # store list of w2v vector(300-D) for each q_word
+    for token in tokens:
+
+        vec = get_vec_several_try(token)
+        if len(vec) > 0:  # try to find original term, w2c
+            t_w2v_character_level_list.append(vec.tolist())
+            words_have_vec += token + " "
+            continue
+
+
+    ##attentive part :)
+    attentive_level_list = np.zeros([k, 300])
+    interval = k
+    if len(tokens) > k :
+        interval = math.ceil(len(tokens)/k)
+
+    interval_checking = 0
+    tmp_list = []
+    row_number = 0
+
+    for w2v in t_w2v_character_level_list:
+        interval_checking +=1
+        if interval_checking == interval:
+            attentive_level_list[row_number, :] = np.mean(np.array(tmp_list, axis=0))
+
+            interval = 0
+            tmp_list = []
+        else:
+            interval += 1
+            tmp_list.append(w2v)
+
+        row_number += 1
+
+    return (words_have_vec, t_w2v_character_level_list)
+
+
+def get_entity_attentive_level_w2v(e_abstract, k=20):
+    tokens = None
+    if type(e_abstract) is not list:
+        tokens = e_abstract.split(" ") #abstract is preprossed in entity_retrieval funciton in uitls, so split by space is enough
+    else:
+        tokens = e_abstract #az oonvar token ferestade shode !
+
+    words_have_w2v, e_words_level_w2v = get_entity_character_level_w2v(tokens, k)
+    return np.array(e_words_level_w2v)
+
+
+def entity_unique_word_level_w2v_generator_attentive(top_k):
+    entity_word_level_w2v_dict = {}
+    '''
+        {entity_name: w2v_abstract_e}
+    '''
     with open(q_ret_100_entities_path, 'r') as ff:
         q_rel_entities_dict = json.load(ff)
 
@@ -1469,16 +1543,11 @@ def entity_unique_word_level_w2v_generator(top_k, use_tfidf = False):
             for ret in q_ret:
                 q_body, retrieved_entity, types_of_retrieved_entity, abstract, relevant_score, rank, abstract_tf_idf_sorted = ret
                 if retrieved_entity not in entity_word_level_w2v_dict:
-                    if use_tfidf == False:
-                        entity_word_level_w2v_dict[retrieved_entity] = get_entity_word_level_w2v(abstract, k=top_k).tolist()
-                    else:
-                        tokens = [token[0] for token in abstract_tf_idf_sorted]
-                        entity_word_level_w2v_dict[retrieved_entity] = get_entity_word_level_w2v(tokens, k=top_k).tolist()
+                    entity_word_level_w2v_dict[retrieved_entity] = str(get_entity_attentive_level_w2v(abstract, k=top_k).tolist())
 
-    if use_tfidf == False:
-        json.dump(entity_word_level_w2v_dict, fp=open(entity_unique_word_level_w2v_path + str(top_k) + ".json", 'w'))
-    else:
-        json.dump(entity_word_level_w2v_dict, fp=open(entity_unique_word_level_w2v_path + str(top_k) + "_tfidf.json", 'w'))
+    json.dump(entity_word_level_w2v_dict, fp=open(entity_unique_attentive_level_w2v_path + str(top_k) + ".json", 'w'))
+
+
 
 
 def get_entity_unique_word_level_w2v(top_k_term = 50, use_tfidf = False):
@@ -1841,6 +1910,35 @@ def q_rel_per_type_retrive_entities_generator():
     json.dump(q_rel_per_type_entities_dict, fp=open(q_ret_100_per_type_entities_path, 'w'))
 
 
+def abstract_len_analyze():
+    entities_len = []
+    print("q_ret_100_per_type_entities_path",q_ret_100_per_type_entities_path)
+    q_rel_per_type_entities_dict = json.load(open(q_ret_100_per_type_entities_path))
+    cnt_greather_than_100 = 0
+    for q_id, q_types in q_rel_per_type_entities_dict.items():
+        for q_type, retrieved_entities in q_types.items():
+            for ret in retrieved_entities:
+                query, entity, type_keys_list, abstract, score, rank, abstract_tf_idf_sorted = ret
+                entities_len.append(len(abstract.split(" ")))
+
+                if len(abstract.split(" ")) <5:
+                    print("entity ", entity, " abstract: ", abstract)
+                elif(len(abstract.split(" ")) > 100):
+                    cnt_greather_than_100 +=1
+
+    entities_len = np.array(entities_len)
+    print("mean", np.mean(entities_len))
+    print("max", np.max(entities_len))
+    print("min", np.min(entities_len))
+    print("variance", np.var(entities_len))
+    print("standard deviation", np.std(entities_len))
+    print("cnt_greather_than_100 ", str(cnt_greather_than_100))
+    print("all entities ", str(len(entities_len)))
+    fig1, ax1 = plt.subplots()
+    ax1.set_title('Basic Plot')
+    ax1.boxplot(entities_len)
+    plt.show()
+
 # w2v_train_set_generator()
 # types_avg_w2v_generator()
 
@@ -1927,7 +2025,15 @@ def q_rel_per_type_retrive_entities_generator():
 # save_translation_matrix_entity_3d(top_entities=100, top_k_term_per_entity=50, use_tfidf=False)
 
 
+
+
+
 # q_rel_per_type_retrive_entities_generator()
+# abstract_len_analyze()
+entity_unique_word_level_w2v_generator_attentive(top_k=10) #seq to seq get mean...
+entity_unique_word_level_w2v_generator_attentive(top_k=20) #seq to seq get mean...
+entity_unique_word_level_w2v_generator_attentive(top_k=50) #seq to seq get mean...
+
 
 # print("eiffel")
 # wrd1 = getVector("eiffel")
