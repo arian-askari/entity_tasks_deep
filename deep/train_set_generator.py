@@ -19,7 +19,8 @@ import utils.type_retrieval as tp
 import utils.entity_retrieval as er_detailed
 import utils.preprocess as preprocess
 
-COUNT_ENTITES_OF_TYPES = 14762041
+# COUNT_ENTITES_OF_TYPES = 14762041
+COUNT_ENTITES_OF_TYPES = 4641784
 
 def isfloat(value):
     try:
@@ -47,7 +48,11 @@ queries_unique_feature_path = os.path.join(dirname, '../data/types/sig17/quries_
 trainset_average_w2v_path = os.path.join(dirname, '../data/types/sig17/trainset_average_w2v_sig17.txt')
 
 queries_w2v_char_level_path = os.path.join(dirname, '../data/types/sig17/queries_w2v_char_level_feature.csv')
-q_ret_100_entities_path = os.path.join(dirname, '../data/types/sig17/q_ret_100_entities.csv')
+
+
+
+# q_ret_100_entities_path = os.path.join(dirname, '../data/types/sig17/q_ret_100_entities.csv')
+q_ret_100_entities_path = os.path.join(dirname, '../data/types/sig17/q_ret_100_entities_lm.csv')
 entity_unique_avg_w2v_path = os.path.join(dirname, '../data/types/sig17/entity_unique_avg_w2v.json')
 
 trainset_translation_matrix_path = os.path.join(dirname, '../data/types/sig17/trainset_translation_matrix.txt')
@@ -86,7 +91,10 @@ trainset_translation_matrix_type_sdf_terms_path = os.path.join(dirname,
 trainset_cosine_sim_average_w2v_path = os.path.join(dirname,
                                                     '../data/types/sig17/trainset_cosine_sim_average_w2v_sig17.txt')
 
-type_entity_cnt_path = os.path.join(dirname, '../data/types/sig17/types_details_light.tsv')
+type_entity_cnt_path = os.path.join(dirname, '../data/types/sig17/type_detail_from_mlFeature.tsv')
+# type_entity_cnt_path = os.path.join(dirname, '../data/types/sig17/types_details_light.tsv')
+
+
 
 # trainset_average_w2v_path = trainset_type_terms_avg_q_avg_w2v_path
 # trainset_average_w2v_path = trainset_cosine_sim_average_w2v_path
@@ -94,19 +102,20 @@ type_entity_cnt_path = os.path.join(dirname, '../data/types/sig17/types_details_
 # entity_unique_word_level_w2v_path = os.path.join(dirname, '../data/types/sig17/entity_unique_word_level_w2v_k')
 entity_unique_word_level_w2v_path = os.path.join('C:\\', 'cygwin64', 'entity_unique_word_level_w2v_k')
 
-entity_unique_attentive_level_w2v_path = os.path.join('C:\\', 'cygwin64', 'entity_unique_attentive_level_w2v_k')
-# entity_unique_attentive_level_w2v_path = os.path.join(dirname, '../data/types/sig17/entity_unique_attentive_level_w2v_k')
+# entity_unique_attentive_level_w2v_path = os.path.join('C:\\', 'cygwin64', 'entity_unique_attentive_level_w2v_k')
+entity_unique_attentive_level_w2v_path = os.path.join(dirname, '../data/types/sig17/entity_unique_attentive_level_w2v_k')
 
 
 print(entity_unique_word_level_w2v_path)
 # sys.exit(1)
-# trainset_translation_matrix_3d_path = os.path.join(dirname, '../data/types/sig17/trainset_translation_matrix_3d_')
-trainset_translation_matrix_3d_path = os.path.join('C:\\', 'cygwin64', 'trainset_translation_matrix_3d_')
+trainset_translation_matrix_3d_path = os.path.join(dirname, '../data/types/sig17/trainset_translation_matrix_3d_')
+# trainset_translation_matrix_3d_path = os.path.join('C:\\', 'cygwin64', 'trainset_translation_matrix_3d_')
 
 
-# q_ret_100_per_type_entities_path = os.path.join(dirname, '../data/types/sig17/q_ret_100_per_type_entities.csv')
-q_ret_100_per_type_entities_path = os.path.join('C:\\', 'cygwin64', 'q_ret_100_per_type_entities.csv')
+q_ret_100_per_type_entities_path = os.path.join(dirname, '../data/types/sig17/q_ret_100_per_type_entities.csv')
+# q_ret_100_per_type_entities_path = os.path.join('C:\\', 'cygwin64', 'q_ret_100_per_type_entities.csv')
 
+queries_w2v_attentive_level_path = os.path.join(dirname, '../data/types/sig17/queries_w2v_attentive_level_path.csv')
 
 
 ##################################################################################################
@@ -514,6 +523,25 @@ def q_w2v_char_level_generator():
             f_train_set_feature = open(queries_w2v_char_level_path, 'a+')
             f_train_set_feature.write(str_query_features)
             f_train_set_feature.close()
+
+def q_w2v_attentive_level_generator():
+    with open(queries_unique_raw_path) as tsv:
+        for line in csv.reader(tsv, dialect="excel-tab"):  # can also
+            q_id = str(line[0])
+            q_body = str(line[1])
+
+            q_body_w2v_char_level = get_query_attentive_level_w2v(q_body)
+
+            str_query_features = str(q_id) + "\t" + q_body + "\t" + str(np.array(q_body_w2v_char_level).tolist()) + "\n"
+
+            print(q_id)
+            print(str_query_features)
+
+            f_train_set_feature = open(queries_w2v_attentive_level_path, 'a+')
+            f_train_set_feature.write(str_query_features)
+            f_train_set_feature.close()
+
+
 
 
 def hasNumbers(inputString):
@@ -1167,6 +1195,25 @@ def get_queries_char_level_w2v_dict():
     return queries_w2v_char_level_dict
 
 
+def get_queries_attentive_level_w2v_dict():
+    queries_w2v_char_level_dict = dict()
+    '''
+    { q_id: (q_body,q_body_w2v_char_level_list_of_list)}
+    queries_feature['q_id'][1]//get list of list of  w2v of q_id terms !
+    '''
+    with open(queries_w2v_attentive_level_path) as tsv:
+        for line in csv.reader(tsv, dialect="excel-tab"):  # can also
+            q_id = str(line[0])
+            q_body = str(line[1])
+
+            q_body_w2v_char_level = str(line[2])
+            q_body_w2v_char_level = ast.literal_eval(q_body_w2v_char_level)
+            queries_w2v_char_level_dict[q_id] = (q_body, q_body_w2v_char_level)
+
+    return queries_w2v_char_level_dict
+
+
+
 def get_queries_ret_100_entities_dict():
     with open(q_ret_100_entities_path, 'r') as ff:
         q_rel_entities_dict = json.load(ff)
@@ -1175,6 +1222,11 @@ def get_queries_ret_100_entities_dict():
     # with open(q_ret_100_entities_path, 'r') as ff:
     #     queries_ret_100_entities_dict = json.load(ff)
     #     return queries_ret_100_entities_dict
+def get_queries_ret_100_entities_per_type_dict():
+    with open(q_ret_100_per_type_entities_path, 'r') as ff:
+        q_rel_entities_per_type_dict = json.load(ff)
+        return q_rel_entities_per_type_dict
+
 
 
 def get_entity_unique_avg_w2v_dict():
@@ -1189,10 +1241,10 @@ def get_type_entity_cnt_dict():
     type_entity_cnt_dict = {}
     with open(type_entity_cnt_path) as tsv:
         for line in csv.reader(tsv, dialect="excel-tab"):  # can also
+            print(line)
             type_name = str(line[0])
             cnt_entities = str(line[1])
-            one_div_cnt_entities = str(line[2])
-            type_entity_cnt_dict[type_name] = (cnt_entities, one_div_cnt_entities)
+            type_entity_cnt_dict[type_name] = (float(cnt_entities))
     return type_entity_cnt_dict
 
 
@@ -1470,26 +1522,115 @@ def entity_unique_word_level_w2v_generator_attentive(top_k, use_tfidf = False):
     '''
         {entity_name: w2v_abstract_e}
     '''
+    fp = open(entity_unique_attentive_level_w2v_path + str(top_k) + ".json", 'w')
+    fp.close() #truncate file :)
+
+    entities_added = []
     q_rel_per_type_entities_dict = json.load(open(q_ret_100_per_type_entities_path))
     for q_id, q_types in q_rel_per_type_entities_dict.items():
         for q_type, retrieved_entities in q_types.items():
             for ret in retrieved_entities:
                 query, retrieved_entity, type_keys_list, abstract, score, rank, abstract_tf_idf_sorted = ret
-                if retrieved_entity not in entity_word_level_w2v_dict:
+                if retrieved_entity not in entities_added:
+                    # print("top_k", top_k)
+                    # print(abstract)
+                    # print("test attentive entity")
+                    # print(get_entity_attentive_level_w2v(abstract, k=top_k).tolist())
+                    # sys.exit(1)
                     entity_word_level_w2v_dict[retrieved_entity] = str(get_entity_attentive_level_w2v(abstract, k=top_k).tolist())
+                    entities_added.append(retrieved_entity)
 
-    json.dump(entity_word_level_w2v_dict, fp=open(entity_unique_attentive_level_w2v_path + str(top_k) + ".json", 'w'))
+        json.dump(entity_word_level_w2v_dict, fp=open(entity_unique_attentive_level_w2v_path + str(top_k) + ".json", 'a'))
+        entity_word_level_w2v_dict = {}
 
 #arian attentive
+def get_query_attentive_level_w2v(q_body, k = 5):
+    tokens = q_body.split(" ")
+
+    q_w2v_character_level_list = []  # store list of w2v vector(300-D) for each q_word
+
+    for token in tokens:
+        token = token.replace("(", "").replace(")", "")
+        vec = get_vec_several_try(token)
+        if len(vec) > 0:  # try to find original term, w2c
+            q_w2v_character_level_list.append(vec)
+            continue
+
+        INDEX_TYPE = "dbpedia_2015_10_types"
+        tks = es.getTokens(INDEX_TYPE, token)
+        char_level_list_temp = []
+        for t in tks:
+            t = t.split("'")
+            t = t[0]
+            vec = get_vec_several_try(t)
+            if len(vec) > 0:  # try to find original term, w2c
+                char_level_list_temp.append(vec)
+
+        if len(char_level_list_temp) > 0:
+            char_level_list_temp = [sum(x) for x in zip(*char_level_list_temp)]
+            char_level_list_avg = [x / len(char_level_list_temp) for x in char_level_list_temp]
+            # char_level_list_temp.append(char_level_list_avg)
+            q_w2v_character_level_list.append(char_level_list_avg)
+            continue
+
+        # q_w2v_character_level_list.append(np.zeros(300).tolist())
+
+    ##attentive part :)
+    attentive_level_list = np.zeros([k, 300])
+    interval = math.ceil(len(tokens) / k)
+
+    interval_checking = 0
+    tmp_list = []
+    row_number = 0
+
+    i = 0
+    for w2v in q_w2v_character_level_list:
+        i += 1
+        if interval_checking != interval:
+            interval_checking += 1
+            tmp_list.append(w2v)
+            print("tmp_list", tmp_list)
+
+        if (row_number + 1) != k:
+            if interval_checking == interval:
+                attentive_level_list[row_number, :] = np.mean(np.array(tmp_list), axis=0)
+
+                interval_checking = 0
+                tmp_list = []
+                row_number += 1
+
+                tmp_list.append(w2v)
+                interval_checking += 1
+
+        elif i == len(q_w2v_character_level_list):
+            tmp_list.append(w2v)
+
+            attentive_level_list[row_number, :] = np.mean(np.array(tmp_list), axis=0)
+
+            interval_checking = 0
+            tmp_list = []
+            row_number += 1
+
+            interval_checking += 1
+        else:
+            tmp_list.append(w2v)
+
+
+
+    print(attentive_level_list)
+    return attentive_level_list
+
+
 def get_entity_attentive_level_w2v(entity, k=20):
-    tokens = list_utils.unique_preserve_order(entity)
+    tokens = es.getTokens("dbpedia_2015_10", analyzer=es.ANALYZER_STANDARD_CASE_SENSITIVE)
+    # tokens = entity.split(" ")
 
     words_have_vec = ""
     t_w2v_character_level_list = []  # store list of w2v vector(300-D) for each q_word
     for token in tokens:
 
         vec = get_vec_several_try(token)
-        if len(vec) > 0:  # try to find original term, w2c
+        if len(vec) == 300:  # try to find original term, w2c
             t_w2v_character_level_list.append(vec.tolist())
             words_have_vec += token + " "
             continue
@@ -1497,26 +1638,44 @@ def get_entity_attentive_level_w2v(entity, k=20):
 
     ##attentive part :)
     attentive_level_list = np.zeros([k, 300])
-    interval = k
-    if len(tokens) > k :
-        interval = math.ceil(len(tokens)/k)
+    interval = math.ceil(len(tokens)/k)
 
     interval_checking = 0
     tmp_list = []
     row_number = 0
 
+    i = 0
     for w2v in t_w2v_character_level_list:
-        interval_checking +=1
-        if interval_checking == interval:
-            attentive_level_list[row_number, :] = np.mean(np.array(tmp_list, axis=0))
+        i += 1
+        if interval_checking != interval:
+            interval_checking += 1
+            tmp_list.append(w2v)
+            print("tmp_list", tmp_list)
+
+        if (row_number + 1) != k:
+            if interval_checking == interval:
+                attentive_level_list[row_number, :] = np.mean(np.array(tmp_list), axis=0)
+
+                interval_checking = 0
+                tmp_list = []
+                row_number += 1
+
+                tmp_list.append(w2v)
+                interval_checking += 1
+
+        elif i == len(t_w2v_character_level_list):
+            tmp_list.append(w2v)
+
+            attentive_level_list[row_number, :] = np.mean(np.array(tmp_list), axis=0)
 
             interval_checking = 0
             tmp_list = []
-        else:
+            row_number += 1
+
             interval_checking += 1
+        else:
             tmp_list.append(w2v)
 
-        row_number += 1
 
     return  attentive_level_list
 
@@ -1562,9 +1721,10 @@ def get_entity_unique_word_level_w2v(top_k_term = 50, use_tfidf = False):
         return entity_unique_word_level_w2v_dict
 
 
-def get_trainslation_matrix_3d(q_id, type, queries_w2v_char_level_dict, queries_ret_100_entities_dict,
+def get_trainslation_matrix_3d(q_id, type, queries_w2v_char_level_dict, retrieved_entities,
                                entity_unique_word_level_w2v_dict, type_ent_cnt_dict, top_entities=20, top_k_term = 50):
-    query_max_len = 14
+    # print("get_trainslation_matrix_3d start...")
+    query_max_len = 5
     # query_max_len = 1
     entity_max_retrieve = top_entities
 
@@ -1583,20 +1743,30 @@ def get_trainslation_matrix_3d(q_id, type, queries_w2v_char_level_dict, queries_
 
     q_w2v_words = queries_w2v_char_level_dict[q_id][1]
     # q_w2v = queries_w2v_char_level_dict[q_id][1]
-    q_retrieved_entities = queries_ret_100_entities_dict[q_id]
+
+    # q_retrieved_entities = queries_ret_100_entities_dict[q_id]
 
 
     current_channel = -1
-    for retrieved in q_retrieved_entities[:top_entities]:
+
+    for retrieved in retrieved_entities[:top_entities]:
             current_channel +=1
             current_row = -1
 
             translation_matrix_np = np.zeros([row_size, column_size])
 
+            # q_body, retrieved_entity, types_of_retrieved_entity, abstract, \
+            # relevant_score, rank, tf_idf_ranked_terms = retrieved
+
             q_body, retrieved_entity, types_of_retrieved_entity, abstract, \
-            relevant_score, rank, tf_idf_ranked_terms = retrieved
+            relevant_score, rank = retrieved
 
             if type not in types_of_retrieved_entity:
+                # print("BUG!!!!!!!!!!!!!!!! in e ha asan makhsose in type hastan bayad type ro dashte bashan vagarna bugi vojod dare !" )
+                # print(retrieved_entity)
+                # print(types_of_retrieved_entity)
+                #
+                # sys.exit(1)
                 translation_matrix3d_np[current_channel, :, :] = translation_matrix_np
                 continue
 
@@ -1610,13 +1780,22 @@ def get_trainslation_matrix_3d(q_id, type, queries_w2v_char_level_dict, queries_
 
                 row_np = np.zeros(column_size)
 
-                for entity_w2v_word in entity_unique_word_level_w2v_dict[retrieved_entity][:column_size]:
+
+                for entity_w2v_word in get_entity_attentive_level_w2v(abstract, k= top_k_term):
 
                     current_column += 1
 
                     cosine_sim = get_cosine_similarity(q_w2v_word, entity_w2v_word)
 
-                    row_np[current_column] = (cosine_sim) * (1 / float(type_ent_cnt_dict[type][0]))
+                    # row_np[current_column] = (cosine_sim + 1) * (1 / float(type_ent_cnt_dict[type][0]))
+                    # row_np[current_column] = (cosine_sim + 1) * (math.log10(COUNT_ENTITES_OF_TYPES/float(type_ent_cnt_dict[type][0])))
+
+                    # row_np[current_column] = (cosine_sim + 1) * (math.log10(COUNT_ENTITES_OF_TYPES/float(type_ent_cnt_dict[type])))
+                    
+                    # row_np[current_column] = cosine_sim
+                    row_np[current_column] = (cosine_sim) * (math.log10(COUNT_ENTITES_OF_TYPES/float(type_ent_cnt_dict[type])))
+
+
                     # cosine_sim * (math.log10(COUNT_ENTITES_OF_TYPES/float(type_ent_cnt_dict[type][0])))
 
                 translation_matrix_np[current_row, :] = row_np
@@ -1641,19 +1820,26 @@ def get_trainslation_matrix_3d(q_id, type, queries_w2v_char_level_dict, queries_
             # translation_matrix_np[current_row, :] = row_np
 
             translation_matrix3d_np[current_channel, :, :] = translation_matrix_np
+    # print("get_trainslation_matrix_3d end...")
 
     return translation_matrix3d_np
 
 def save_translation_matrix_entity_3d(top_entities = 20, top_k_term_per_entity = 50, use_tfidf = False):
-    queries_w2v_char_level_dict = get_queries_char_level_w2v_dict()
+    queries_w2v_char_level_dict = get_queries_attentive_level_w2v_dict()
+
     # queries_w2v_char_level_dict = get_queries_feature_dict()
     # { q_id: (q_body,q_body_w2v_char_level_list_of_list)}
 
+
     queries_ret_100_entities_dict = get_queries_ret_100_entities_dict()
+    # queries_ret_100_entities_dict = get_queries_ret_100_entities_per_type_dict()
+
+
     # {q_id: [(q_body, retrieved_entity, [types of retrieved entity], abstract, relevant_score, rank)]}
 
 
-    entity_unique_word_level_w2v_dict = get_entity_unique_word_level_w2v(top_k_term = top_k_term_per_entity, use_tfidf=use_tfidf)
+    # entity_unique_word_level_w2v_dict = get_entity_unique_word_level_w2v(top_k_term = top_k_term_per_entity, use_tfidf=use_tfidf)
+    entity_unique_word_level_w2v_dict = None
     print(type(entity_unique_word_level_w2v_dict))
 
     # {entity_name: w2v_abstract_e}
@@ -1662,17 +1848,35 @@ def save_translation_matrix_entity_3d(top_entities = 20, top_k_term_per_entity =
 
     train_set_translation_matrix_dict = dict()
 
+    black_list = []
+
+    types_for_qid = 0
+    line_cnt = 0
     with open(train_set_row_path) as tsv:
+        last_q_id = ""
+        is_firt_time = True
         for line in csv.reader(tsv, dialect="excel-tab"):  # can also
+            line_cnt += 1
             q_id = str(line[0])
 
             q_body = str(line[1])
             q_type = str(line[2])
+            
+            if line_cnt%1000 == 0:
+                print("line_cnt(max: 13154)", str(line_cnt), "| q_id", q_id, "q_type", q_type)
+
             q_type_rel_class = str(line[3])
+
+            # if q_type not in queries_ret_100_entities_dict[q_id]: #yani baraye un type hich entity i nabude va bayad hame khune hash sefr she !
+            #     retrieved_entities = []
+            # else:
+            #     retrieved_entities = queries_ret_100_entities_dict[q_id][q_type]
+
+            retrieved_entities = queries_ret_100_entities_dict[q_id][:top_entities]
 
             translation_matrix_np = get_trainslation_matrix_3d(q_id = q_id, type = q_type,
                                               queries_w2v_char_level_dict = queries_w2v_char_level_dict,
-                                              queries_ret_100_entities_dict = queries_ret_100_entities_dict,
+                                               retrieved_entities = retrieved_entities,
                                                entity_unique_word_level_w2v_dict = entity_unique_word_level_w2v_dict,
                                                type_ent_cnt_dict = type_ent_cnt_dict, top_entities = top_entities, top_k_term = top_k_term_per_entity)
 
@@ -1684,14 +1888,11 @@ def save_translation_matrix_entity_3d(top_entities = 20, top_k_term_per_entity =
             else:
                 train_set_translation_matrix_dict[q_id].append((translation_matrix_list, q_type_rel_class, q_type))
 
-        if use_tfidf == True:
-            json.dump(train_set_translation_matrix_dict,
-                      fp=open(trainset_translation_matrix_3d_path + "tope(" +
-                              str(top_entities) + "topterm(" + str(top_k_term_per_entity) + "_tfidf.json", 'w'))
-        else:
-            json.dump(train_set_translation_matrix_dict,
-                      fp=open(trainset_translation_matrix_3d_path + "tope(" +
-                              str(top_entities) + "topterm(" + str(top_k_term_per_entity) + ".json", 'w'))
+
+    json.dump(train_set_translation_matrix_dict,
+              fp=open(trainset_translation_matrix_3d_path + "tope(" +
+                      str(top_entities) + "topterm(" + str(top_k_term_per_entity) + ".json", 'w'))
+
 
 def get_trainset_translation_matrix3d(top_entities=20, top_k_term_per_entity=50):
     path = trainset_translation_matrix_3d_path + "tope(" + str(top_entities) + "topterm(" + str(top_k_term_per_entity) + ".json"
@@ -2032,9 +2233,18 @@ def abstract_len_analyze():
 # q_rel_per_type_retrive_entities_generator()
 # abstract_len_analyze()
 
-entity_unique_word_level_w2v_generator_attentive(top_k=10) #seq to seq get mean...
-entity_unique_word_level_w2v_generator_attentive(top_k=20) #seq to seq get mean...
-entity_unique_word_level_w2v_generator_attentive(top_k=50) #seq to seq get mean...
+# entity_unique_word_level_w2v_generator_attentive(top_k=10) #seq to seq get mean...
+# entity_unique_word_level_w2v_generator_attentive(top_k=20) #seq to seq get mean...
+# entity_unique_word_level_w2v_generator_attentive(top_k=50) #seq to seq get mean...
+# q_w2v_attentive_level_generator()
+
+# save_translation_matrix_entity_3d(top_entities=20, top_k_term_per_entity=20, use_tfidf=False)
+# save_translation_matrix_entity_3d(top_entities=50, top_k_term_per_entity=20, use_tfidf=False)
+
+#badan
+# save_translation_matrix_entity_3d(top_entities=100, top_k_term_per_entity=20, use_tfidf=False)
+
+
 
 
 # print("eiffel")
