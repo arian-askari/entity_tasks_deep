@@ -97,6 +97,10 @@ print(entity_unique_word_level_w2v_path)
 trainset_translation_matrix_3d_path = os.path.join('C:\\', 'cygwin64', 'trainset_translation_matrix_3d_')
 
 
+q_ret_100_per_type_entities_path = os.path.join(dirname, '../data/types/sig17/q_ret_100_per_type_entities.csv')
+
+
+
 ##################################################################################################
 
 # train_set_feature_path = os.path.join(dirname, '../data/types/train_set_feature.csv')
@@ -210,21 +214,21 @@ def get_average_w2v_multi_try(tokens):
             character_level_list.append(vec)
             continue
 
-        INDEX_TYPE = "dbpedia_2015_10_types"
-        tks = es.getTokens(INDEX_TYPE, token)
-        char_level_list_temp = []
-        for t in tks:
-            t = t.split("'")
-            t = t[0]
-            vec = get_vec_several_try(t)
-            if len(vec) > 0:  # try to find original term, w2c
-                char_level_list_temp.append(vec)
-
-        if len(char_level_list_temp) > 0:
-            char_level_list_temp = [sum(x) for x in zip(*char_level_list_temp)]
-            char_level_list_avg = [x / len(char_level_list_temp) for x in char_level_list_temp]
-            character_level_list.append(char_level_list_avg)
-            continue
+        # INDEX_TYPE = "dbpedia_2015_10_types"
+        # tks = es.getTokens(INDEX_TYPE, token)
+        # char_level_list_temp = []
+        # for t in tks:
+        #     t = t.split("'")
+        #     t = t[0]
+        #     vec = get_vec_several_try(t)
+        #     if len(vec) > 0:  # try to find original term, w2c
+        #         char_level_list_temp.append(vec)
+        #
+        # if len(char_level_list_temp) > 0:
+        #     char_level_list_temp = [sum(x) for x in zip(*char_level_list_temp)]
+        #     char_level_list_avg = [x / len(char_level_list_temp) for x in char_level_list_temp]
+        #     character_level_list.append(char_level_list_avg)
+        #     continue
 
     if len(character_level_list) == 0:
         return []
@@ -420,9 +424,9 @@ def get_query_avg_w2v(q_body):
 
 
 def get_entity_avg_w2v(e_abstract):
-    INDEX_TYPE = "dbpedia_2015_10_types"
-    tokens = es.getTokens(INDEX_TYPE, e_abstract)
-    # tokens = e_abstract.split(" ")
+    # INDEX_TYPE = "dbpedia_2015_10_types"
+    # tokens = es.getTokens(INDEX_TYPE, e_abstract)
+    tokens = e_abstract.split(" ")
     e_avg_w2v = get_average_w2v_multi_try(tokens)
     return e_avg_w2v
 
@@ -738,7 +742,7 @@ def get_trainslation_matrix_score_e(q_id, type, queries_w2v_char_level_dict, que
         for retrieved in q_retrieved_entities[:k]:
             current_column += 1
 
-            q_body, retrieved_entity, types_of_retrieved_entity, abstract, relevant_score, rank = retrieved
+            q_body, retrieved_entity, types_of_retrieved_entity, abstract, relevant_score, rank, tf_idf_sorted_abstract = retrieved
 
             if type not in types_of_retrieved_entity:
                 continue
@@ -746,9 +750,9 @@ def get_trainslation_matrix_score_e(q_id, type, queries_w2v_char_level_dict, que
             entity_avg_w2v = entity_unique_avg_w2v_dict[retrieved_entity]
             cosine_sim = get_cosine_similarity(q_w2v_word, entity_avg_w2v)
 
-            row_np[current_column] = (relevant_score) * (float(type_ent_cnt_dict[type][0]))
+            row_np[current_column] = (relevant_score) * (1/float(type_ent_cnt_dict[type][0]))
             row_np_e_score[current_column] = relevant_score
-            row_np_cosine_typedetail[current_column] = cosine_sim * (math.log10(COUNT_ENTITES_OF_TYPES/float(type_ent_cnt_dict[type][0])))
+            row_np_cosine_typedetail[current_column] = cosine_sim * (1/float(type_ent_cnt_dict[type][0]))
 
         translation_matrix_np[current_row, :] = row_np
         translation_matrix_e_score[current_row, :] = row_np_e_score
@@ -1131,7 +1135,7 @@ def entity_unique_avg_w2v():
 
         for q_id, q_ret in q_rel_entities_dict.items():
             for ret in q_ret:
-                q_body, retrieved_entity, types_of_retrieved_entity, abstract, relevant_score, rank = ret
+                q_body, retrieved_entity, types_of_retrieved_entity, abstract, relevant_score, rank, tf_idf_sorted_abstract = ret
                 if retrieved_entity not in entity_avg_w2v_dict:
                     entity_avg_w2v_dict[retrieved_entity] = get_entity_avg_w2v(abstract).tolist()
 
@@ -1809,6 +1813,33 @@ def get_train_test_data(queries_for_train, queries_for_test_set):
     return (train_X, train_Y, test_X, test_Y_one_hot, q_id_test_list, test_TYPES, np.array(test_Y))
 
 
+def q_rel_per_type_retrive_entities_generator():
+    q_rel_per_type_entities_dict = {}
+    '''
+        {q_id:     {q_type:  [(q_body, retrieved_entity, [types of retrieved entity], abstract, relevant_score, rank, abstract_tf_idf_sorted)]}    }
+    '''
+    query_types = {}
+    with open(train_set_row_path) as tsv:
+        for line in csv.reader(tsv, dialect="excel-tab"):  # can also
+            q_id = str(line[0])
+            q_body = str(line[1])
+            q_type = str(line[2])
+            q_type_rel_class = str(line[3])
+
+            if q_id not in query_types:
+                query_types[q_id] = [(q_body, q_type, q_type_rel_class)]
+            else:
+                query_types[q_id].append((q_body, q_type, q_type_rel_class))
+
+    for q_id, values in query_types.items():
+        print(q_id)
+
+        q_body = values[0][0]
+        q_types = [(item[1], item[2]) for item in values]
+        q_rel_per_type_entities_dict[q_id] = er_detailed.retrieve_entities_per_type(q_body, q_types, k=100)
+
+    json.dump(q_rel_per_type_entities_dict, fp=open(q_ret_100_per_type_entities_path, 'w'))
+
 
 # w2v_train_set_generator()
 # types_avg_w2v_generator()
@@ -1894,6 +1925,9 @@ def get_train_test_data(queries_for_train, queries_for_test_set):
 #really average of q
 # save_translation_matrix_entity_3d(top_entities=50, top_k_term_per_entity=50, use_tfidf=False)
 # save_translation_matrix_entity_3d(top_entities=100, top_k_term_per_entity=50, use_tfidf=False)
+
+
+# q_rel_per_type_retrive_entities_generator()
 
 # print("eiffel")
 # wrd1 = getVector("eiffel")
