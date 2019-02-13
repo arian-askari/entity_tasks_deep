@@ -94,8 +94,8 @@ type_entity_cnt_path = os.path.join(dirname, '../data/types/sig17/types_details_
 # entity_unique_word_level_w2v_path = os.path.join(dirname, '../data/types/sig17/entity_unique_word_level_w2v_k')
 entity_unique_word_level_w2v_path = os.path.join('C:\\', 'cygwin64', 'entity_unique_word_level_w2v_k')
 
-# entity_unique_attentive_level_w2v_path = os.path.join('C:\\', 'cygwin64', 'entity_unique_attentive_level_w2v_k')
-entity_unique_attentive_level_w2v_path = os.path.join(dirname, '../data/types/sig17/entity_unique_attentive_level_w2v_k')
+entity_unique_attentive_level_w2v_path = os.path.join('C:\\', 'cygwin64', 'entity_unique_attentive_level_w2v_k')
+# entity_unique_attentive_level_w2v_path = os.path.join(dirname, '../data/types/sig17/entity_unique_attentive_level_w2v_k')
 
 
 print(entity_unique_word_level_w2v_path)
@@ -104,7 +104,8 @@ print(entity_unique_word_level_w2v_path)
 trainset_translation_matrix_3d_path = os.path.join('C:\\', 'cygwin64', 'trainset_translation_matrix_3d_')
 
 
-q_ret_100_per_type_entities_path = os.path.join(dirname, '../data/types/sig17/q_ret_100_per_type_entities.csv')
+# q_ret_100_per_type_entities_path = os.path.join(dirname, '../data/types/sig17/q_ret_100_per_type_entities.csv')
+q_ret_100_per_type_entities_path = os.path.join('C:\\', 'cygwin64', 'q_ret_100_per_type_entities.csv')
 
 
 
@@ -1475,7 +1476,7 @@ def entity_unique_word_level_w2v_generator_attentive(top_k, use_tfidf = False):
             for ret in retrieved_entities:
                 query, retrieved_entity, type_keys_list, abstract, score, rank, abstract_tf_idf_sorted = ret
                 if retrieved_entity not in entity_word_level_w2v_dict:
-                    entity_word_level_w2v_dict[retrieved_entity] = get_entity_word_level_w2v(abstract, k=top_k).tolist()
+                    entity_word_level_w2v_dict[retrieved_entity] = str(get_entity_attentive_level_w2v(abstract, k=top_k).tolist())
 
     json.dump(entity_word_level_w2v_dict, fp=open(entity_unique_attentive_level_w2v_path + str(top_k) + ".json", 'w'))
 
@@ -1517,7 +1518,7 @@ def get_entity_attentive_level_w2v(entity, k=20):
 
         row_number += 1
 
-    return (words_have_vec, attentive_level_list)
+    return  attentive_level_list
 
 
 def get_entity_attentive_level_w2v(e_abstract, k=20):
@@ -1543,7 +1544,7 @@ def entity_unique_word_level_w2v_generator(top_k):
             for ret in q_ret:
                 q_body, retrieved_entity, types_of_retrieved_entity, abstract, relevant_score, rank, abstract_tf_idf_sorted = ret
                 if retrieved_entity not in entity_word_level_w2v_dict:
-                    entity_word_level_w2v_dict[retrieved_entity] = str(get_entity_attentive_level_w2v(abstract, k=top_k).tolist())
+                    entity_word_level_w2v_dict[retrieved_entity] = str(get_entity_unique_word_level_w2v(abstract, k=top_k).tolist())
 
     json.dump(entity_word_level_w2v_dict, fp=open(entity_unique_attentive_level_w2v_path + str(top_k) + ".json", 'w'))
 
@@ -2030,6 +2031,7 @@ def abstract_len_analyze():
 
 # q_rel_per_type_retrive_entities_generator()
 # abstract_len_analyze()
+
 entity_unique_word_level_w2v_generator_attentive(top_k=10) #seq to seq get mean...
 entity_unique_word_level_w2v_generator_attentive(top_k=20) #seq to seq get mean...
 entity_unique_word_level_w2v_generator_attentive(top_k=50) #seq to seq get mean...
