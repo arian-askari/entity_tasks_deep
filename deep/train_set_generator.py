@@ -1464,7 +1464,7 @@ def get_entity_word_level_w2v(e_abstract, k=100):
     words_have_w2v, e_words_level_w2v = get_entity_character_level_w2v(tokens, k)
     return np.array(e_words_level_w2v)
 
-def entity_unique_word_level_w2v_generator(top_k, use_tfidf = False):
+def entity_unique_word_level_w2v_generator_attentive(top_k, use_tfidf = False):
     entity_word_level_w2v_dict = {}
     '''
         {entity_name: w2v_abstract_e}
@@ -1531,12 +1531,12 @@ def get_entity_attentive_level_w2v(e_abstract, k=20):
     return np.array(e_words_level_w2v)
 
 
-def entity_unique_word_level_w2v_generator_attentive(top_k):
+def entity_unique_word_level_w2v_generator(top_k):
     entity_word_level_w2v_dict = {}
     '''
         {entity_name: w2v_abstract_e}
     '''
-    with open(q_ret_100_per_type_entities_path, 'r') as ff:
+    with open(q_ret_100_entities_path, 'r') as ff:
         q_rel_entities_dict = json.load(ff)
 
         for q_id, q_ret in q_rel_entities_dict.items():
