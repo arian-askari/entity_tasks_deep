@@ -1509,15 +1509,15 @@ def get_entity_attentive_level_w2v(entity, k=20):
         if interval_checking == interval:
             attentive_level_list[row_number, :] = np.mean(np.array(tmp_list, axis=0))
 
-            interval = 0
+            interval_checking = 0
             tmp_list = []
         else:
-            interval += 1
+            interval_checking += 1
             tmp_list.append(w2v)
 
         row_number += 1
 
-    return (words_have_vec, t_w2v_character_level_list)
+    return (words_have_vec, attentive_level_list)
 
 
 def get_entity_attentive_level_w2v(e_abstract, k=20):
@@ -1536,7 +1536,7 @@ def entity_unique_word_level_w2v_generator_attentive(top_k):
     '''
         {entity_name: w2v_abstract_e}
     '''
-    with open(q_ret_100_entities_path, 'r') as ff:
+    with open(q_ret_100_per_type_entities_path, 'r') as ff:
         q_rel_entities_dict = json.load(ff)
 
         for q_id, q_ret in q_rel_entities_dict.items():
