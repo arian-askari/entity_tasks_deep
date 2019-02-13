@@ -87,8 +87,7 @@ class Retrieval(object):
         self.__start = int(config["start"])
         self.__model = config.get("model", None)
 
-        self.__model = "bm25"
-
+        # self.__model = "bm25"
 
         self.__num_docs = int(config.get("num_docs", None))
         self.__query_file = config.get("query_file", None)
