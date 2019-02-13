@@ -4,6 +4,7 @@ from config import config
 from utils import utf8_helper
 import utils.preprocess as preprocess
 import math
+from termcolor import colored
 
 cnf = config.Config()
 
@@ -119,6 +120,73 @@ def retrieve_entities(query, k=100):  # retrieve top k type for query, with nord
     print("entity count found for this query; ", len(top_entities))
 
     return top_entities
+
+def retrieve_entities_per_type(query,q_types, k=100):  # retrieve top k type for query, with nordlys :)
+    query = query.replace("'", "")
+
+    cmd = "python3.6 -m nordlys.services.er -q '" + query + "'"
+
+    prc = str(subprocess.check_output(cmd, shell=True, timeout=100))
+    prc = prc[2:-3]
+    d = ast.literal_eval(prc)
+
+    query_types_entities = {}
+
+    cnt = 0
+    for result_key, result_detail in d['results'].items():
+        #check nemikonim mizarim ta akhar beree :) vali nemizaram bishtar az 100 ta bara hich type i add she :)
+
+        entity = result_detail['entity']
+        entity = utf8_helper.get_utf8(entity)
+        type_keys_list = []
+        res_types = get_entity_types(entity)
+        if len(res_types) > 0:
+            type_keys_list = res_types
+        else:
+            # print("entity: ", entity, " doesn't have any type")
+            # shayad be taske query haye bedun type komak kone ! albate faghat shayaad !
+            continue  # if doesn't have any type, skip this entity ! can't help us for type retrieval ! :)
+
+        abstract = get_entity_abstract(entity, concate_names=True)
+        abstract_tf_idf_sorted = get_entity_sorted_tfidf_dfs_terms(entity, abstract, k=100)
+
+        score = result_detail['score']
+        rank = int(result_key)
+
+
+        for type_candidate, type_relevancy in q_types:
+            if type_candidate in type_keys_list:
+                if type_candidate not in query_types_entities:
+                    query_types_entities[type_candidate] = [(query, entity, type_keys_list, abstract, score, rank, abstract_tf_idf_sorted)]
+                elif len(query_types_entities[type_candidate]) <= k:
+                    query_types_entities[type_candidate].append((query, entity, type_keys_list, abstract, score, rank, abstract_tf_idf_sorted))
+
+
+    cnt_non_relevant_no_entities = 0
+    cnt_relevant_no_entities = 0
+
+    for type_candidate, type_relevancy in q_types:
+        if type_candidate not in query_types_entities:
+            text = "for type " + str(type_candidate) + "just found 0" + "entities " + " type_relevancy: " + str(type_relevancy)
+
+            if str(type_relevancy) == "0":
+                cnt_non_relevant_no_entities +=1
+                print(colored(text, "green"))# oza kamelan khube o bar veghf morad
+            else:
+                cnt_relevant_no_entities += 1
+                print(colored(text, "red")) # oh oh che bad !
+
+        elif len(query_types_entities[type_candidate])<100:
+
+            text = "for type " + str(type_candidate) +  "just found " + str(len(query_types_entities[type_candidate])) + "entities " + " type_relevancy: " + str(type_relevancy)
+            if str(type_relevancy) == "0":
+                print(colored(text, "green"))  # oza kamelan khube o bar veghf morad
+            else:
+                print(colored(text, "blue")) # oza yekam khatarie
+
+    print("\ncnt_non_relevant_no_entities:", cnt_non_relevant_no_entities , "\n")
+    print("\ncnt relevant_no_entities:", cnt_relevant_no_entities , "\n")
+    return query_types_entities
 
 # print(retrieve_entities("roman architecure", k=100))
 # e_example = "<dbpedia:A_Killing_Affair>"
