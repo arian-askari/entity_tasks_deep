@@ -48,31 +48,33 @@ class Model_Generator():
         self.__csv_log_path = csv_log_path
 
     def  __reshape_for_cnn(self, data, channels_cnt = 1):
-
-        # data = np.moveaxis(data, 0, -1)
-        # data = np.rollaxis(data, 1, 3) # roll the axis 1 to position 3,  change channels_first to channels_last ! #https://github.com/keras-team/keras/issues/6598#issuecomment-304615741
-        data = np.rollaxis(data, 1, 4) # roll the axis 1 to position 3,  change channels_first to channels_last ! #https://github.com/keras-team/keras/issues/6598#issuecomment-304615741
-
-        keras_backend.set_image_data_format("channels_last")
-
-        # rows = data.shape[1]
-        # columns = data.shape[2]
-        # channels_cnt = data.shape[0]
-
-        # channels_cnt = data.shape[1]
-        # rows = data.shape[2]
-        # columns = data.shape[3]
+        # data = np.rollaxis(data, 1, 4) # roll the axis 1 to position 3,  change channels_first to channels_last ! #https://github.com/keras-team/keras/issues/6598#issuecomment-304615741
 
         rows = data.shape[1]
         columns = data.shape[2]
-        channels_cnt = data.shape[3]
+        channels_cnt = 1
 
         samples = len(data)
+        data = data.reshape(samples, rows, columns, channels_cnt)
+
+        data = np.rollaxis(data, 1, 4) # roll the axis 1 to position 3,  change channels_first to channels_last ! #https://github.com/keras-team/keras/issues/6598#issuecomment-304615741
+
+        print("data.shape", data.shape)
+
+        keras_backend.set_image_data_format("channels_last")
 
 
+        # rows = data.shape[1]
+        # columns = data.shape[2]
+        # channels_cnt = data.shape[3]
+        #
+        # samples = len(data)
         # data = data.reshape(samples, rows, columns, channels_cnt)
+
+
         # input_shape = (channels_cnt, rows, columns)
         input_shape = (rows, columns, channels_cnt)
+
         # input_shape = (100, 14, 50)
 
         return data, input_shape
