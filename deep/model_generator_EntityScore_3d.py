@@ -47,20 +47,32 @@ class Model_Generator():
     def set_csv_log_path(self, csv_log_path):
         self.__csv_log_path = csv_log_path
 
-    def __reshape_for_cnn(self, data, channels_cnt = 1):
-        keras_backend.set_image_data_format("channels_first")
+    def  __reshape_for_cnn(self, data, channels_cnt = 1):
+
+        # data = np.moveaxis(data, 0, -1)
+        # data = np.rollaxis(data, 1, 3) # roll the axis 1 to position 3,  change channels_first to channels_last ! #https://github.com/keras-team/keras/issues/6598#issuecomment-304615741
+        data = np.rollaxis(data, 1, 4) # roll the axis 1 to position 3,  change channels_first to channels_last ! #https://github.com/keras-team/keras/issues/6598#issuecomment-304615741
+
+        keras_backend.set_image_data_format("channels_last")
 
         # rows = data.shape[1]
         # columns = data.shape[2]
         # channels_cnt = data.shape[0]
-        channels_cnt = data.shape[1]
-        rows = data.shape[2]
-        columns = data.shape[3]
+
+        # channels_cnt = data.shape[1]
+        # rows = data.shape[2]
+        # columns = data.shape[3]
+
+        rows = data.shape[1]
+        columns = data.shape[2]
+        channels_cnt = data.shape[3]
+
         samples = len(data)
 
 
         # data = data.reshape(samples, rows, columns, channels_cnt)
-        input_shape = (channels_cnt, rows, columns)
+        # input_shape = (channels_cnt, rows, columns)
+        input_shape = (rows, columns, channels_cnt)
         # input_shape = (100, 14, 50)
 
         return data, input_shape
@@ -77,12 +89,84 @@ class Model_Generator():
         test_x , _ = self.__reshape_for_cnn(test_x)
         print(input_shape)
 
+        #############GOOD##############
+        # self.__network.add(Conv2D(filters=6, kernel_size= (3,3), strides=2, padding="same", activation="relu", input_shape = input_shape))
+        # self.__network.add(MaxPooling2D(pool_size=(2, 2 ), strides=2))
+        #############GOOD##############
 
-        # self.__network.add(Conv2D(filters=8, kernel_size= (5,5),strides=(1,1), padding="same", activation="relu"))
-        self.__network.add(Conv2D(filters=32, kernel_size= (5,5), strides=(1,1), padding="same", activation="relu"))
-        self.__network.add(Conv2D(filters=64, kernel_size= (3,3), strides=(1,1), padding="same", activation="relu"))
+        #######################GOOOOOOOOOOOOOOOOOD 2#############################
+        # self.__network.add(Conv2D(filters=6, kernel_size= (3,3), strides=2, padding="same", activation="relu", input_shape = input_shape))
+        # self.__network.add(Conv2D(filters=4, kernel_size= (2,2), strides=2, padding="same", activation="relu", input_shape = input_shape))
+        # Dense 100, 100 epoch, batch 100, lr = 0.0001
+        #######################GOOOOOOOOOOOOOOOOOD 2#############################
+
+        ####################Jaleb bood, outputesh 18 ta feature k be dense mire !##################
+        # self.__network.add(Conv2D(filters=6, kernel_size= (2,2), strides=1, padding="same", activation="relu", input_shape = input_shape))
+        #
+        # self.__network.add(Conv2D(filters=4, kernel_size= (3,3), strides=2, padding="same", activation="relu", input_shape = input_shape))
+        # self.__network.add(Conv2D(filters=2, kernel_size=(4, 4), strides=3, padding="same", activation="relu", input_shape=input_shape))
+        # ba denese 100tai o 100 epoch o batch size 100 o lr 0.0001
+        ####################Jaleb bood, outputesh 18 ta feature k be dense mire !##################
+
+        keras_backend.set_image_data_format("channels_last")  # channels_first
+
+        #ehtemalaan ye filter masalan baa abaade koochik aval inja biaad, ye conv.... ye chizai aval oon befahme az inke
+        # az inke age 2ta 2ta termha relevant boodan moheme in tavalii tu rel budan oun type b query!
+        # self.__network.add(Conv2D(filters=64, kernel_size= (5,5), strides=1, padding="same", activation="relu", input_shape = input_shape))
+        self.__network.add(Conv2D(filters=64, kernel_size= (5,5), strides=1, padding="same", activation="relu", input_shape = input_shape))
+        self.__network.add(Conv2D(filters=64, kernel_size= (5,5), strides=1, padding="same", activation="relu", input_shape = input_shape))
+        self.__network.add(Conv2D(filters=64, kernel_size= (5,5), strides=1, padding="same", activation="relu", input_shape = input_shape))
+        self.__network.add(MaxPooling2D(pool_size=(5, 5), strides=5, padding="same"))
+
 
         self.__network.add(Flatten())
+
+
+        # self.__network.add(Conv2D(filters=6, kernel_size= (2,2), strides=1, padding="same", activation="relu", input_shape = input_shape))
+        # self.__network.add(Conv2D(filters=4, kernel_size= (3,3), strides=2, padding="same", activation="relu", input_shape = input_shape))
+        # self.__network.add(Conv2D(filters=20, kernel_size=(5,5), strides=1, padding="same", activation="relu", input_shape=input_shape))
+        # self.__network.add(Flatten())
+
+
+
+        # self.__network.add(Conv2D(filters=16, kernel_size=(5,5), strides=1, padding="same", activation="relu", input_shape=input_shape))
+        # self.__network.add(MaxPooling2D(pool_size=(5,5), strides=5, padding="same"))
+        # # self.__network.add(Conv2D(filters=10, kernel_size=(2,3), strides=1, padding="same", activation="relu", input_shape=input_shape))
+        # self.__network.add(Conv2D(filters=32, kernel_size=(3,3), strides=1, padding="same", activation="relu", input_shape=input_shape))
+        # self.__network.add(Conv2D(filters=64, kernel_size=(2,2), strides=1, padding="same", activation="relu", input_shape=input_shape))
+        #
+
+        # self.__network.add(Conv2D(filters=16, kernel_size=(2,2), strides=1, padding="same", activation="relu", input_shape=input_shape))
+
+
+
+        #new
+        # self.__network.add(Conv2D(filters=10, kernel_size= (5,5), strides=1, padding="same", activation="relu", input_shape = input_shape))
+
+        # self.__network.add(Conv2D(filters=10, kernel_size= (3,3), strides=1, padding="same", activation="relu", input_shape = input_shape))
+        #
+        # self.__network.add(Conv2D(filters=5, kernel_size= (2,2), strides=1, padding="same", activation="relu", input_shape = input_shape))
+
+
+
+        # self.__network.add(MaxPooling2D(2,5))
+
+        # self.__network.add(Conv2D(filters=6, kernel_size= (2,2), strides=1, padding="same", activation="relu", input_shape = input_shape))
+        # self.__network.add(Conv2D(filters=4, kernel_size= (3,3), strides=2, padding="same", activation="relu", input_shape = input_shape))
+        # self.__network.add(Conv2D(filters=2, kernel_size= (4,4), strides=3, padding="same", activation="relu", input_shape = input_shape))
+
+        # self.__network.add(Conv2D(filters=6, kernel_size= (2,2), strides=1, padding="same", activation="relu", input_shape = input_shape))
+
+
+        # self.__network.add(MaxPooling2D(pool_size=(1, 2), strides=(1, 2)))
+        # self.__network.add(Conv2D(filters=32, kernel_size= (5,5), strides=2, padding="same", activation="relu", input_shape = input_shape))
+        # self.__network.add(Conv2D(filters=64, kernel_size= (5,9), strides=2, padding="same", activation="relu", input_shape = input_shape))
+
+        # self.__network.add(MaxPooling2D(pool_size=(1, 2), strides=(1, 2)))
+        # self.__network.add(GlobalAveragePooling2D())
+
+
+
         ####################################################################################
 
 
@@ -119,6 +203,7 @@ class Model_Generator():
         else:
             self.__network.compile(optimizer=self.__optimizer, loss=self.__loss, metrics=["accuracy"])
 
+
         if len(self.__csv_log_path) > 0:
             csv_logger = CSVLogger(self.__csv_log_path, append=False, separator=',')
 
@@ -141,7 +226,7 @@ class Model_Generator():
         result["train_acc_mean"] = float(np.mean(self.__history.history['acc']))
 
         result["train_loss"] = self.__history.history['loss']
-        # print("\nmodel summary:\n--------------")
+        # # print("\nmodel summary:\n--------------")
         print(self.__network.summary())
 
         return result

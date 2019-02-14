@@ -108,8 +108,8 @@ entity_unique_attentive_level_w2v_path = os.path.join(dirname, '../data/types/si
 
 print(entity_unique_word_level_w2v_path)
 # sys.exit(1)
-trainset_translation_matrix_3d_path = os.path.join(dirname, '../data/types/sig17/trainset_translation_matrix_3d_')
-# trainset_translation_matrix_3d_path = os.path.join('C:\\', 'cygwin64', 'trainset_translation_matrix_3d_')
+# trainset_translation_matrix_3d_path = os.path.join(dirname, '../data/types/sig17/trainset_translation_matrix_3d_')
+trainset_translation_matrix_3d_path = os.path.join('C:\\', 'cygwin64', 'trainset_translation_matrix_3d_')
 
 
 q_ret_100_per_type_entities_path = os.path.join(dirname, '../data/types/sig17/q_ret_100_per_type_entities.csv')

@@ -218,8 +218,19 @@ def nested_cross_fold_validation():
 
             if set_input_flat == True:
                 test_X = flat_input(test_X)
+
+
+
             models_sorted = sorted(models_during_validation, key=lambda x: x[3])  # ascending sort
             # models_sorted = sorted(models_during_validation, key=lambda x: x[5])  # sort by train loss - validation loss (abs value :))
+
+            best_model, loss_train, acc_train, loss_validation, acc_validation, difference_loss_train_loss_validation = models_sorted[0]
+
+            if loss_train>10:
+                best_model, loss_train, acc_train, loss_validation, acc_validation, difference_loss_train_loss_validation = models_sorted[1]
+
+            best_model_name = best_model.get_model_name()
+
 
 
 
@@ -335,7 +346,8 @@ def nested_cross_fold_validation():
 # layers_for_evaluate_reg = [[1000,100,1]]
 # activation_for_evaluate_reg = [["relu","relu","linear"]]
 
-layers_for_evaluate_reg = [[1000, 1]]
+# layers_for_evaluate_reg = [[500, 1]]
+layers_for_evaluate_reg = [[500,1]]
 activation_for_evaluate_reg = [["relu", "linear"]]
 
 dropout_rates = [0]
@@ -343,16 +355,16 @@ dropout_rates = [0]
 categories = ["regression"]
 layers_for_evaluates = [layers_for_evaluate_reg]
 activation_for_evaluates = [activation_for_evaluate_reg]
-batch_size = 500 #100 ham khoob bud
+batch_size = 100 #100 ham khoob bud
 
 k_values = [20, 5, 100, 2, 300, 5, 20, 50, 100.0]
-epoch_count = 600 #100 ba batch e 512 o lr 0.00001
-optimizer = "adam"
-learning_rate = 0.00001  # 0.0001
+epoch_count = 50 #100 ba batch e 512 o lr 0.00001
+optimizer = "rms"
+learning_rate = 0.0001  # 0.0001
 q_token_cnt = 5
 
-top_entities= 50 # age ok bood code jadid, 100 esh konam bebinam chi mishe !
-top_k_term_per_entity = 20
+top_entities= 20 # age ok bood code jadid, 100 esh konam bebinam chi mishe !
+top_k_term_per_entity = 50
 
 # type_matrixEntityScore = "detail"
 # type_matrixEntityScore = "e_score"
