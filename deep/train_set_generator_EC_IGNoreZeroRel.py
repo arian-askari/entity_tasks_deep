@@ -2071,6 +2071,8 @@ def _get_train_testdata(queries_for_train, queries_for_test_set):
                     train_TYPES.append(train_set[2])
                     q_id_train_list.append(query_ids_train)
             else:
+                if all(v == 0 for v in train_set[0]):
+                    continue #agar baraye yek type rel hame matrix esh sefr bud ino vorodi nade be neural...noise hast !
                 t = np.array(train_set[0])
                 # t = t.flatten()
                 train_X.append(t)

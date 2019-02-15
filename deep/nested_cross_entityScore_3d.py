@@ -5,7 +5,8 @@ from keras.layers import *
 
 from utils import trec_output as trec
 from utils import file_utils
-from deep import train_set_generator as tsg
+# from deep import train_set_generator as tsg
+from deep import train_set_generator_EC_IGNoreZeroRel as tsg
 # from deep.model_generator import Model_Generator
 from deep.model_generator_EntityScore_3d import Model_Generator
 from utils.report_generator import Report_Generator
