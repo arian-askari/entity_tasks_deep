@@ -225,16 +225,40 @@ def nested_cross_fold_validation():
             # models_sorted = sorted(models_during_validation, key=lambda x: x[5])  # sort by train loss - validation loss (abs value :))
 
             best_model, loss_train, acc_train, loss_validation, acc_validation, difference_loss_train_loss_validation = models_sorted[0]
+            print(best_model, loss_train, acc_train, loss_validation, acc_validation, difference_loss_train_loss_validation)
 
-            if loss_train>10:
+            if_bigger = 7
+            if loss_train>if_bigger:
+                print("loss_train>10, step 1")
                 best_model, loss_train, acc_train, loss_validation, acc_validation, difference_loss_train_loss_validation = models_sorted[1]
+                print(best_model, loss_train, acc_train, loss_validation, acc_validation, difference_loss_train_loss_validation)
+                if loss_train>if_bigger:
+                    print("loss_train>10 - step 2")
+                    best_model, loss_train, acc_train, loss_validation, acc_validation, difference_loss_train_loss_validation = models_sorted[2]
+                    print(best_model, loss_train, acc_train, loss_validation, acc_validation, difference_loss_train_loss_validation)
+                    if loss_train>if_bigger:
+                        print("loss_train>10 - step 3")
+                        best_model, loss_train, acc_train, loss_validation, acc_validation, difference_loss_train_loss_validation = models_sorted[3]
+                        print(best_model, loss_train, acc_train, loss_validation, acc_validation, difference_loss_train_loss_validation)
 
-            best_model_name = best_model.get_model_name()
+                        if loss_train > if_bigger:
+                            print("shit all models train have loss bigger" , if_bigger, " ?!")
+                            sys.exit(1)
+
+
+            # if loss_validation<=baseline_min or loss_validation >= baseline_max: #bara vaghti ke maslan tu 300 epoch roo yeki az rand haye validation ham tarin loss bala bude ham validaiton loss va dar nahayat 300 epoch ham tamom shode!
+            #     best_model, loss_train, acc_train, loss_validation, acc_validation, difference_loss_train_loss_validation = models_sorted[1]
+            #
+            #     if loss_validation <= baseline_min or loss_validation >= baseline_max:
+            #         best_model, loss_train, acc_train, loss_validation, acc_validation, difference_loss_train_loss_validation = models_sorted[2]
+            #
+            #         if loss_validation <= baseline_min or loss_validation >= baseline_max:
+            #             best_model, loss_train, acc_train, loss_validation, acc_validation, difference_loss_train_loss_validation = models_sorted[0]
+            #             print("\n***************************************************\t\tshittt validation aslan natunest beyne max o min peyda she ! vase hamin nazdik tarin ro bardashtam !\n****************************")
 
 
 
 
-            best_model, loss_train, acc_train, loss_validation, acc_validation, difference_loss_train_loss_validation = models_sorted[0]
             best_model_name = best_model.get_model_name()
 
             model_test_fold_run_path = models_path + input_name + "_T" + str(i+1) + "(bestModel)_" + best_model_name + ".run"
@@ -347,10 +371,11 @@ def nested_cross_fold_validation():
 # activation_for_evaluate_reg = [["relu","relu","linear"]]
 
 # layers_for_evaluate_reg = [[500, 1]]
-layers_for_evaluate_reg = [[500,1]]
+layers_for_evaluate_reg = [[500, 1]]
+# activation_for_evaluate_reg = [["relu", "linear"]]
 activation_for_evaluate_reg = [["relu", "linear"]]
 
-dropout_rates = [0]
+dropout_rates = [0.1]
 
 categories = ["regression"]
 layers_for_evaluates = [layers_for_evaluate_reg]
@@ -358,13 +383,13 @@ activation_for_evaluates = [activation_for_evaluate_reg]
 batch_size = 100 #100 ham khoob bud
 
 k_values = [20, 5, 100, 2, 300, 5, 20, 50, 100.0]
-epoch_count = 50 #100 ba batch e 512 o lr 0.00001
-optimizer = "rms"
+epoch_count = 100 #100 ba batch e 512 o lr 0.00001
+optimizer = "rms" #hame testam ba rms bud ! :(
 learning_rate = 0.0001  # 0.0001
 q_token_cnt = 5
 
-top_entities= 20 # age ok bood code jadid, 100 esh konam bebinam chi mishe !
-top_k_term_per_entity = 50
+top_entities= 50 # age ok bood code jadid, 100 esh konam bebinam chi mishe !
+top_k_term_per_entity = 20
 
 # type_matrixEntityScore = "detail"
 # type_matrixEntityScore = "e_score"
@@ -377,6 +402,8 @@ type_matrixEntityScore = "cosine_detail"
 
 set_input_flat = False
 use_tfidf = False
+baseline_min = 4
+baseline_max = 5
 for cat, act, layers, k_v in zip(categories, activation_for_evaluates, layers_for_evaluates, k_values):
     k = k_v
     input_dim = None

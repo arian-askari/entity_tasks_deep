@@ -110,8 +110,8 @@ print(entity_unique_word_level_w2v_path)
 # sys.exit(1)
 # trainset_translation_matrix_3d_path = os.path.join(dirname, '../data/types/sig17/trainset_translation_matrix_3d_')
 
-trainset_translation_matrix_3d_path = os.path.join(dirname, '../data/types/sig17/trainset_translation_matrix_2d_')
-# trainset_translation_matrix_3d_path = os.path.join('C:\\', 'cygwin64', 'trainset_translation_matrix_2d_')
+# trainset_translation_matrix_3d_path = os.path.join(dirname, '../data/types/sig17/trainset_translation_matrix_2d_')
+trainset_translation_matrix_3d_path = os.path.join('C:\\', 'cygwin64', 'trainset_translation_matrix_2d_')
 
 
 q_ret_100_per_type_entities_path = os.path.join(dirname, '../data/types/sig17/q_ret_100_per_type_entities.csv')
@@ -154,6 +154,8 @@ word2vec_train_set_path = os.path.join(dirname, '../data/GoogleNews-vectors-nega
 
 word_vectors = None
 trainset_average_w2v = None
+trainset_EC = None
+trainset_TC = None
 
 
 # word_vectors = []
@@ -2115,13 +2117,19 @@ def get_train_test_data_translation_matric_entity_centric_qavg(queries_for_train
 
 
 def get_train_test_data_translation_matrix_3d(queries_for_train, queries_for_test_set, top_entities=20, top_k_term_per_entity=50, use_tfidf=False):
+    global trainset_EC
     global trainset_average_w2v_path
     tmp = get_train_test_data_translation_matrix_3d_pat(top_entities=top_entities, top_k_term_per_entity=top_k_term_per_entity, use_tfidf = use_tfidf)
     if trainset_average_w2v_path != tmp:
         global trainset_average_w2v
         trainset_average_w2v = None  # in merge model cause bug :)
         trainset_average_w2v_path = tmp
-        load_trainset_average_w2v()
+
+        if trainset_EC is None:
+            load_trainset_average_w2v()
+            trainset_EC = trainset_average_w2v
+        else:
+            trainset_average_w2v = trainset_EC
 
     return _get_train_testdata(queries_for_train, queries_for_test_set)
 
@@ -2137,13 +2145,20 @@ def get_train_test_data_translation_matrix_3d_pat(top_entities=20, top_k_term_pe
     return path
 
 def get_train_test_data_translation_matric_type_centric(queries_for_train, queries_for_test_set, k):
+    global trainset_TC
     global trainset_average_w2v_path
+
     tmp = trainset_translation_matrix_type_tfidf_terms_path + "_" + str(k) + ".json"
     if trainset_average_w2v_path != tmp:
         global trainset_average_w2v
         trainset_average_w2v = None  # in merge model cause bug :)
         trainset_average_w2v_path = tmp
-        load_trainset_average_w2v()
+
+        if trainset_TC is None:
+            load_trainset_average_w2v()
+            trainset_TC = trainset_average_w2v
+        else:
+            trainset_average_w2v = trainset_TC
 
     return _get_train_testdata(queries_for_train, queries_for_test_set)
 

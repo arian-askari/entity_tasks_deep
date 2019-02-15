@@ -7,7 +7,8 @@ from utils import trec_output as trec
 from utils import file_utils
 from deep import train_set_generator as tsg
 # from deep.model_generator import Model_Generator
-from deep.model_generator_MergeModels_TwoStep import Model_Generator
+# from deep.model_generator_MergeModels_TwoStep import Model_Generator
+from deep.model_generator_MergeModels_FULLCNN import Model_Generator
 from utils.report_generator import Report_Generator
 report = Report_Generator()
 
@@ -120,7 +121,7 @@ def nested_cross_fold_validation():
                         queries_for_select_validation_set = substrac_dicts(queries_for_select_validation_set, queries_validation_set)
 
                         queries_train_set = substrac_dicts(queries_for_train, queries_validation_set)
-                        train_X_EC, train_Y_EC, test_X_EC, test_Y_EC_one_hot_EC, q_id_test_list, test_TYPES_EC, test_Y_EC = tsg.get_train_test_data_translation_matric_entity_centric_qavg(queries_train_set, queries_validation_set, type_matrixEntityScore, 20)
+                        train_X_EC, train_Y_EC, test_X_EC, test_Y_EC_one_hot_EC, q_id_test_list, test_TYPES_EC, test_Y_EC = tsg.get_train_test_data_translation_matrix_3d(queries_train_set, queries_validation_set, top_entities=top_entities, top_k_term_per_entity=top_k_term_per_entity, use_tfidf=use_tfidf)
 
                         train_X_TC, train_Y_TC, test_X_TC, test_Y_TC_one_hot_TC, q_id_test_list, test_TYPES_TC, test_Y_TC = tsg.get_train_test_data_translation_matric_type_centric(queries_train_set, queries_validation_set, k=50)
 
@@ -230,7 +231,7 @@ def nested_cross_fold_validation():
 
             ''' Evaluate best model on Test (unseen data :) ) '''
 
-            _, __, test_X_EC, test_Y_EC_one_hot_EC, q_id_test_list, test_TYPES_EC, test_Y_EC = tsg.get_train_test_data_translation_matric_entity_centric_qavg(queries_for_train, queries_for_test_set, type_matrixEntityScore, 20)
+            _, __, test_X_EC, test_Y_EC_one_hot_EC, q_id_test_list, test_TYPES_EC, test_Y_EC = tsg.get_train_test_data_translation_matrix_3d(queries_for_train, queries_for_test_set, top_entities=top_entities, top_k_term_per_entity=top_k_term_per_entity, use_tfidf=use_tfidf)
             _, __, test_X_TC, test_Y_TC_one_hot_TC, q_id_test_list, test_TYPES_TC, test_Y_TC = tsg.get_train_test_data_translation_matric_type_centric(queries_for_train, queries_for_test_set, k=50)
 
             models_sorted = sorted(models_during_validation, key=lambda x: x[3])  # ascending sort
@@ -349,8 +350,8 @@ def nested_cross_fold_validation():
 # activation_for_evaluate_reg = [["relu","linear"],["relu","linear"],["relu","linear"],["relu", "relu", "linear"],["relu", "relu","relu", "linear"],["relu", "relu","relu", "linear"],["relu", "relu","relu", "linear"]]
 
 
-layers_for_evaluate_reg = [[100, 1]]
-activation_for_evaluate_reg = [["relu", "linear"]]
+layers_for_evaluate_reg = [[1]]
+activation_for_evaluate_reg = [["linear"]]
 # layers_for_evaluate_reg = [[128, 64, 1]]
 # activation_for_evaluate_reg = [["relu","relu", "linear"]]
 dropout_rates = [0]
@@ -365,10 +366,10 @@ layers_for_evaluates = [layers_for_evaluate_reg]
 activation_for_evaluates = [activation_for_evaluate_reg]
 batch_size = 128
 
-k_values_EC = [20, 100, 5,100, 2, 300, 5, 20, 50, 100.0]
+k_values_EC = [50, 100, 5,100, 2, 300, 5, 20, 50, 100.0]
 k_values_TC = [50, 100, 5,100, 2, 300, 5, 20, 50, 100.0]
 
-epoch_count = 300
+epoch_count = 50
 optimizer = "adam"
 learning_rate = 0.0001
 q_token_cnt = 14
@@ -382,6 +383,10 @@ type_matrixEntityScore = "cosine_detail"
 # type_matrixEntityScore = "cosine_detail_normal"
 set_input_flat = False
 # for cat, act, layers, k_v_ec,  k_v_tc in zip(categories, activation_for_evaluates, layers_for_evaluates, k_values_EC, k_values_TC):
+
+top_entities= 50 # age ok bood code jadid, 100 esh konam bebinam chi mishe !
+top_k_term_per_entity = 20
+use_tfidf = False
 for cat, act, layers in zip(categories, activation_for_evaluates, layers_for_evaluates):
     k_TC = 50
     k_EC = 20
