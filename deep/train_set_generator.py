@@ -81,8 +81,15 @@ type_w2v_char_level_tfidf_terms_sorted_path = os.path.join(dirname,
                                                            '../data/types/sig17/type_w2v_char_level_tfidf_terms_sorted.json')
 type_w2v_char_level_dfs_terms_sorted_path = os.path.join(dirname,
                                                          '../data/types/sig17/type_w2v_char_level_dfs_terms_sorted.json')
+
+
+# trainset_translation_matrix_type_tfidf_terms_path = os.path.join(dirname,
+#                                                                  '../data/types/sig17/trainset_translation_matrix_tfidf_terms')
+#query term 5 phrase !
 trainset_translation_matrix_type_tfidf_terms_path = os.path.join(dirname,
-                                                                 '../data/types/sig17/trainset_translation_matrix_tfidf_terms')
+                                                                 '../data/types/sig17/trainset_translation_matrix_qPhrase_tfidf_terms')
+
+
 trainset_translation_matrix_type_sdf_terms_path = os.path.join(dirname,
                                                                '../data/types/sig17/trainset_translation_matrix_sdf_terms')
 
@@ -645,7 +652,13 @@ def get_type_sdf_w2v_char_level():
         return type_dfs_w2v_char_level_dict
 
 def save_translation_matrix_type_terms(score_type="tf_idf", k=100):
-    queries_w2v_char_level_dict = get_queries_char_level_w2v_dict()
+
+    ################################################################
+    # queries_w2v_char_level_dict = get_queries_char_level_w2v_dict()
+    queries_w2v_char_level_dict = get_queries_attentive_level_w2v_dict()
+    ################################################################
+
+
     # { q_id: (q_body,q_body_w2v_char_level_list_of_list)}
     path_dict = ""
     type_terms_k_top_char_level_w2v = None
@@ -1047,7 +1060,7 @@ def save_translation_matrix_entity_score_qavg(k=100):
 
 def get_trainslation_matrix_type_terms(q_id, type, queries_w2v_char_level_dict, type_terms_k_top_char_level_w2v, k):
     """{q_id: [(translation_matrix_list, q_type_rel_class, q_type)]}"""
-    query_max_len = 14
+    query_max_len = 5
     type_term_to_k_cnt = k
 
     column_size = type_term_to_k_cnt
@@ -2434,6 +2447,7 @@ def abstract_len_analyze_e_ret100():
 
 #https://adeshpande3.github.io/The-9-Deep-Learning-Papers-You-Need-To-Know-About.html
 
+# save_translation_matrix_type_terms(score_type="tf_idf", k=50)
 
 # print("eiffel")
 # wrd1 = getVector("eiffel")
