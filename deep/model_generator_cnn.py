@@ -139,6 +139,7 @@ class Model_Generator():
 
 
         if len(self.__csv_log_path) > 0:
+            #
             csv_logger = CSVLogger(self.__csv_log_path, append=False, separator=',')
 
             calbacks = [csv_logger, TerminateOnBaseline(monitor_val='val_loss', monitor_train='loss', baseline_min=3.3,
