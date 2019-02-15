@@ -7,6 +7,7 @@ from keras import optimizers
 from keras.callbacks import CSVLogger
 from keras.layers import LeakyReLU
 from keras import backend as k
+from utils.terminate_on_baseline import TerminateOnBaseline
 
 
 import numpy as np
@@ -76,26 +77,27 @@ class Model_Generator():
         train_x, input_shape = self.__reshape_for_cnn(train_x)
         test_x , _ = self.__reshape_for_cnn(test_x)
 
-        # self.__network.add(Conv2D(filters=64, kernel_size= (5,5),strides=(1,1), padding="same", activation="relu", input_shape=input_shape))
-        # self.__network.add(MaxPooling2D())
-        # self.__network.add(Dropout(self.__dropout))
-        #
-        #
-        # self.__network.add(Conv2D(filters=16, kernel_size= (10,10),strides=(1,1), padding="same", activation="relu"))
-        # self.__network.add(MaxPooling2D())
-        # self.__network.add(Dropout(self.__dropout))
-        #
-        # self.__network.add(Conv2D(filters=256, kernel_size= (32,32),strides=(1,1), padding="same", activation="relu"))
-        # self.__network.add(MaxPooling2D())
-        # self.__network.add(Dropout(self.__dropout))
-
-        self.__network.add(Conv2D(filters=64, kernel_size=(5, 5), strides=(1, 1), padding="same", activation="relu",
-                                  input_shape=input_shape))
-        self.__network.add(Conv2D(filters=128, kernel_size=(5, 5), strides=(1, 1), padding="same", activation="relu",
-                                  input_shape=input_shape))
-        self.__network.add(MaxPooling2D(pool_size=(1,5), strides= (1,5)))
-        # self.__network.add(MaxPooling2D())
+        self.__network.add(Conv2D(filters=64, kernel_size= (5,5),strides=(1,1), padding="same", activation="relu", input_shape=input_shape))
+        self.__network.add(MaxPooling2D())
         self.__network.add(Dropout(self.__dropout))
+
+
+        self.__network.add(Conv2D(filters=16, kernel_size= (10,10),strides=(1,1), padding="same", activation="relu"))
+        self.__network.add(MaxPooling2D())
+        self.__network.add(Dropout(self.__dropout))
+
+        self.__network.add(Conv2D(filters=256, kernel_size= (32,32),strides=(1,1), padding="same", activation="relu"))
+        self.__network.add(MaxPooling2D())
+        self.__network.add(Dropout(self.__dropout))
+
+        # self.__network.add(Conv2D(filters=128, kernel_size=(1, 5), strides=(1, 1), padding="same", activation="relu",
+        #                           input_shape=input_shape))
+        #
+        # self.__network.add(MaxPooling2D(pool_size=(1,5), strides=(1,5)))
+        # # self.__network.add(Conv2D(filters=128, kernel_size=(5, 5), strides=(1, 1), padding="same", activation="relu",
+        # #                           input_shape=input_shape))
+        # self.__network.add(MaxPooling2D())
+        # self.__network.add(Dropout(self.__dropout))
 
         # self.__network.add(Conv2D(filters=16, kernel_size=(10, 10), strides=(1, 1), padding="same", activation="relu"))
         # self.__network.add(MaxPooling2D())
@@ -134,14 +136,19 @@ class Model_Generator():
         else:
             self.__network.compile(optimizer=self.__optimizer, loss=self.__loss, metrics=["accuracy"])
 
+
+
         if len(self.__csv_log_path) > 0:
             csv_logger = CSVLogger(self.__csv_log_path, append=False, separator=',')
 
+            calbacks = [csv_logger, TerminateOnBaseline(monitor_val='val_loss', monitor_train='loss', baseline_min=3.3,
+                                                        baseline_max=3.8)]
+
             if test_x is not None:
-                self.__history = self.__network.fit(train_x, train_y, validation_data=(test_x, test_y),  epochs=self.__epochs, batch_size=self.__batch_size, verbose=self.__verbose, callbacks=[csv_logger])
+                self.__history = self.__network.fit(train_x, train_y, validation_data=(test_x, test_y),  epochs=self.__epochs, batch_size=self.__batch_size, verbose=self.__verbose, callbacks=calbacks)
             else:
 
-                self.__history = self.__network.fit(train_x, train_y, epochs=self.__epochs, batch_size=self.__batch_size, verbose=self.__verbose, callbacks=[csv_logger])
+                self.__history = self.__network.fit(train_x, train_y, epochs=self.__epochs, batch_size=self.__batch_size, verbose=self.__verbose, callbacks=calbacks)
         else:
             if test_x is not None:
                 self.__history = self.__network.fit(train_x, train_y, epochs=self.__epochs,

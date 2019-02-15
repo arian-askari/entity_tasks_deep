@@ -83,11 +83,11 @@ type_w2v_char_level_dfs_terms_sorted_path = os.path.join(dirname,
                                                          '../data/types/sig17/type_w2v_char_level_dfs_terms_sorted.json')
 
 
-# trainset_translation_matrix_type_tfidf_terms_path = os.path.join(dirname,
-#                                                                  '../data/types/sig17/trainset_translation_matrix_tfidf_terms')
-#query term 5 phrase !
 trainset_translation_matrix_type_tfidf_terms_path = os.path.join(dirname,
-                                                                 '../data/types/sig17/trainset_translation_matrix_qPhrase_tfidf_terms')
+                                                                 '../data/types/sig17/trainset_translation_matrix_tfidf_terms')
+#query term 5 phrase !
+# trainset_translation_matrix_type_tfidf_terms_path = os.path.join(dirname,
+#                                                                  '../data/types/sig17/trainset_translation_matrix_qPhrase_tfidf_terms')
 
 
 trainset_translation_matrix_type_sdf_terms_path = os.path.join(dirname,

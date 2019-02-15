@@ -331,8 +331,8 @@ epoch_count = 100
 optimizer = "adam"
 learning_rate = 0.0001
 
-# q_token_cnt = 14
-q_token_cnt = 5
+q_token_cnt = 14
+# q_token_cnt = 5
 
 for cat, act, layers, k_v in zip(categories, activation_for_evaluates, layers_for_evaluates, k_values):
     k = k_v
