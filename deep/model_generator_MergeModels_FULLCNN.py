@@ -94,7 +94,6 @@ class Model_Generator():
 
         model_TC.add(Dense(1))
         model_TC.add(Activation('linear'))
-        model_TC.add(Dropout(0))
 
         #second try remove it
         # model_TC.add(Dense(100))
@@ -128,6 +127,10 @@ class Model_Generator():
         model_EC.add(AveragePooling2D(pool_size=(4,1), strides = (4,1) )) #5 average of entity iportancy on total query
         model_EC.add(Flatten())
 
+        model_EC.add(Dense(100))
+        model_EC.add(Activation('relu'))
+
+
         model_EC.add(Dense(1))
         model_EC.add(Activation('linear'))
         #
@@ -146,22 +149,23 @@ class Model_Generator():
         # model_EC.add(Activation('relu'))
         # model_EC.add(Dropout(0))
 
+        print(model_TC.summary())
+        print(model_EC.summary())
 
 
         #Merged Model try to be Dynamic :)
-        model_TC_EC = Add()([model_TC.output, model_EC.output])
+        # model_TC_EC = Add()([model_TC.output, model_EC.output])
+        model_TC_EC = Add()([model_TC.layers[8].output, model_EC.layers[7].output])
+        # layer[0].get_output()
 
-        # model_TC_EC = BatchNormalization()(model_TC_EC) ##TODO:: Test konam ! chon noghtei hast ke daran 2ta model merge mishan shayad kare khassi kard!
+        ################################NEWWWWWWWWW MErge Stratgey by CNN and conv1D#######################################
+        # model_TC_EC = Reshape(200, 1)(model_TC_EC)
+        # model_TC_EC = Conv1D(filters=32, kernel_size= 5, strides=1, padding="same", activation="relu", input_shape = input_shape)(model_TC_EC)
+        # model_TC_EC = MaxPooling1D(5 , strides=5)(model_TC_EC)
+        # model_TC_EC = Conv1D(filters=64, kernel_size= 40, strides=40, padding="same", activation="relu", input_shape = input_shape)(model_TC_EC)
+        # model_TC_EC = Flatten()(model_TC_EC)
 
-        # model_TC_EC = Dense(100)(model_TC_EC)
-        # model_TC_EC = Activation('relu')(model_TC_EC)
-
-
-
-        #
-        # model_TC_EC = Dense(100)(model_TC_EC)
-        # model_TC_EC = Activation('relu')(model_TC_EC)
-
+        ################################NEWWWWWWWWW MErge Stratgey by CNN and conv1D#######################################
 
         model_TC_EC = Dense(1)(model_TC_EC)
         # model_TC_EC = Activation('relu')(model_TC_EC)
@@ -172,7 +176,7 @@ class Model_Generator():
 
         self.__network = merged_TC_EC_new_model
         #Merged Model try to be Dynamic :)
-        print(self.__network.summary())
+        # print(self.__network.summary())
 
         train_x  = [train_x_tc, train_x_ec]
         test_x = [test_x_tc, test_x_ec]
