@@ -186,7 +186,7 @@ class Model_Generator():
         new_train_X_for_model3 = []
         cnt = 0
         for instance_tc, instance_ec in zip(new_train_part1_tc.tolist(), new_train_part2_ec.tolist()):
-            text = "type label: ", train_y[cnt] + "\n"
+            text = "type label: " + train_y[cnt] + "\n"
             text += "instance_tc on train" + instance_tc + "\n"
             text += "instance_ec on train" + instance_ec + "\n"
             f.write(text)
@@ -202,10 +202,12 @@ class Model_Generator():
             # new_test_instance = np.array([instance_test_tc , instance_ec_test]).mean(axis=0)
             new_test_X_for_model3.append(new_test_instance)
 
-            text = "type label: ", test_y[cnt] + "\n"
+            text = "type label: " + test_y[cnt] + "\n"
             text += "instance_tc on test" + instance_test_tc + "\n"
             text += "instance_ec on test" + instance_ec_test + "\n"
             f.write(text)
+
+        f.close()
 
         new_train_X_for_model3 = np.array(new_train_X_for_model3)
         new_train_Y_for_model3 = train_y
