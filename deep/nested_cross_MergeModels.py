@@ -9,11 +9,10 @@ from deep import train_set_generator as tsg
 from deep import train_set_generator_EC_IGNoreZeroRel as tsg_EC
 from termcolor import colored
 
+# from deep.model_generator_MergeModels import Model_Generator
+from deep.model_generator_MergeModels_TwoStep import Model_Generator
 
-# from deep.model_generator import Model_Generator
-from deep.model_generator_MergeModels import Model_Generator
 
-# from deep.model_generator_MergeModels_TwoStep import Model_Generator
 # from deep.model_generator_MergeModels_ConCateInputs import Model_Generator
 # from deep.model_generator_MergeModels_FULLCNN import Model_Generator
 from utils.report_generator import Report_Generator
@@ -382,7 +381,7 @@ batch_size = 128
 k_values_EC = [50, 100, 5,100, 2, 300, 5, 20, 50, 100.0]
 k_values_TC = [50, 100, 5,100, 2, 300, 5, 20, 50, 100.0]
 
-epoch_count = 200
+epoch_count = 100
 optimizer = "adam"
 learning_rate = 0.0001
 q_token_cnt = 14

@@ -136,9 +136,9 @@ class Model_Generator():
         model_TC_EC = Reshape((2816, 1))(model_TC_EC)
 
         model_TC_EC = Conv1D(filters=16, kernel_size=8, strides=1)(model_TC_EC)
-        model_TC_EC = MaxPooling1D(pool_size=8, strides=8)(model_TC_EC)
-        model_TC_EC = Conv1D(filters=4, kernel_size=4, strides=1)(model_TC_EC)
-        model_TC_EC = MaxPooling1D(pool_size=4, strides=4)(model_TC_EC)
+        # model_TC_EC = MaxPooling1D(pool_size=8, strides=8)(model_TC_EC)
+        # model_TC_EC = Conv1D(filters=4, kernel_size=4, strides=1)(model_TC_EC)
+        # model_TC_EC = MaxPooling1D(pool_size=4, strides=4)(model_TC_EC)
 
         model_TC_EC = Flatten()(model_TC_EC)
 
@@ -148,8 +148,7 @@ class Model_Generator():
 
         model_TC_EC = Dense(100)(model_TC_EC)
         model_TC_EC = Activation('relu')(model_TC_EC)
-
-        # model_TC_EC = Dropout(0.2)(model_TC_EC)
+        model_TC_EC = Dropout(0.3)(model_TC_EC)
 
         model_TC_EC = Dense(1)(model_TC_EC)
         model_TC_EC = Activation('linear')(model_TC_EC)

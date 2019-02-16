@@ -121,8 +121,8 @@ class Model_Generator():
         self.__network_TC.add(Conv2D(weights=model_TC.layers[4].get_weights(),filters=256, kernel_size= (32,32),strides=(1,1), padding="same", activation="relu"))
         self.__network_TC.add(MaxPooling2D(weights=model_TC.layers[5].get_weights()))
         self.__network_TC.add(Flatten(weights=model_TC.layers[6].get_weights()))
-        self.__network_TC.add(Dense(100, weights=model_TC.layers[7].get_weights()))
-        self.__network_TC.add(Activation('relu', weights=model_TC.layers[8].get_weights()))
+        # self.__network_TC.add(Dense(100, weights=model_TC.layers[7].get_weights()))
+        # self.__network_TC.add(Activation('relu', weights=model_TC.layers[8].get_weights()))
 
         new_train_part1_tc = self.__network_TC.predict(train_x_tc)
         new_test_part1_tc = self.__network_TC.predict(test_x_tc)
@@ -143,10 +143,10 @@ class Model_Generator():
         model_EC.add(Conv2D(filters=64, kernel_size=(14, 4), strides=1, padding="same", activation="relu", input_shape=input_shape))  # 3 know entities importancy #2
         model_EC.add(MaxPooling2D(pool_size=(1, 4), strides=(1, 4)))  # 4. get entity iportancy by query phrace #3
         model_EC.add(AveragePooling2D(pool_size=(14, 1), strides=(14, 1)))  # 5 average of entity iportancy on total query #4
-        model_EC.add(Conv2D(filters=256, kernel_size=(5, 5), strides=5, padding="same",activation="relu"))  # 3 feature reduction #5
+        # model_EC.add(Conv2D(filters=256, kernel_size=(5, 5), strides=5, padding="same",activation="relu"))  # 3 feature reduction #5
         model_EC.add(Flatten())  # 6
-        model_EC.add(Dense(100))  # 7
-        model_EC.add(Activation('relu'))  # 8
+        # model_EC.add(Dense(100))  # 7
+        # model_EC.add(Activation('relu'))  # 8
         model_EC.add(Dense(1, activation="linear"))  # 9
 
         ec_learning_rate = 0.0001
@@ -167,10 +167,14 @@ class Model_Generator():
         self.__network_EC.add(Conv2D(weights=model_EC.layers[2].get_weights(), filters=64, kernel_size=(14, 4), strides=1, padding="same", activation="relu", input_shape=input_shape))  # 3 know entities importancy #2
         self.__network_EC.add(MaxPooling2D(weights=model_EC.layers[3].get_weights(), pool_size=(1, 4), strides=(1, 4)))  # 4. get entity iportancy by query phrace #3
         self.__network_EC.add(AveragePooling2D(weights=model_EC.layers[4].get_weights(), pool_size=(14, 1), strides=(14, 1)))  # 5 average of entity iportancy on total query #4
-        self.__network_EC.add(Conv2D(weights=model_EC.layers[5].get_weights(), filters=256, kernel_size=(5, 5), strides=5, padding="same",activation="relu"))  # 3 feature reduction #5
-        self.__network_EC.add(Flatten(weights=model_EC.layers[6].get_weights()))  # 6
-        self.__network_EC.add(Dense(100, weights=model_EC.layers[7].get_weights()))  # 7
-        self.__network_EC.add(Activation('relu', weights=model_EC.layers[8].get_weights()))  # 8
+        # self.__network_EC.add(Conv2D(weights=model_EC.layers[5].get_weights(), filters=256, kernel_size=(5, 5), strides=5, padding="same",activation="relu"))  # 3 feature reduction #5
+        # self.__network_EC.add(Flatten(weights=model_EC.layers[6].get_weights()))  # 6
+
+        self.__network_EC.add(Flatten(weights=model_EC.layers[5].get_weights()))  # 6
+
+
+        # self.__network_EC.add(Dense(100, weights=model_EC.layers[7].get_weights()))  # 7
+        # self.__network_EC.add(Activation('relu', weights=model_EC.layers[8].get_weights()))  # 8
 
         new_train_part2_ec = self.__network_EC.predict(train_x_ec)
         new_test_part2_ec = self.__network_EC.predict(test_x_ec)
@@ -228,8 +232,6 @@ class Model_Generator():
         # channels_cnt = 1
         # input_shape = (2, rows, columns,1)
 
-        print("\n\nModel Two Step Merge Fitting")
-
 
         if (self.__optimizer == "adam"):
             adam = optimizers.Adam(lr=self.__learning_rate)
@@ -239,6 +241,10 @@ class Model_Generator():
             self.__network.compile(optimizer=rms_prop, loss=self.__loss, metrics=["accuracy"])
         else:
             self.__network.compile(optimizer=self.__optimizer, loss=self.__loss, metrics=["accuracy"])
+
+
+        print("\n\nModel Two Step Merge Fitting")
+        print(self.__network.summary())
 
         if len(self.__csv_log_path) > 0:
             csv_logger = CSVLogger(self.__csv_log_path, append=False, separator=',')
