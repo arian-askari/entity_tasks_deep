@@ -6,9 +6,16 @@ from keras.layers import *
 from utils import trec_output as trec
 from utils import file_utils
 from deep import train_set_generator as tsg
+from deep import train_set_generator_EC_IGNoreZeroRel as tsg_EC
+from termcolor import colored
+
+
 # from deep.model_generator import Model_Generator
+from deep.model_generator_MergeModels import Model_Generator
+
 # from deep.model_generator_MergeModels_TwoStep import Model_Generator
-from deep.model_generator_MergeModels_FULLCNN import Model_Generator
+# from deep.model_generator_MergeModels_ConCateInputs import Model_Generator
+# from deep.model_generator_MergeModels_FULLCNN import Model_Generator
 from utils.report_generator import Report_Generator
 report = Report_Generator()
 
@@ -120,7 +127,7 @@ def nested_cross_fold_validation():
                         queries_for_select_validation_set = substrac_dicts(queries_for_select_validation_set, queries_validation_set)
 
                         queries_train_set = substrac_dicts(queries_for_train, queries_validation_set)
-                        train_X_EC, train_Y_EC, test_X_EC, test_Y_EC_one_hot_EC, q_id_test_list, test_TYPES_EC, test_Y_EC = tsg.get_train_test_data_translation_matrix_3d(queries_train_set, queries_validation_set, top_entities=top_entities, top_k_term_per_entity=top_k_term_per_entity, use_tfidf=use_tfidf)
+                        train_X_EC, train_Y_EC, test_X_EC, test_Y_EC_one_hot_EC, q_id_test_list, test_TYPES_EC, test_Y_EC = tsg_EC.get_train_test_data_translation_matrix_3d(queries_train_set, queries_validation_set, top_entities=top_entities, top_k_term_per_entity=top_k_term_per_entity, use_tfidf=use_tfidf)
 
                         train_X_TC, train_Y_TC, test_X_TC, test_Y_TC_one_hot_TC, q_id_test_list, test_TYPES_TC, test_Y_TC = tsg.get_train_test_data_translation_matric_type_centric(queries_train_set, queries_validation_set, k=50)
 
@@ -167,15 +174,18 @@ def nested_cross_fold_validation():
                         if set_input_flat == True:
                             test_X_EC = flat_input(test_X_EC)
                         test_X = [test_X_TC, test_X_EC]
+                        tmp_trec =""
                         if category == "regression":
                             result_validation = model.predict(test_x_TC=test_X_TC, test_x_EC=test_X_EC, test_y=test_Y_EC)
                             predict_values = result_validation["predict"]
                             trec_output_validation += trec.get_trec_output_regression(q_id_test_list, test_TYPES_EC, test_Y_EC, predict_values)
+                            tmp_trec= trec.get_trec_output_regression(q_id_test_list, test_TYPES_EC, test_Y_EC, predict_values)
                         else:
                             result_validation = model.predict(test_x_TC=test_X_TC, test_x_EC=test_X_EC, test_y=test_Y_EC_one_hot_EC)
                             predict_values = result_validation["predict"]
                             predict_probs = result_validation["predict_prob"]
                             trec_output_validation += trec.get_trec_output_classification(q_id_test_list, test_TYPES_EC, test_Y_EC, predict_values, predict_probs)
+                            tmp_trec = trec.get_trec_output_regression(q_id_test_list, test_TYPES_EC, test_Y_EC, predict_values)
 
                         loss_train, acc_train = ressult_train["train_loss_latest"], ressult_train["train_acc_mean"]
                         loss_validation, acc_validation = result_validation["loss_mean"], result_validation["acc_mean"]
@@ -189,6 +199,10 @@ def nested_cross_fold_validation():
                         models_during_validation.append((model, loss_train,
                                                          acc_train, loss_validation, acc_validation, abs(loss_train-loss_validation)))
 
+                        text = "\nNDCG@5 on Validation until this fold : " + str( report.get_n5_tmp(trec_output_validation))
+                        print(colored(text, "green"))
+                        text = "\nNDCG@5 on Validation on this fold : " + str( report.get_n5_tmp(tmp_trec))
+                        print(colored(text, "green"))
                         #inja mishe yek record baraye config rooye in Ti , V, ba in config ha, ezafe konim dar csv e report :) !
                         print("\n-----------------------------------------------\n\n\n")
 
@@ -230,7 +244,7 @@ def nested_cross_fold_validation():
 
             ''' Evaluate best model on Test (unseen data :) ) '''
 
-            _, __, test_X_EC, test_Y_EC_one_hot_EC, q_id_test_list, test_TYPES_EC, test_Y_EC = tsg.get_train_test_data_translation_matrix_3d(queries_for_train, queries_for_test_set, top_entities=top_entities, top_k_term_per_entity=top_k_term_per_entity, use_tfidf=use_tfidf)
+            _, __, test_X_EC, test_Y_EC_one_hot_EC, q_id_test_list, test_TYPES_EC, test_Y_EC = tsg_EC.get_train_test_data_translation_matrix_3d(queries_for_train, queries_for_test_set, top_entities=top_entities, top_k_term_per_entity=top_k_term_per_entity, use_tfidf=use_tfidf)
             _, __, test_X_TC, test_Y_TC_one_hot_TC, q_id_test_list, test_TYPES_TC, test_Y_TC = tsg.get_train_test_data_translation_matric_type_centric(queries_for_train, queries_for_test_set, k=50)
 
             models_sorted = sorted(models_during_validation, key=lambda x: x[3])  # ascending sort
@@ -368,7 +382,7 @@ batch_size = 128
 k_values_EC = [50, 100, 5,100, 2, 300, 5, 20, 50, 100.0]
 k_values_TC = [50, 100, 5,100, 2, 300, 5, 20, 50, 100.0]
 
-epoch_count = 300
+epoch_count = 200
 optimizer = "adam"
 learning_rate = 0.0001
 q_token_cnt = 14
@@ -383,7 +397,7 @@ type_matrixEntityScore = "cosine_detail"
 set_input_flat = False
 # for cat, act, layers, k_v_ec,  k_v_tc in zip(categories, activation_for_evaluates, layers_for_evaluates, k_values_EC, k_values_TC):
 
-top_entities= 50 # age ok bood code jadid, 100 esh konam bebinam chi mishe !
+top_entities= 20 # age ok bood code jadid, 100 esh konam bebinam chi mishe !
 top_k_term_per_entity = 20
 use_tfidf = False
 for cat, act, layers in zip(categories, activation_for_evaluates, layers_for_evaluates):

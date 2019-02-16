@@ -83,7 +83,6 @@ class Model_Generator():
 
         ###################################################################################
 
-
         ####################################################################################
         train_x, input_shape = self.__reshape_for_cnn(train_x)
         test_x , _ = self.__reshape_for_cnn(test_x)
@@ -91,30 +90,18 @@ class Model_Generator():
 
         keras_backend.set_image_data_format("channels_last")  # channels_first
 
-        self.__network.add(Conv2D(filters=128, kernel_size= (5,5), strides=1, padding="same", activation="relu", input_shape = input_shape)) #1.2 know terms of entities importancy
+        self.__network.add(Conv2D(filters=32, kernel_size= (14,5), strides=1, padding="same", activation="relu", input_shape = input_shape)) #1.2 know terms of entities importancy
         self.__network.add(MaxPooling2D(pool_size=(1,5), strides = (1,5) ))  #2. get max important term five by five
 
-        self.__network.add(Conv2D(filters=128, kernel_size= (5,4), strides=1, padding="same", activation="relu", input_shape = input_shape)) #3 know entities importancy
+        self.__network.add(Conv2D(filters=64, kernel_size= (14,4), strides=1, padding="same", activation="relu", input_shape = input_shape)) #3 know entities importancy
 
         self.__network.add(MaxPooling2D(pool_size=(1,4), strides = (1,4) )) #4. get entity iportancy by query phrace
-        self.__network.add(AveragePooling2D(pool_size=(4,1), strides = (4,1) )) #5 average of entity iportancy on total query
+        self.__network.add(AveragePooling2D(pool_size=(14,1), strides = (14,1) )) #5 average of entity iportancy on total query
 
-        #raveshe ghabli vase featre reduction ..EEE RIDam in ooun nis ke ! vali fek konam 2 ya 4ta filter bud ! baa size 1,1 , va koln hamin! epoch ha ham 100 ta bud revale hamin bud
-        # self.__network.add(Conv2D(filters=4, kernel_size= (1,1), strides=1, padding="same", activation="relu", input_shape = input_shape)) #3 know entities importancy
-        # self.__network.add(Conv2D(filters=1, kernel_size= (1,1), strides=1, padding="same", activation="relu", input_shape = input_shape)) #3 agar moghe merge kardan khastamm 100tai beshe vectoresh ta betunam outputesho ba output un 100tai bedam input badi!
+        #just for merge is good enough :)
+        #self.__network.add(Conv2D(filters=256, kernel_size= (5,5), strides=5, padding="same", activation="relu")) #3 feature reduction
+
         self.__network.add(Flatten())
-
-
-        # filter_count_last_conv2 = 16 # badan 64 inja ham, test konam! ke bad conv1d ham 64tai nega kone albate!
-        # entities_cnt  = 50
-        # self.__network.add(Conv2D(filters=filter_count_last_conv2, kernel_size= (1,1), strides=1, padding="same", activation="relu", input_shape = input_shape)) #3 know entities importancy
-        # self.__network.add(Reshape((filter_count_last_conv2 * entities_cnt, 1)))
-        # self.__network.add(Conv1D(filters=5, kernel_size= 5*16 , strides=16, padding="same", activation="relu")) #3 top 5entity ro dune dune negah kone va entity entity ham bere jolo!
-        # self.__network.add(Conv1D(filters=1, kernel_size= 5 , strides=1, padding="same", activation="relu")) #3 merge eaach 5*5 feature for each entity to one feature !
-        # self.__network.add(Flatten())
-
-
-
         ####################################################################################
 
 

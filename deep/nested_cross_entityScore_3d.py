@@ -372,24 +372,25 @@ def nested_cross_fold_validation():
 # activation_for_evaluate_reg = [["relu","relu","linear"]]
 
 # layers_for_evaluate_reg = [[500, 1]]
-layers_for_evaluate_reg = [[500, 1]]
+layers_for_evaluate_reg = [[100,1]]
 # activation_for_evaluate_reg = [["relu", "linear"]]
-activation_for_evaluate_reg = [["relu", "linear"]]
+activation_for_evaluate_reg = [["relu","linear"]]
 
-dropout_rates = [0.1]
+dropout_rates = [0]
 
 categories = ["regression"]
 layers_for_evaluates = [layers_for_evaluate_reg]
 activation_for_evaluates = [activation_for_evaluate_reg]
-batch_size = 100 #100 ham khoob bud
+batch_size = 128 #100 ham khoob bud
 
 k_values = [20, 5, 100, 2, 300, 5, 20, 50, 100.0]
 epoch_count = 100 #100 ba batch e 512 o lr 0.00001
-optimizer = "rms" #hame testam ba rms bud ! :(
+optimizer = "adam" #hame testam ba rms bud ! :(
 learning_rate = 0.0001  # 0.0001
-q_token_cnt = 5
+# q_token_cnt = 5
+q_token_cnt = 14
 
-top_entities= 50 # age ok bood code jadid, 100 esh konam bebinam chi mishe !
+top_entities= 20 # 50, age ok bood code jadid, 100 esh konam bebinam chi mishe !
 top_k_term_per_entity = 20
 
 # type_matrixEntityScore = "detail"

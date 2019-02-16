@@ -4,6 +4,8 @@ import utils.file_utils as file_utils
 validations_report_path = os.path.join("../data", "reports", "validation_reports_EC_TC_Merge.csv")
 test_report_path = os.path.join("../data", "reports", "test_reports_EC_TC_Merge.csv")
 trec_path = os.path.join("../data", "types", "qrels.test")
+tmp_validation_run_path = os.path.join("../data", "runs", "validation_tmp.run")
+tmp_validation_result_path = os.path.join("../data", "results", "validation_tmp.result")
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 delimeter = "\t"
 
@@ -90,6 +92,24 @@ class Report_Generator():
         cmd1 = ""
         cmd2 = 'trec_eval -m all_trec "' + trec_path + '" "' + run_path + '" > "' + res_path + '"'
         os.system(cmd1 + cmd2)
+
+    def get_n5_tmp(self, trec_output):
+        #write trec out put to temp path
+        "Generate Result File from run_path and trec_path "
+        file_utils.create_file(tmp_validation_run_path, data=trec_output)
+        # cmd1 = 'cd ' + ROOT_DIR + " && "
+        cmd1 = ""
+        cmd2 = 'trec_eval -m all_trec "' + trec_path + '" "' + tmp_validation_run_path + '" > "' + tmp_validation_result_path + '"'
+        os.system(cmd1 + cmd2)
+
+        time.sleep(2)
+        with open(tmp_validation_result_path) as tsv:
+            for line in csv.reader(tsv, dialect="excel-tab"):  # can also
+                if len(line) == 3:
+                    measure = line[0].strip()
+                    if measure == "ndcg_cut_5":
+                        n_5 = line[2].strip()
+                        return n_5
 
 
     def __check_exist(self, path, header):

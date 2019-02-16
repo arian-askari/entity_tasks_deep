@@ -76,37 +76,22 @@ class Model_Generator():
 
 
         model_TC = Sequential()
-        model_TC.add(Conv2D(filters=64, kernel_size= (5,5),strides=(1,1), padding="same", activation="relu", input_shape=input_shape, kernel_initializer='uniform'))
-        model_TC.add(MaxPooling2D())
-        model_TC.add(Dropout(0))
+        model_TC.add(Conv2D(filters=64, kernel_size= (5,5),strides=(1,1), padding="same", activation="relu", input_shape=input_shape)) #0
+        model_TC.add(MaxPooling2D()) #1
 
-        model_TC.add(Conv2D(filters=16, kernel_size= (10,10),strides=(1,1), padding="same", activation="relu"))
-        model_TC.add(MaxPooling2D())
-        model_TC.add(Dropout(0))
+        model_TC.add(Conv2D(filters=16, kernel_size= (10,10),strides=(1,1), padding="same", activation="relu")) #2
+        model_TC.add(MaxPooling2D()) #3
 
-        model_TC.add(Conv2D(filters=256, kernel_size= (32,32),strides=(1,1), padding="same", activation="relu"))
-        model_TC.add(MaxPooling2D())
-        model_TC.add(Dropout(0))
+        model_TC.add(Conv2D(filters=256, kernel_size= (32,32),strides=(1,1), padding="same", activation="relu")) #4
+        model_TC.add(MaxPooling2D()) #5
 
-        model_TC.add(Flatten())
+        model_TC.add(Flatten()) #6
 
-        model_TC.add(Dense(100))
-        model_TC.add(Activation('relu'))
-        model_TC.add(Dropout(self.__dropout))
+        model_TC.add(Dense(100)) #7
+        model_TC.add(Activation('relu')) #8
 
-        # model_TC.add(Dense(500))
-        # model_TC.add(Activation('relu'))
-        # model_TC.add(Dropout(self.__dropout))
-
-
-        # model_TC.add(Dense(100))
-        # model_TC.add(Activation('relu'))
-        # model_TC.add(Dropout(0))
-
-        #second try remove it
-        model_TC.add(Dense(100))
-        model_TC.add(Activation('relu'))
-        model_TC.add(Dropout(0.0))
+        model_TC.add(Dense(1)) #9
+        model_TC.add(Activation('linear')) #10
 
 
 
@@ -126,64 +111,49 @@ class Model_Generator():
         ##########################################################
 
 
-        model_EC.add(Conv2D(filters=256, kernel_size=(1, 1), strides=(1, 1), padding="same", activation="relu",
-                            input_shape=input_shape))
-        model_EC.add(Conv2D(filters=128, kernel_size= (15,1),strides=(1,1), padding="same", activation="relu", input_shape=input_shape, kernel_initializer ='uniform'))
-        model_EC.add(Conv2D(filters=64, kernel_size= (12,1),strides=(1,1), padding="same", activation="relu"))
-        model_EC.add(Conv2D(filters=32, kernel_size= (9,1),strides=(1,1), padding="same", activation="relu"))
-        model_EC.add(Conv2D(filters=16, kernel_size= (5,1),strides=(1,1), padding="same", activation="relu"))
-        model_EC.add(Conv2D(filters=8, kernel_size= (2,1),strides=(1,1), padding="same", activation="relu"))
-
-        model_EC.add(Flatten())
-
-        #
-        model_EC.add(Dense(700))
-        model_EC.add(Activation('relu'))
-        model_EC.add(Dropout(0))
-
-        model_EC.add(Dense(400))
-        model_EC.add(Activation('relu'))
-        model_EC.add(Dropout(0))
-
-        # model_EC.add(Dense(500))
-        # model_EC.add(Activation('relu'))
-        # model_EC.add(Dropout(0))
-        #
-        # model_EC.add(Dense(10))
-        # model_EC.add(Activation('relu'))
-        # model_EC.add(Dropout(self.__dropout))
-
-
-
-        #
-        # model_EC.add(Dense(10))
-        # model_EC.add(Activation('relu'))
-        # model_EC.add(Dropout(0))
-        #second try remove it
-        model_EC.add(Dense(100))
-        model_EC.add(Activation('relu'))
-        model_EC.add(Dropout(0))
-
-
+        model_EC = Sequential()
+        model_EC.add(Conv2D(filters=32, kernel_size=(14, 5), strides=1, padding="same", activation="relu", input_shape=input_shape))  # 1.2 know terms of entities importancy #0
+        model_EC.add(MaxPooling2D(pool_size=(1, 5), strides=(1, 5)))  # 2. get max important term five by five #1
+        model_EC.add(Conv2D(filters=64, kernel_size=(14, 4), strides=1, padding="same", activation="relu", input_shape=input_shape))  # 3 know entities importancy #2
+        model_EC.add(MaxPooling2D(pool_size=(1, 4), strides=(1, 4)))  # 4. get entity iportancy by query phrace #3
+        model_EC.add(AveragePooling2D(pool_size=(14, 1), strides=(14, 1)))  # 5 average of entity iportancy on total query #4
+        # model_EC.add(Conv2D(filters=256, kernel_size=(5, 5), strides=5, padding="same",activation="relu"))  # 3 feature reduction #5
+        model_EC.add(Flatten())  # 6
+        # model_EC.add(Dense(100))  # 7
+        # model_EC.add(Activation('relu'))  # 8
+        model_EC.add(Dense(1))  # 9
+        model_EC.add(Activation("linear"))  # 9
 
         #Merged Model try to be Dynamic :)
-        model_TC_EC = Add()([model_TC.output, model_EC.output])
+        # model_TC_EC = Concatenate()([model_TC.output, model_EC.output])
+        model_TC_EC = Concatenate()([model_TC.layers[6].output, model_EC.layers[5].output])
 
-        # model_TC_EC = BatchNormalization()(model_TC_EC) ##TODO:: Test konam ! chon noghtei hast ke daran 2ta model merge mishan shayad kare khassi kard!
 
-        # model_TC_EC = Dense(100)(model_TC_EC)
+        # model_TC_EC = Concatenate()([model_TC.layers[8].output, model_EC.layers[8].output])
+        # model_TC_EC = Maximum()([model_TC.layers[8].output, model_EC.layers[8].output])
+        # model_TC_EC = Average()([model_TC.output, model_EC.output])
+
+        model_TC_EC = Reshape((2816, 1))(model_TC_EC)
+
+        model_TC_EC = Conv1D(filters=16, kernel_size=8, strides=1)(model_TC_EC)
+        model_TC_EC = MaxPooling1D(pool_size=8, strides=8)(model_TC_EC)
+        model_TC_EC = Conv1D(filters=4, kernel_size=4, strides=1)(model_TC_EC)
+        model_TC_EC = MaxPooling1D(pool_size=4, strides=4)(model_TC_EC)
+
+        model_TC_EC = Flatten()(model_TC_EC)
+
+
+        # model_TC_EC = Dense((2816, 2816))(model_TC_EC)
         # model_TC_EC = Activation('relu')(model_TC_EC)
 
+        model_TC_EC = Dense(100)(model_TC_EC)
+        model_TC_EC = Activation('relu')(model_TC_EC)
 
-
-        #
-        # model_TC_EC = Dense(100)(model_TC_EC)
-        # model_TC_EC = Activation('relu')(model_TC_EC)
-
+        # model_TC_EC = Dropout(0.2)(model_TC_EC)
 
         model_TC_EC = Dense(1)(model_TC_EC)
-        # model_TC_EC = Activation('relu')(model_TC_EC)
         model_TC_EC = Activation('linear')(model_TC_EC)
+
 
         merged_TC_EC_new_model = Sequential()
         merged_TC_EC_new_model = Model([model_TC.input, model_EC.input], model_TC_EC)
@@ -219,6 +189,9 @@ class Model_Generator():
             self.__network.compile(optimizer=rms_prop, loss=self.__loss, metrics=["accuracy"])
         else:
             self.__network.compile(optimizer=self.__optimizer, loss=self.__loss, metrics=["accuracy"])
+
+        print(self.__network.summary())
+
 
         if len(self.__csv_log_path) > 0:
             csv_logger = CSVLogger(self.__csv_log_path, append=False, separator=',')
