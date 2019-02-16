@@ -65,6 +65,7 @@ class Model_Generator():
 
 
     def fit(self, train_xTC, trainxEC, train_y, input_dim, test_x_TC =None, test_x_EC =None, test_y = None): #input_dim example: (600,)
+        f = open("tahlil_khoroji_2model_tc_ec_vase_mergeshun.txt","a")
         """ Performs training on train_x instances"""
         # train_x = np.array(train_x)
         # print(train_x.shape)
@@ -183,16 +184,28 @@ class Model_Generator():
 
         #create new train set from pediction of two models
         new_train_X_for_model3 = []
+        cnt = 0
         for instance_tc, instance_ec in zip(new_train_part1_tc.tolist(), new_train_part2_ec.tolist()):
+            text = "type label: ", train_y[cnt] + "\n"
+            text += "instance_tc on train" + instance_tc + "\n"
+            text += "instance_ec on train" + instance_ec + "\n"
+            f.write(text)
             new_instance = instance_tc + instance_ec
             # new_instance = np.array([instance_tc , instance_ec]).mean(axis=0)
             new_train_X_for_model3.append(new_instance)
+            cnt+=1
 
         new_test_X_for_model3 = []
+        cnt = 0
         for instance_test_tc, instance_ec_test in zip(new_test_part1_tc.tolist(), new_test_part2_ec.tolist()):
             new_test_instance = instance_test_tc + instance_ec_test
             # new_test_instance = np.array([instance_test_tc , instance_ec_test]).mean(axis=0)
             new_test_X_for_model3.append(new_test_instance)
+
+            text = "type label: ", test_y[cnt] + "\n"
+            text += "instance_tc on test" + instance_test_tc + "\n"
+            text += "instance_ec on test" + instance_ec_test + "\n"
+            f.write(text)
 
         new_train_X_for_model3 = np.array(new_train_X_for_model3)
         new_train_Y_for_model3 = train_y
@@ -242,9 +255,6 @@ class Model_Generator():
         else:
             self.__network.compile(optimizer=self.__optimizer, loss=self.__loss, metrics=["accuracy"])
 
-
-        print("\n\nModel Two Step Merge Fitting")
-        print(self.__network.summary())
 
         if len(self.__csv_log_path) > 0:
             csv_logger = CSVLogger(self.__csv_log_path, append=False, separator=',')
