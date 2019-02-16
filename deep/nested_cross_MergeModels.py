@@ -9,8 +9,8 @@ from deep import train_set_generator as tsg
 from deep import train_set_generator_EC_IGNoreZeroRel as tsg_EC
 from termcolor import colored
 
-# from deep.model_generator_MergeModels import Model_Generator
-from deep.model_generator_MergeModels_TwoStep import Model_Generator
+from deep.model_generator_MergeModels import Model_Generator
+# from deep.model_generator_MergeModels_TwoStep import Model_Generator
 
 
 # from deep.model_generator_MergeModels_ConCateInputs import Model_Generator

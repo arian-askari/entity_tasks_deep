@@ -74,6 +74,14 @@ class Model_Generator():
         # train_x_tc, input_shape = self.__reshape_for_cnn(np.array(train_x[0]))
         # test_x_tc , _ = self.__reshape_for_cnn(np.array(test_x[0]))
 
+        #############shared layers#############
+        shared_flatten = Flatten()
+        shared_dense_100 = Dense(100, activation="relu")
+        shared_dense_linear_1 = Dense(1, activation="linear")
+        #############shared layers#############
+
+
+
 
         model_TC = Sequential()
         model_TC.add(Conv2D(filters=64, kernel_size= (5,5),strides=(1,1), padding="same", activation="relu", input_shape=input_shape)) #0
@@ -85,13 +93,26 @@ class Model_Generator():
         model_TC.add(Conv2D(filters=256, kernel_size= (32,32),strides=(1,1), padding="same", activation="relu")) #4
         model_TC.add(MaxPooling2D()) #5
 
-        model_TC.add(Flatten()) #6
+        # model_TC.add(Flatten()) #6
 
-        model_TC.add(Dense(100)) #7
-        model_TC.add(Activation('relu')) #8
+        # model_TC.add(Dense(100)) #7
+        # model_TC.add(Activation('relu')) #8
 
-        model_TC.add(Dense(1)) #9
-        model_TC.add(Activation('linear')) #10
+        # model_TC.add(Dense(1)) #9
+        # model_TC.add(Activation('linear')) #10
+
+        #shared flatten !
+        model_TC.add(shared_flatten)
+
+        #shared dense 100 relu
+        model_TC.add(Dense(100, activation="relu")) #doesn't share!
+
+
+        model_TC.add(shared_dense_100) #its share!
+
+        #shared dense 1 linear
+        model_TC.add(shared_dense_linear_1)  # 9
+
 
 
 
@@ -118,37 +139,54 @@ class Model_Generator():
         model_EC.add(MaxPooling2D(pool_size=(1, 4), strides=(1, 4)))  # 4. get entity iportancy by query phrace #3
         model_EC.add(AveragePooling2D(pool_size=(14, 1), strides=(14, 1)))  # 5 average of entity iportancy on total query #4
         # model_EC.add(Conv2D(filters=256, kernel_size=(5, 5), strides=5, padding="same",activation="relu"))  # 3 feature reduction #5
-        model_EC.add(Flatten())  # 6
-        # model_EC.add(Dense(100))  # 7
-        # model_EC.add(Activation('relu'))  # 8
-        model_EC.add(Dense(1))  # 9
-        model_EC.add(Activation("linear"))  # 9
+
+        # model_EC.add(Flatten())  # 6
+        # # model_EC.add(Dense(100))  # 7
+        # # model_EC.add(Activation('relu'))  # 8
+        # model_EC.add(Dense(1))  # 9
+        # model_EC.add(Activation("linear"))  # 9
+
+
+
+
+        # shared flatten !
+        model_EC.add(shared_flatten) 
+
+        # shared dense 100 relu
+        model_EC.add(Dense(100, activation="relu")) #doesn't share!
+        model_EC.add(shared_dense_100) #its share!
+
+        # shared dense 1 linear
+        model_EC.add(shared_dense_linear_1)  # 9
+
+
+
 
         #Merged Model try to be Dynamic :)
-        # model_TC_EC = Concatenate()([model_TC.output, model_EC.output])
-        model_TC_EC = Concatenate()([model_TC.layers[6].output, model_EC.layers[5].output])
+        model_TC_EC = Concatenate()([model_TC.output, model_EC.output])
+        # model_TC_EC = Concatenate()([model_TC.layers[6].output, model_EC.layers[5].output])
 
 
         # model_TC_EC = Concatenate()([model_TC.layers[8].output, model_EC.layers[8].output])
         # model_TC_EC = Maximum()([model_TC.layers[8].output, model_EC.layers[8].output])
         # model_TC_EC = Average()([model_TC.output, model_EC.output])
 
-        model_TC_EC = Reshape((2816, 1))(model_TC_EC)
-
-        model_TC_EC = Conv1D(filters=16, kernel_size=8, strides=1)(model_TC_EC)
+        # model_TC_EC = Reshape((2816, 1))(model_TC_EC)
+        #
+        # model_TC_EC = Conv1D(filters=16, kernel_size=8, strides=1)(model_TC_EC)
         # model_TC_EC = MaxPooling1D(pool_size=8, strides=8)(model_TC_EC)
         # model_TC_EC = Conv1D(filters=4, kernel_size=4, strides=1)(model_TC_EC)
         # model_TC_EC = MaxPooling1D(pool_size=4, strides=4)(model_TC_EC)
 
-        model_TC_EC = Flatten()(model_TC_EC)
+        # model_TC_EC = Flatten()(model_TC_EC)
 
 
         # model_TC_EC = Dense((2816, 2816))(model_TC_EC)
         # model_TC_EC = Activation('relu')(model_TC_EC)
 
-        model_TC_EC = Dense(100)(model_TC_EC)
-        model_TC_EC = Activation('relu')(model_TC_EC)
-        model_TC_EC = Dropout(0.3)(model_TC_EC)
+        # model_TC_EC = Dense(100)(model_TC_EC)
+        # model_TC_EC = Activation('relu')(model_TC_EC)
+        # model_TC_EC = Dropout(0.3)(model_TC_EC)
 
         model_TC_EC = Dense(1)(model_TC_EC)
         model_TC_EC = Activation('linear')(model_TC_EC)
