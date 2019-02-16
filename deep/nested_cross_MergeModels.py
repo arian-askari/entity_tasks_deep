@@ -381,9 +381,9 @@ batch_size = 128
 k_values_EC = [50, 100, 5,100, 2, 300, 5, 20, 50, 100.0]
 k_values_TC = [50, 100, 5,100, 2, 300, 5, 20, 50, 100.0]
 
-epoch_count = 100
+epoch_count = 300
 optimizer = "adam"
-learning_rate = 0.0001
+learning_rate = 0.00001
 q_token_cnt = 14
 
 # type_matrixEntityScore = "detail_normal"

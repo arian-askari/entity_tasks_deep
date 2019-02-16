@@ -107,8 +107,7 @@ class Model_Generator():
         #shared dense 100 relu
         model_TC.add(Dense(100, activation="relu")) #doesn't share!
 
-
-        model_TC.add(shared_dense_100) #its share!
+        # model_TC.add(shared_dense_100) #its share!
 
         #shared dense 1 linear
         model_TC.add(shared_dense_linear_1)  # 9
@@ -150,11 +149,11 @@ class Model_Generator():
 
 
         # shared flatten !
-        model_EC.add(shared_flatten) 
+        model_EC.add(shared_flatten)
 
         # shared dense 100 relu
         model_EC.add(Dense(100, activation="relu")) #doesn't share!
-        model_EC.add(shared_dense_100) #its share!
+        # model_EC.add(shared_dense_100) #its share!
 
         # shared dense 1 linear
         model_EC.add(shared_dense_linear_1)  # 9
