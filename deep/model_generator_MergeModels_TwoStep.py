@@ -66,6 +66,7 @@ class Model_Generator():
 
     def fit(self, train_xTC, trainxEC, train_y, input_dim, test_x_TC =None, test_x_EC =None, test_y = None): #input_dim example: (600,)
         f = open("tahlil_khoroji_2model_tc_ec_vase_mergeshun.txt","a")
+        print('test_y.shape', test_y.shape)
         """ Performs training on train_x instances"""
         # train_x = np.array(train_x)
         # print(train_x.shape)
@@ -74,7 +75,9 @@ class Model_Generator():
         # print(train_xTC.shape)
         # print(trainxEC.shape)
 
-        two_inner_models_epochs = 100
+        two_inner_models_epochs = 1
+        inner_models_verbose = 0
+        self.__verbose = 2
 
         train_x_tc, input_shape = self.__reshape_for_cnn(train_xTC)
         test_x_tc , _ = self.__reshape_for_cnn(test_x_TC)
@@ -105,8 +108,9 @@ class Model_Generator():
 
         print("\n\nModel Type Centric Fitting")
 
+        #two_inner_models_epochs
         model_TC.fit(train_x_tc, train_y, validation_data=(test_x_tc, test_y), epochs=two_inner_models_epochs,
-                           batch_size=128, verbose=2)
+                           batch_size=128, verbose=inner_models_verbose)
 
         # print(model_TC.summary())
         print("\n\nModel Type Centric Fitted")
@@ -122,8 +126,8 @@ class Model_Generator():
         self.__network_TC.add(Conv2D(weights=model_TC.layers[4].get_weights(),filters=256, kernel_size= (32,32),strides=(1,1), padding="same", activation="relu"))
         self.__network_TC.add(MaxPooling2D(weights=model_TC.layers[5].get_weights()))
         self.__network_TC.add(Flatten(weights=model_TC.layers[6].get_weights()))
-        # self.__network_TC.add(Dense(100, weights=model_TC.layers[7].get_weights()))
-        # self.__network_TC.add(Activation('relu', weights=model_TC.layers[8].get_weights()))
+        self.__network_TC.add(Dense(100, weights=model_TC.layers[7].get_weights()))
+        self.__network_TC.add(Activation('relu', weights=model_TC.layers[8].get_weights()))
 
         new_train_part1_tc = self.__network_TC.predict(train_x_tc)
         new_test_part1_tc = self.__network_TC.predict(test_x_tc)
@@ -144,10 +148,10 @@ class Model_Generator():
         model_EC.add(Conv2D(filters=64, kernel_size=(14, 4), strides=1, padding="same", activation="relu", input_shape=input_shape))  # 3 know entities importancy #2
         model_EC.add(MaxPooling2D(pool_size=(1, 4), strides=(1, 4)))  # 4. get entity iportancy by query phrace #3
         model_EC.add(AveragePooling2D(pool_size=(14, 1), strides=(14, 1)))  # 5 average of entity iportancy on total query #4
-        # model_EC.add(Conv2D(filters=256, kernel_size=(5, 5), strides=5, padding="same",activation="relu"))  # 3 feature reduction #5
+        model_EC.add(Conv2D(filters=256, kernel_size=(5, 5), strides=5, padding="same",activation="relu"))  # 3 feature reduction #5
         model_EC.add(Flatten())  # 6
-        # model_EC.add(Dense(100))  # 7
-        # model_EC.add(Activation('relu'))  # 8
+        model_EC.add(Dense(50))  # 7
+        model_EC.add(Activation('relu'))  # 8
         model_EC.add(Dense(1, activation="linear"))  # 9
 
         ec_learning_rate = 0.0001
@@ -155,7 +159,7 @@ class Model_Generator():
         model_EC.compile(optimizer=adam, loss="mse", metrics=["accuracy"])
 
         print("\n\nModel Entity Centric Fitting")
-        model_EC.fit(train_x_ec, train_y, validation_data=(test_x_ec, test_y), epochs=two_inner_models_epochs, batch_size=128, verbose=2)
+        model_EC.fit(train_x_ec, train_y, validation_data=(test_x_ec, test_y), epochs=two_inner_models_epochs, batch_size=128, verbose=inner_models_verbose)
 
         # print(model_EC.summary())
         print("\n\nModel Entity Centric Fitted")
@@ -168,44 +172,72 @@ class Model_Generator():
         self.__network_EC.add(Conv2D(weights=model_EC.layers[2].get_weights(), filters=64, kernel_size=(14, 4), strides=1, padding="same", activation="relu", input_shape=input_shape))  # 3 know entities importancy #2
         self.__network_EC.add(MaxPooling2D(weights=model_EC.layers[3].get_weights(), pool_size=(1, 4), strides=(1, 4)))  # 4. get entity iportancy by query phrace #3
         self.__network_EC.add(AveragePooling2D(weights=model_EC.layers[4].get_weights(), pool_size=(14, 1), strides=(14, 1)))  # 5 average of entity iportancy on total query #4
-        # self.__network_EC.add(Conv2D(weights=model_EC.layers[5].get_weights(), filters=256, kernel_size=(5, 5), strides=5, padding="same",activation="relu"))  # 3 feature reduction #5
-        # self.__network_EC.add(Flatten(weights=model_EC.layers[6].get_weights()))  # 6
+        self.__network_EC.add(Conv2D(weights=model_EC.layers[5].get_weights(), filters=256, kernel_size=(5, 5), strides=5, padding="same",activation="relu"))  # 3 feature reduction #5
+        self.__network_EC.add(Flatten(weights=model_EC.layers[6].get_weights()))  # 6
 
-        self.__network_EC.add(Flatten(weights=model_EC.layers[5].get_weights()))  # 6
+        # self.__network_EC.add(Flatten(weights=model_EC.layers[5].get_weights()))  # 6
 
 
-        # self.__network_EC.add(Dense(100, weights=model_EC.layers[7].get_weights()))  # 7
-        # self.__network_EC.add(Activation('relu', weights=model_EC.layers[8].get_weights()))  # 8
+        self.__network_EC.add(Dense(50, weights=model_EC.layers[7].get_weights()))  # 7
+        self.__network_EC.add(Activation('relu', weights=model_EC.layers[8].get_weights()))  # 8
 
         new_train_part2_ec = self.__network_EC.predict(train_x_ec)
         new_test_part2_ec = self.__network_EC.predict(test_x_ec)
         # print("input_shape", train_x_ec.shape)
         # print("new_train_part2_ec shape", np.array(new_train_part2_ec).shape)
 
+
         #create new train set from pediction of two models
         new_train_X_for_model3 = []
         cnt = 0
         for instance_tc, instance_ec in zip(new_train_part1_tc.tolist(), new_train_part2_ec.tolist()):
+            if not train_x_ec[cnt].any():
+                if train_y[cnt] != "0":
+                    instance_ec = instance_tc[:len(instance_ec)]
+                    print("EEEEEEEEEEEEEEEEEEEEEE to instance haye ec tu train chera hamash sefr hast hanuzam?!")
+
             text = "type label: " + str(train_y[cnt]) + "\n"
             text += "instance_tc on train" + str(instance_tc) + "\n"
             text += "instance_ec on train" + str(instance_ec) + "\n"
-            f.write(text)
+            # f.write(text)
+
+
+            # new_instance = instance_tc + instance_ec + [int(train_y[cnt])]
             new_instance = instance_tc + instance_ec
+
+
             # new_instance = np.array([instance_tc , instance_ec]).mean(axis=0)
             new_train_X_for_model3.append(new_instance)
             cnt+=1
 
+
         new_test_X_for_model3 = []
         cnt = 0
         for instance_test_tc, instance_ec_test in zip(new_test_part1_tc.tolist(), new_test_part2_ec.tolist()):
+            if not test_x_ec[cnt].any():
+                instance_ec_test = instance_test_tc[:len(instance_ec_test)] #az avale instance tc slice bardar !
+                # instance_ec_test = np.zeros(len(instance_ec_test)).tolist()
+
+                # if test_y[cnt] != 0 and test_y[cnt] != "0":
+                #     text = "type label: " + str(test_y[cnt]) + "\n"
+                #     text += "instance_ec on test" + str(instance_ec_test) + "\n"
+                #     text += "instance_tc on test" + str(instance_test_tc) + "\n"
+                #     print(text)
+
+
+            # new_test_instance = instance_test_tc + instance_ec_test +  [int(test_y[cnt])]
             new_test_instance = instance_test_tc + instance_ec_test
-            # new_test_instance = np.array([instance_test_tc , instance_ec_test]).mean(axis=0)
             new_test_X_for_model3.append(new_test_instance)
 
-            text = "type label: " + str(test_y[cnt]) + "\n"
-            text += "instance_tc on test" + str(instance_test_tc) + "\n"
-            text += "instance_ec on test" + str(instance_ec_test) + "\n"
-            f.write(text)
+            cnt+=1
+
+
+
+        # print("az test ham gozasthim!!")
+        #
+        # import sys
+        # sys.exit(1)
+            # f.write(text)
 
         f.close()
 
@@ -268,11 +300,11 @@ class Model_Generator():
                 self.__history = self.__network.fit(train_x, train_y, epochs=self.__epochs, batch_size=self.__batch_size, verbose=self.__verbose, callbacks=[csv_logger])
         else:
             if test_x is not None:
-                self.__history = self.__network.fit(train_x, train_y, epochs=self.__epochs,
-                                                    batch_size=self.__batch_size, verbose=self.__verbose)
+                self.__history = self.__network.fit(train_x, train_y, validation_data=(test_x, test_y),  epochs=self.__epochs, batch_size=self.__batch_size, verbose=self.__verbose)
+
             else:
                 print(test_y)
-                self.__history = self.__network.fit(train_x, train_y, validation_data=(test_x, test_y), epochs=self.__epochs, batch_size=self.__batch_size, verbose=self.__verbose)
+                self.__history = self.__network.fit(train_x, train_y, epochs=self.__epochs, batch_size=self.__batch_size, verbose=self.__verbose)
 
         result = dict()
         result["model"] = self.__network
@@ -320,10 +352,23 @@ class Model_Generator():
         new_test_part1_tc = self.__network_TC.predict(test_x_tc)
         new_test_part2_ec = self.__network_EC.predict(test_x_ec)
         new_test_X_for_model3 = []
+
+
+        cnt = 0
         for instance_test_tc, instance_ec_test in zip(new_test_part1_tc.tolist(), new_test_part2_ec.tolist()):
-            new_test_instance = instance_test_tc + instance_ec_test
+            if not test_x_ec[cnt].any():
+                instance_ec_test = instance_test_tc[:len(instance_ec_test)] #az avale instance tc slice bardar !
+                # instance_ec_test = np.zeros(len(instance_ec_test)).tolist()
+
+            # new_test_instance = (instance_test_tc) + instance_ec_test + [int(test_y[cnt])]
+            new_test_instance = (instance_test_tc) + instance_ec_test
+
+
             # new_test_instance = np.array([instance_test_tc , instance_ec_test]).mean(axis=0)
             new_test_X_for_model3.append(new_test_instance)
+            cnt+=1
+
+
 
         new_test_X_for_model3 = np.array(new_test_X_for_model3)
         test_x = new_test_X_for_model3

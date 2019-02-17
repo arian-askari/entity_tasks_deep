@@ -54,7 +54,7 @@ epoch_count = 1
 layers_for_evaluate = [[1, 8], [4, 8],[2, 8]]
 # activation_for_evaluate = [["relu",  "linear"], ["relu", "linear"], ["relu", "linear"]]
 activation_for_evaluate = [["relu",  "softmax"], ["relu", "softmax"], ["relu", "softmax"]]
-batch_size = 100
+batch_size = 128
 loss_function = "mse"
 
 def flat_input(list_data):
@@ -178,7 +178,12 @@ def nested_cross_fold_validation():
                         if category == "regression":
                             result_validation = model.predict(test_x_TC=test_X_TC, test_x_EC=test_X_EC, test_y=test_Y_EC)
                             predict_values = result_validation["predict"]
+
+                            #arian arian arian
+                            print("predict_values", predict_values)
                             trec_output_validation += trec.get_trec_output_regression(q_id_test_list, test_TYPES_EC, test_Y_EC, predict_values)
+                            print("trec_output_validation", trec_output_validation)
+
                             tmp_trec= trec.get_trec_output_regression(q_id_test_list, test_TYPES_EC, test_Y_EC, predict_values)
                         else:
                             result_validation = model.predict(test_x_TC=test_X_TC, test_x_EC=test_X_EC, test_y=test_Y_EC_one_hot_EC)
@@ -252,54 +257,60 @@ def nested_cross_fold_validation():
             _, __, test_X_EC, test_Y_EC_one_hot_EC, q_id_test_list, test_TYPES_EC, test_Y_EC = tsg_EC.get_train_test_data_translation_matrix_3d(queries_for_train, queries_for_test_set, top_entities=top_entities, top_k_term_per_entity=top_k_term_per_entity, use_tfidf=use_tfidf)
             _, __, test_X_TC, test_Y_TC_one_hot_TC, q_id_test_list, test_TYPES_TC, test_Y_TC = tsg.get_train_test_data_translation_matric_type_centric(queries_for_train, queries_for_test_set, k=50)
 
-            models_sorted = sorted(models_during_validation, key=lambda x: x[3])  # ascending sort
+            # models_sorted = sorted(models_during_validation, key=lambda x: x[3])  # ascending sort
             # # models_sorted = sorted(models_during_validation, key=lambda x: x[5])  # sort by train loss - validation loss (abs value :))
 
-            # models_sorted = sorted(models_during_validation, key=lambda x: x[6], reverse=True)  # sort by N@5 on validation !
+            models_sorted = sorted(models_during_validation, key=lambda x: x[6], reverse=True)  # sort by N@5 on validation !
 
-            best_model, loss_train, acc_train, loss_validation, acc_validation, difference_loss_train_loss_validation, n5_validation = models_sorted[0]
-            if loss_train>10:
-                best_model, loss_train, acc_train, loss_validation, acc_validation, difference_loss_train_loss_validation, n5_validation = models_sorted[1]
-            best_model_name = best_model.get_model_name()
+            # best_model, loss_train, acc_train, loss_validation, acc_validation, difference_loss_train_loss_validation, n5_validation = models_sorted[0]
 
-            print("####################################################\n\t\tbest model selected ! :)\n"
-                  "\t\tN@5 on validation for best model : ", n5_validation, "\n" 
-                  "\t\tloss validation best model: ", loss_validation,"\n"
-                  "\t\tloss train best model: ", loss_train,"\n"
-                  "\t\tloss train - loss validation validation best model: ", (loss_train - loss_validation),"\n"
-                  "\t\tacc validation best model: ", acc_validation,"\n"
-                  "\t\tacc train best model: ", acc_train,"\n"
-                  "\n####################################################")
-
-            model_test_fold_run_path = models_path + input_name + "_T" + str(i+1) + "(bestModel)_" + best_model_name + ".run"
-
-            #####################################################################################
+#############################################################################################################################################################################################################################################################################################
             result_validation = None
             predict_values = None
             predict_values = None
             predict_probs = None
             result_test = None
-            if set_input_flat == True:
-                test_X_EC = flat_input(test_X_EC)
 
-            test_X = [test_X_TC, test_X_EC]
-            if category == "regression":
+            cnt__ = 0
+            for model_ in models_sorted:
+                best_model, loss_train, acc_train, loss_validation, acc_validation, difference_loss_train_loss_validation, n5_validation = model_
+                best_model_name = best_model.get_model_name()
+
+                print("####################################################\n\t\tbest model selected ! :)\n"
+                      "\t\tN@5 on validation for best model : ", n5_validation, "\n" 
+                      "\t\tloss validation best model: ", loss_validation,"\n"
+                      "\t\tloss train best model: ", loss_train,"\n"
+                      "\t\tloss train - loss validation validation best model: ", (loss_train - loss_validation),"\n"
+                      "\t\tacc validation best model: ", acc_validation,"\n"
+                      "\t\tacc train best model: ", acc_train,"\n"
+                      "\n####################################################")
+
+                model_test_fold_run_path = models_path + input_name + "_T" + str(i+1) + "(bestModel)_" + best_model_name + ".run"
+
+                #####################################################################################
+
+                test_X = [test_X_TC, test_X_EC]
                 result_test = best_model.predict(test_x_TC=test_X_TC, test_x_EC=test_X_EC, test_y=test_Y_EC)
                 predict_values = result_test["predict"]
                 trec_output_test_per_fold = trec.get_trec_output_regression(q_id_test_list, test_TYPES_EC, test_Y_EC, predict_values)
                 trec_output_test += trec_output_test_per_fold
 
-            else:
-                result_test = best_model.predict(test_x_TC=test_X_TC, test_x_EC=test_X_EC, test_y=test_Y_EC_one_hot_EC)
-                predict_values = result_test["predict"]
-                predict_probs = result_test["predict_prob"]
-                trec_output_test_per_fold = trec.get_trec_output_classification(q_id_test_list, test_TYPES_EC, test_Y_EC, predict_values, predict_probs)
-                trec_output_test += trec_output_test_per_fold
+                tmp_trec = trec.get_trec_output_regression(q_id_test_list, test_TYPES_EC, test_Y_EC, predict_values)
+                n5_on_this_fold = report.get_n5_tmp(tmp_trec)
+                text = "\nNDCG@5 on test for model-" + str(cnt__) + " : " + str(n5_on_this_fold)
+                print(colored(text, "green"))
+                cnt__+=1
+
                 ######################################################################################################
+
+    #############################################################################################################################################################################################################################################################################################
+
 
             loss_test, acc_test = result_test["loss_mean"], result_test["acc_mean"]
             temp = trec_output_test_per_fold.rstrip('\n')
             file_utils.create_file(model_test_fold_run_path, temp)
+
+
 
             """ Generate_report test fold"""
             model_test_fold_run_from_root_path = models_path + input_name + "_T" + str(i + 1) + "(bestModel)_" + best_model_name + ".run"
@@ -377,8 +388,8 @@ def nested_cross_fold_validation():
 # activation_for_evaluate_reg = [["relu","linear"],["relu","linear"],["relu","linear"],["relu", "relu", "linear"],["relu", "relu","relu", "linear"],["relu", "relu","relu", "linear"],["relu", "relu","relu", "linear"]]
 
 
-layers_for_evaluate_reg = [[100,50, 1 ]]
-activation_for_evaluate_reg = [["relu","relu","linear"]]
+layers_for_evaluate_reg = [[100, 1 ]]
+activation_for_evaluate_reg = [["relu","linear"]]
 # layers_for_evaluate_reg = [[128, 64, 1]]
 # activation_for_evaluate_reg = [["relu","relu", "linear"]]
 dropout_rates = [0]
@@ -396,7 +407,7 @@ batch_size = 128
 k_values_EC = [50, 100, 5,100, 2, 300, 5, 20, 50, 100.0]
 k_values_TC = [50, 100, 5,100, 2, 300, 5, 20, 50, 100.0]
 
-epoch_count = 100
+epoch_count = 1
 optimizer = "adam"
 learning_rate = 0.0001
 q_token_cnt = 14
