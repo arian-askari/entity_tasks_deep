@@ -7,15 +7,12 @@ from keras import optimizers
 from keras.callbacks import CSVLogger
 from keras.layers import LeakyReLU
 from keras import backend as k
-import tensorflow as tf
-import keras
+
 
 import numpy as np
 from sklearn.preprocessing import LabelBinarizer
 from sklearn.metrics import make_scorer
 import keras.backend as keras_backend
-from utils.terminate_on_baseline import TerminateOnBaseline
-
 
 class Model_Generator():
     def __init__(self, layers, activation=[], optimizer="adam", loss="mse", learning_rate=0.0001,
@@ -40,6 +37,8 @@ class Model_Generator():
         self.__top_k = top_k
         self.__model_name = self.model_name()
         self.__network = None
+        self.__network_TC = None
+        self.__network_EC = None
         self.__history = None
         self.__csv_log_path = ""
         self.__sess = None
@@ -62,89 +61,104 @@ class Model_Generator():
         input_shape = (rows, columns, channels_cnt)
 
         return data, input_shape
+
+
+
     def fit(self, train_xTC, trainxEC, train_y, input_dim, test_x_TC =None, test_x_EC =None, test_y = None): #input_dim example: (600,)
+        f = open("tahlil_khoroji_2model_tc_ec_vase_mergeshun.txt","a")
+        print('test_y.shape', test_y.shape)
         """ Performs training on train_x instances"""
+        # train_x = np.array(train_x)
+        # print(train_x.shape)
+        # test_x = np.array(test_x)
+        #First model Static
+        # print(train_xTC.shape)
+        # print(trainxEC.shape)
+
+        two_inner_models_epochs = 100
+        inner_models_verbose = 0
+        self.__verbose = 2
 
         train_x_tc, input_shape = self.__reshape_for_cnn(train_xTC)
         test_x_tc , _ = self.__reshape_for_cnn(test_x_TC)
+        # train_x_tc, input_shape = self.__reshape_for_cnn(np.array(train_x[0]))
+        # test_x_tc , _ = self.__reshape_for_cnn(np.array(test_x[0]))
 
-        ''' fucked example '''
+        self.__network_TC = Sequential()
+        self.__network_TC.add(Conv2D(filters=64, kernel_size= (5,5),strides=(1,1), padding="same", activation="relu", input_shape=input_shape))
+        self.__network_TC.add(MaxPooling2D())
 
-        tc_input = Input(shape=input_shape, dtype='float32', name='tc_input')
+        self.__network_TC.add(Conv2D(filters=16, kernel_size= (10,10),strides=(1,1), padding="same", activation="relu"))
+        self.__network_TC.add(MaxPooling2D())
 
-        tc_model = Conv2D(64, kernel_size=(5, 5), strides=(1, 1), padding="same", activation="relu")(tc_input)
-        tc_model = MaxPooling2D()(tc_model)
-        tc_model = Conv2D(filters=16, kernel_size=(10, 10), strides=(1, 1), padding="same", activation="relu")(tc_model)
-        tc_model = MaxPooling2D()(tc_model)
-        tc_model = Conv2D(filters=256, kernel_size=(32, 32), strides=(1, 1), padding="same", activation="relu")(tc_model)
-        tc_model = MaxPooling2D()(tc_model)
+        self.__network_TC.add(Conv2D(filters=256, kernel_size= (32,32),strides=(1,1), padding="same", activation="relu"))
+        self.__network_TC.add(MaxPooling2D())
+
+        self.__network_TC.add(Flatten())
+
+        self.__network_TC.add(Dense(100))
+        self.__network_TC.add(Activation('relu'))
+
+        self.__network_TC.add(Dense(1))
+        self.__network_TC.add(Activation('linear'))
+
+        tc_learning_rate = 0.0001
+        adam = optimizers.Adam(lr=tc_learning_rate)
+        self.__network_TC.compile(optimizer=adam, loss="mse", metrics=["accuracy"])
+
+        print("\n\nModel Type Centric Fitting")
+
+        #two_inner_models_epochs
+        self.__history = self.__network_TC.fit(train_x_tc, train_y, validation_data=(test_x_tc, test_y), epochs=two_inner_models_epochs,
+                           batch_size=128, verbose=inner_models_verbose)
+
+        # print(model_TC.summary())
+        print("\n\nModel Type Centric Fitted")
+
+        # print(np.array(model_TC.layers[8].get_weights()[0]).shape)
+        # print(np.array(model_TC.layers[8].get_weights()[1]).shape)
 
 
-        tc_model = Flatten()(tc_model)
-        tc_out = Dense(100, activation = "relu")(tc_model)
-        # tc_out = Flatten()(tc_model)
-
-        tc_auxiliary_output = Dense(1, activation='linear', name='tc_auxiliary_output')(tc_out)
 
 
+        # print(np.array(new_train_from_prediction))
+        # print("input_shape",train_x_tc.shape)
+        # print("new_train_from_prediction shape", np.array(new_train_part1_tc).shape)
 
         ##Second MOdel
         train_x_ec, input_shape = self.__reshape_for_cnn(trainxEC)
         test_x_ec, _ = self.__reshape_for_cnn(test_x_EC)
 
+        self.__network_EC = Sequential()
+        self.__network_EC.add(Conv2D(filters=32, kernel_size=(14, 5), strides=1, padding="same", activation="relu", input_shape=input_shape))  # 1.2 know terms of entities importancy #0
+        self.__network_EC.add(MaxPooling2D(pool_size=(1, 5), strides=(1, 5)))  # 2. get max important term five by five #1
+        self.__network_EC.add(Conv2D(filters=64, kernel_size=(14, 4), strides=1, padding="same", activation="relu", input_shape=input_shape))  # 3 know entities importancy #2
+        self.__network_EC.add(MaxPooling2D(pool_size=(1, 4), strides=(1, 4)))  # 4. get entity iportancy by query phrace #3
+        self.__network_EC.add(AveragePooling2D(pool_size=(14, 1), strides=(14, 1)))  # 5 average of entity iportancy on total query #4
+        self.__network_EC.add(Flatten())  # 6
+        self.__network_EC.add(Activation('relu'))  # 8
+        self.__network_EC.add(Dense(1, activation="linear"))  # 9
 
-        ec_input = Input(shape=input_shape, dtype='float32', name='ec_input')
-        ec_model =  Conv2D(filters=32, kernel_size=(14, 5), strides=1, padding="same", activation="relu")(ec_input)
-        ec_model =  MaxPooling2D(pool_size=(1, 5), strides=(1, 5))(ec_model)
-        ec_model =  Conv2D(filters=64, kernel_size=(14, 4), strides=1, padding="same", activation="relu")(ec_model)
-        ec_model =  MaxPooling2D(pool_size=(1, 4), strides=(1, 4))(ec_model)
-        ec_model =  AveragePooling2D(pool_size=(14, 1), strides=(14, 1))(ec_model)
-        ec_model =  Conv2D(filters=256, kernel_size=(5, 5), strides=5, padding="same",activation="relu")(ec_model)
+        ec_learning_rate = 0.0001
+        adam = optimizers.Adam(lr=ec_learning_rate)
+        self.__network_EC.compile(optimizer=adam, loss="mse", metrics=["accuracy"])
 
-        ec_model = Flatten()(ec_model)
-        ec_out = Dense(100, activation = "relu")(ec_model)
-        # ec_out = Flatten()(ec_model)
+        print("\n\nModel Entity Centric Fitting")
+        self.__network_EC.fit(train_x_ec, train_y, validation_data=(test_x_ec, test_y), epochs=two_inner_models_epochs, batch_size=128, verbose=inner_models_verbose)
 
-        ec_auxiliary_output = Dense(1, activation='linear', name='ec_auxiliary_output')(tc_out)
-
-
-        tc_model = keras.layers.concatenate([tc_out, ec_out])
-
-        tc_model = Dense(1000, activation='relu')(tc_model)
-        tc_model = Dense(500, activation='relu')(tc_model)
-        tc_model = Dropout(0.1)(tc_model)
-        # tc_model = Dense(100, activation='relu')(tc_model)
-        main_output = Dense(1, activation='linear', name='main_output')(tc_model)
-
-        self.__network = Model(inputs=[tc_input, ec_input], outputs=[main_output, tc_auxiliary_output, ec_auxiliary_output])
-
-        adam = optimizers.Adam(lr=self.__learning_rate)
-        self.__network.compile(optimizer=adam, loss='mse', loss_weights=[1., 1., 1.], metrics=["accuracy"])
-
-        text_x = [test_x_tc, test_x_ec]
-
-        test_y = [test_y,test_y,test_y]
-
-        calbacks = [
-                    TerminateOnBaseline(monitor_val='val_loss', monitor_train='loss', baseline_min=4.99,
-                                        baseline_max=5.51)]
-
-        self.__history = self.__network.fit({'tc_input': train_x_tc, 'ec_input': train_x_ec},
-                  {'main_output': train_y, 'tc_auxiliary_output': train_y, 'ec_auxiliary_output': train_y},
-                  epochs=self.__epochs, batch_size=self.__batch_size,
-                        verbose=self.__verbose,validation_data=(text_x, test_y), callbacks=calbacks)
-
-        ''' fucked example '''
-
-
+        # print(model_EC.summary())
+        print("\n\nModel Entity Centric Fitted")
+        self.__network = self.__network_TC
         result = dict()
         result["model"] = self.__network
-        result["train_loss_latest"] = 0.0
-        result["train_acc_mean"] = 0.0
+        result["train_loss_latest"] = float(self.__history.history['loss'][-1])
+        result["train_acc_mean"] = float(np.mean(self.__history.history['acc']))
 
-        result["train_loss"] = 0.0
-        print("\nmodel summary:\n--------------")
+        result["train_loss"] = self.__history.history['loss']
+        # print("\nmodel summary:\n--------------")
         print(self.__network.summary())
+
+        print("\n\nModel Two Step Merge Fitted :)")
         return result
 
 
@@ -153,10 +167,10 @@ class Model_Generator():
         """ get loss and acc during training."""
         if self.__network is not None:
             result = dict()
-            result["train_loss_latest"] = 0.0
-            result["train_acc_mean"] = 0
+            result["train_loss_latest"] = float(self.__history.history['loss'][-1])
+            result["train_acc_mean"] = float(np.mean(self.__history.history['acc']))
 
-            result["train_loss"] = 0.0
+            result["train_loss"] = self.__history.history['loss']
             return self.__network
         else:
             return None
@@ -167,7 +181,7 @@ class Model_Generator():
 
     def predict(self, test_x_TC, test_x_EC, test_y=None):
         """ Performs prediction."""
-
+        predict_values = []
         test_x_tc , _ = self.__reshape_for_cnn(test_x_TC)
         test_x_ec, _ = self.__reshape_for_cnn(test_x_EC)
 
@@ -177,31 +191,57 @@ class Model_Generator():
 
 
         test_x = [test_x_tc, test_x_ec]
+
+        new_test_part1_tc = self.__network_TC.predict(test_x_tc)
+        new_test_part2_ec = self.__network_EC.predict(test_x_ec)
+        new_test_X_for_model3 = []
+
+
+        cnt = 0
+        for instance_test_tc, instance_ec_test in zip(new_test_part1_tc.tolist(), new_test_part2_ec.tolist()):
+            instance_test_tc = instance_test_tc[0]
+            instance_ec_test = instance_ec_test[0]
+            if not test_x_ec[cnt].any():
+                # instance_ec_test = instance_test_tc[:len(instance_ec_test)] #az avale instance tc slice bardar !
+                # instance_ec_test = np.zeros(len(instance_ec_test)).tolist()
+                predict = float(instance_test_tc)
+                predict_values.append(predict)
+
+            else:
+                predict = (float(instance_test_tc) + float(instance_ec_test))/2
+                predict_values.append(predict)
+
+            cnt+=1
+
+
+
+        new_test_X_for_model3 = np.array(new_test_X_for_model3)
+        test_x = new_test_X_for_model3
+
+        #################CNN ADDED ########################
+        # test_x = np.expand_dims(test_x, axis=2)
+        #################CNN ADDED ########################
+
+
+
+
         # test_x , _ = self.__reshape_for_cnn(test_x)
         result = dict()
 
-        # output_activation = self.__activation[len(self.__activation)-1]
+        output_activation = self.__activation[len(self.__activation)-1]
 
-        # if  output_activation == "linear":
-        predict_values = self.__network.predict(test_x)
-        # predict_values = np.array(predict_values[0]).flatten().tolist()
-        predict_values = np.array(predict_values[0]).tolist()
-        # print(predict_values)
-        # print(type(predict_values))
+        if  output_activation == "linear":
+            # predict_values = self.__network.predict(test_x)
+            result["predict"] = predict_values
 
-        result["predict"] = predict_values
+        elif output_activation == "softmax":
+            predict_values = self.__network.predict_classes(test_x)
+            predict_prob_values = self.__network.predict_proba(test_x)
+            result["predict"] = predict_values
+            result["predict_prob"] = predict_prob_values
 
-        # elif output_activation == "softmax":
-        #     predict_values = self.__network.predict_classes(test_x)
-        #     predict_prob_values = self.__network.predict_proba(test_x)
-        #     result["predict"] = predict_values
-        #     result["predict_prob"] = predict_prob_values
-        #
-        # if test_y is not None:
-        result["loss_mean"], result["acc_mean"] = (0, 0)
-
-                # self.__network.evaluate({'tc_input': test_x_tc, 'ec_input': test_x_ec},
-                #   {'main_output': test_y, 'tc_auxiliary_output': test_y, 'ec_auxiliary_output': test_y}, verbose=0)
+        if test_y is not None:
+            result["loss_mean"], result["acc_mean"] = 0,0
 
         return result
 

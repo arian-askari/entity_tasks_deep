@@ -11,7 +11,8 @@ from termcolor import colored
 
 # from deep.model_generator_MergeModels import Model_Generator
 # from deep.model_generator_MergeModels_TwoStep import Model_Generator
-from deep.model_generator_MergeModels_MultiInOut import Model_Generator
+# from deep.model_generator_MergeModels_MultiInOut import Model_Generator
+from deep.model_generator_MergeModels_TwoStep_Average import Model_Generator
 
 
 # from deep.model_generator_MergeModels_ConCateInputs import Model_Generator
@@ -396,7 +397,7 @@ batch_size = 128
 k_values_EC = [50, 100, 5,100, 2, 300, 5, 20, 50, 100.0]
 k_values_TC = [50, 100, 5,100, 2, 300, 5, 20, 50, 100.0]
 
-epoch_count = 100
+epoch_count = 150
 optimizer = "adam"
 learning_rate = 0.0001
 q_token_cnt = 14
