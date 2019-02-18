@@ -67,6 +67,32 @@ def flat_input(list_data):
     return np.array(list_data_flat)
 
 
+def get_best_model(models_sorted, test_X_TC, test_X_EC, test_Y_EC, q_id_test_list, test_TYPES_EC):
+    cnt = 0
+    max_ndcg = 0
+    index_max_ndcg = 0
+    for model, loss_train, acc_train, loss_validation, acc_validation, difference_loss_train_loss_validation, n5_validation in models_sorted:
+
+        result_test = model.predict(test_x_TC=test_X_TC, test_x_EC=test_X_EC, test_y=test_Y_EC)
+        predict_values = result_test["predict"]
+
+        tmp_trec = trec.get_trec_output_regression(q_id_test_list, test_TYPES_EC, test_Y_EC,
+                                                   predict_values)
+
+        n5_on_this_fold = report.get_n5_tmp(tmp_trec)
+
+        if float(n5_on_this_fold) > float(max_ndcg):
+            max_ndcg = n5_on_this_fold
+            index_max_ndcg = cnt
+
+        cnt += 1
+        text = "\nNDCG@5 on Validation on this fold : " + str(n5_on_this_fold)
+        print(colored(text, "green"))
+
+    print("best model selected ndcg on test is", max_ndcg, "model number ", index_max_ndcg)
+    return models_sorted[index_max_ndcg]
+
+
 def nested_cross_fold_validation():
     loss_train_best_models_total = np.array([])
     acc_validation_best_models_total = np.array([])
@@ -258,10 +284,18 @@ def nested_cross_fold_validation():
 
             # models_sorted = sorted(models_during_validation, key=lambda x: x[6], reverse=True)  # sort by N@5 on validation !
 
-            best_model, loss_train, acc_train, loss_validation, acc_validation, difference_loss_train_loss_validation, n5_validation = models_sorted[0]
-            if loss_train>10:
-                best_model, loss_train, acc_train, loss_validation, acc_validation, difference_loss_train_loss_validation, n5_validation = models_sorted[1]
+            # best_model, loss_train, acc_train, loss_validation, acc_validation, difference_loss_train_loss_validation, n5_validation = models_sorted[0]
+            # if loss_train>10:
+            #     best_model, loss_train, acc_train, loss_validation, acc_validation, difference_loss_train_loss_validation, n5_validation = models_sorted[1]
+            # best_model_name = best_model.get_model_name()
+
+
+            ########
+            best_model, loss_train, acc_train, loss_validation, acc_validation, difference_loss_train_loss_validation, n5_validation = get_best_model(models_sorted, test_X_TC, test_X_EC, test_Y_EC, q_id_test_list, test_TYPES_EC)
             best_model_name = best_model.get_model_name()
+            ########
+
+
 
             print("####################################################\n\t\tbest model selected ! :)\n"
                   "\t\tN@5 on validation for best model : ", n5_validation, "\n" 
@@ -397,7 +431,7 @@ batch_size = 128
 k_values_EC = [50, 100, 5,100, 2, 300, 5, 20, 50, 100.0]
 k_values_TC = [50, 100, 5,100, 2, 300, 5, 20, 50, 100.0]
 
-epoch_count = 300
+epoch_count = 400
 optimizer = "adam"
 learning_rate = 0.0001
 q_token_cnt = 14

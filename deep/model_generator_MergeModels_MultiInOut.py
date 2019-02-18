@@ -110,16 +110,18 @@ class Model_Generator():
 
         tc_model = keras.layers.concatenate([tc_out, ec_out])
 
-        tc_model = Dense(1000, activation='relu')(tc_model)
-        tc_model = Dense(500, activation='relu')(tc_model)
-        tc_model = Dropout(0.1)(tc_model)
+        tc_model = Dense(100, activation='relu')(tc_model)
+        tc_model = Dense(100, activation='relu')(tc_model)
+        # tc_model = Dropout(0.1)(tc_model)
         # tc_model = Dense(100, activation='relu')(tc_model)
         main_output = Dense(1, activation='linear', name='main_output')(tc_model)
 
         self.__network = Model(inputs=[tc_input, ec_input], outputs=[main_output, tc_auxiliary_output, ec_auxiliary_output])
 
         adam = optimizers.Adam(lr=self.__learning_rate)
-        self.__network.compile(optimizer=adam, loss='mse', loss_weights=[1., 1., 1.], metrics=["accuracy"])
+        rms_prop = optimizers.RMSprop(lr=self.__learning_rate, rho=0.9, epsilon=None, decay=0.0)
+        sgd = optimizers.SGD(lr=0.0001, decay=1e-6, momentum=0.9, nesterov=True)
+        self.__network.compile(optimizer=sgd, loss='mse', loss_weights=[1., 0.7, 0.3], metrics=["accuracy"])
 
         text_x = [test_x_tc, test_x_ec]
 
@@ -128,6 +130,7 @@ class Model_Generator():
         calbacks = [
                     TerminateOnBaseline(monitor_val='val_loss', monitor_train='loss', baseline_min=4.99,
                                         baseline_max=5.51)]
+
 
         self.__history = self.__network.fit({'tc_input': train_x_tc, 'ec_input': train_x_ec},
                   {'main_output': train_y, 'tc_auxiliary_output': train_y, 'ec_auxiliary_output': train_y},

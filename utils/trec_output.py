@@ -53,11 +53,13 @@ def get_trec_output_classification(q_id_list, test_TYPES, test_Y, predict_classe
 
 
 def get_trec_output_regression(q_id_list, test_TYPES, test_Y, predict_classes):
+    # print("q_id_list, test_TYPES, test_Y, predict_classes",q_id_list, test_TYPES, test_Y, predict_classes)
     trec_output_str = ""
     trec_ouput_dict = dict()
-
+    # sys.exit(1)
     for q_id_test, q_candidate_type, true_predict, predict_class \
             in zip(q_id_list, test_TYPES, test_Y, predict_classes):
+
         # 1
         query_id = q_id_test
 
@@ -73,6 +75,7 @@ def get_trec_output_regression(q_id_list, test_TYPES, test_Y, predict_classes):
         # 5
         sim_score = None
         sim_score = str(predict_class[0])  # model is regression
+        # sim_score = str(predict_class)  # model is regression
 
         # 6
         run_id = "Model_Deep"

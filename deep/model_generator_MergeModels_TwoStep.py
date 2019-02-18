@@ -13,6 +13,7 @@ import numpy as np
 from sklearn.preprocessing import LabelBinarizer
 from sklearn.metrics import make_scorer
 import keras.backend as keras_backend
+from utils.terminate_on_baseline import  TerminateOnBaseline
 
 class Model_Generator():
     def __init__(self, layers, activation=[], optimizer="adam", loss="mse", learning_rate=0.0001,
@@ -75,8 +76,8 @@ class Model_Generator():
         # print(train_xTC.shape)
         # print(trainxEC.shape)
 
-        two_inner_models_epochs = 1
-        inner_models_verbose = 0
+        two_inner_models_epochs = 100
+        inner_models_verbose = 2
         self.__verbose = 2
 
         train_x_tc, input_shape = self.__reshape_for_cnn(train_xTC)
@@ -112,7 +113,7 @@ class Model_Generator():
         model_TC.fit(train_x_tc, train_y, validation_data=(test_x_tc, test_y), epochs=two_inner_models_epochs,
                            batch_size=128, verbose=inner_models_verbose)
 
-        # print(model_TC.summary())
+        print(model_TC.summary())
         print("\n\nModel Type Centric Fitted")
 
         # print(np.array(model_TC.layers[8].get_weights()[0]).shape)
@@ -150,7 +151,7 @@ class Model_Generator():
         model_EC.add(AveragePooling2D(pool_size=(14, 1), strides=(14, 1)))  # 5 average of entity iportancy on total query #4
         model_EC.add(Conv2D(filters=256, kernel_size=(5, 5), strides=5, padding="same",activation="relu"))  # 3 feature reduction #5
         model_EC.add(Flatten())  # 6
-        model_EC.add(Dense(50))  # 7
+        model_EC.add(Dense(100))  # 7
         model_EC.add(Activation('relu'))  # 8
         model_EC.add(Dense(1, activation="linear"))  # 9
 
@@ -161,7 +162,7 @@ class Model_Generator():
         print("\n\nModel Entity Centric Fitting")
         model_EC.fit(train_x_ec, train_y, validation_data=(test_x_ec, test_y), epochs=two_inner_models_epochs, batch_size=128, verbose=inner_models_verbose)
 
-        # print(model_EC.summary())
+        print(model_EC.summary())
         print("\n\nModel Entity Centric Fitted")
 
 
@@ -178,7 +179,7 @@ class Model_Generator():
         # self.__network_EC.add(Flatten(weights=model_EC.layers[5].get_weights()))  # 6
 
 
-        self.__network_EC.add(Dense(50, weights=model_EC.layers[7].get_weights()))  # 7
+        self.__network_EC.add(Dense(100, weights=model_EC.layers[7].get_weights()))  # 7
         self.__network_EC.add(Activation('relu', weights=model_EC.layers[8].get_weights()))  # 8
 
         new_train_part2_ec = self.__network_EC.predict(train_x_ec)
@@ -191,11 +192,6 @@ class Model_Generator():
         new_train_X_for_model3 = []
         cnt = 0
         for instance_tc, instance_ec in zip(new_train_part1_tc.tolist(), new_train_part2_ec.tolist()):
-            if not train_x_ec[cnt].any():
-                if train_y[cnt] != "0":
-                    instance_ec = instance_tc[:len(instance_ec)]
-                    print("EEEEEEEEEEEEEEEEEEEEEE to instance haye ec tu train chera hamash sefr hast hanuzam?!")
-
             text = "type label: " + str(train_y[cnt]) + "\n"
             text += "instance_tc on train" + str(instance_tc) + "\n"
             text += "instance_ec on train" + str(instance_ec) + "\n"
@@ -215,22 +211,12 @@ class Model_Generator():
         cnt = 0
         for instance_test_tc, instance_ec_test in zip(new_test_part1_tc.tolist(), new_test_part2_ec.tolist()):
             if not test_x_ec[cnt].any():
-                instance_ec_test = instance_test_tc[:len(instance_ec_test)] #az avale instance tc slice bardar !
-                # instance_ec_test = np.zeros(len(instance_ec_test)).tolist()
+                instance_ec_test = np.zeros(len(instance_ec_test)).tolist()
 
-                # if test_y[cnt] != 0 and test_y[cnt] != "0":
-                #     text = "type label: " + str(test_y[cnt]) + "\n"
-                #     text += "instance_ec on test" + str(instance_ec_test) + "\n"
-                #     text += "instance_tc on test" + str(instance_test_tc) + "\n"
-                #     print(text)
-
-
-            # new_test_instance = instance_test_tc + instance_ec_test +  [int(test_y[cnt])]
             new_test_instance = instance_test_tc + instance_ec_test
             new_test_X_for_model3.append(new_test_instance)
 
             cnt+=1
-
 
 
         # print("az test ham gozasthim!!")
@@ -292,12 +278,13 @@ class Model_Generator():
 
         if len(self.__csv_log_path) > 0:
             csv_logger = CSVLogger(self.__csv_log_path, append=False, separator=',')
+            calbacks = [csv_logger, TerminateOnBaseline(monitor_val='val_loss', monitor_train='loss', baseline_min=3, baseline_max=3.3)]
 
             if test_x is not None:
-                self.__history = self.__network.fit(train_x, train_y, validation_data=(test_x, test_y),  epochs=self.__epochs, batch_size=self.__batch_size, verbose=self.__verbose, callbacks=[csv_logger])
+                self.__history = self.__network.fit(train_x, train_y, validation_data=(test_x, test_y),  epochs=self.__epochs, batch_size=self.__batch_size, verbose=self.__verbose, callbacks=calbacks)
             else:
 
-                self.__history = self.__network.fit(train_x, train_y, epochs=self.__epochs, batch_size=self.__batch_size, verbose=self.__verbose, callbacks=[csv_logger])
+                self.__history = self.__network.fit(train_x, train_y, epochs=self.__epochs, batch_size=self.__batch_size, verbose=self.__verbose, callbacks=calbacks)
         else:
             if test_x is not None:
                 self.__history = self.__network.fit(train_x, train_y, validation_data=(test_x, test_y),  epochs=self.__epochs, batch_size=self.__batch_size, verbose=self.__verbose)
@@ -357,8 +344,8 @@ class Model_Generator():
         cnt = 0
         for instance_test_tc, instance_ec_test in zip(new_test_part1_tc.tolist(), new_test_part2_ec.tolist()):
             if not test_x_ec[cnt].any():
-                instance_ec_test = instance_test_tc[:len(instance_ec_test)] #az avale instance tc slice bardar !
-                # instance_ec_test = np.zeros(len(instance_ec_test)).tolist()
+                # instance_ec_test = instance_test_tc[:len(instance_ec_test)] #az avale instance tc slice bardar !
+                instance_ec_test = np.zeros(len(instance_ec_test)).tolist()
 
             # new_test_instance = (instance_test_tc) + instance_ec_test + [int(test_y[cnt])]
             new_test_instance = (instance_test_tc) + instance_ec_test
