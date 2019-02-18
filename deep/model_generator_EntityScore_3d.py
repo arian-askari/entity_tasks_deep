@@ -169,6 +169,17 @@ class Model_Generator():
         # # print("\nmodel summary:\n--------------")
         print(self.__network.summary())
 
+        # serialize model to JSON
+        model_json = self.__network.to_json()
+
+        with open(self.__csv_log_path + "_model.json", "w") as json_file:
+            json_file.write(model_json)
+
+        # serialize weights to HDF5
+        self.__network.save_weights(self.__csv_log_path + "_model.h5")
+
+        print("Saved model to disk")
+
         return result
 
 

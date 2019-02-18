@@ -309,12 +309,9 @@ def nested_cross_fold_validation():
         )
 
 #simple test
-# layers_for_evaluate_reg = [[100, 1], [500,1] , [1000,1], [1000, 1000, 1], [1000, 1000, 100, 1],  [1000, 1000, 500, 1],  [1000, 1000, 1000, 1]]
-# activation_for_evaluate_reg = [["relu","linear"],["relu","linear"],["relu","linear"],["relu", "relu", "linear"],["relu", "relu","relu", "linear"],["relu", "relu","relu", "linear"],["relu", "relu","relu", "linear"]]
-
-
-# layers_for_evaluate_reg = [[10, 1]]
+# layers_for_evaluate_reg = [[100,1]]
 # activation_for_evaluate_reg = [["relu", "linear"]]
+
 
 layers_for_evaluate_reg = [[100,1]]
 activation_for_evaluate_reg = [["relu", "linear"]]

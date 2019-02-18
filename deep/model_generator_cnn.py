@@ -64,58 +64,26 @@ class Model_Generator():
         """ Performs training on train_x instances"""
 
         self.__network = Sequential()
-        # self.__network.add(Dense(self.__layers[0], input_shape=input_dim))
-        # self.__network.add(Dropout(self.__dropout))
-
-
         ####################################################################################
-        # train_x = np.expand_dims(train_x, axis=2)
-        # test_x = np.expand_dims(test_y, axis=2)
-        # shp = train_x.shape
-        # print(shp)
 
         train_x, input_shape = self.__reshape_for_cnn(train_x)
         test_x , _ = self.__reshape_for_cnn(test_x)
 
         self.__network.add(Conv2D(filters=64, kernel_size= (5,5),strides=(1,1), padding="same", activation="relu", input_shape=input_shape))
         self.__network.add(MaxPooling2D())
-        self.__network.add(Dropout(self.__dropout))
 
 
         self.__network.add(Conv2D(filters=16, kernel_size= (10,10),strides=(1,1), padding="same", activation="relu"))
         self.__network.add(MaxPooling2D())
-        self.__network.add(Dropout(self.__dropout))
 
         self.__network.add(Conv2D(filters=256, kernel_size= (32,32),strides=(1,1), padding="same", activation="relu"))
         self.__network.add(MaxPooling2D())
-        self.__network.add(Dropout(self.__dropout))
 
-        # self.__network.add(Conv2D(filters=128, kernel_size=(1, 5), strides=(1, 1), padding="same", activation="relu",
-        #                           input_shape=input_shape))
-        #
-        # self.__network.add(MaxPooling2D(pool_size=(1,5), strides=(1,5)))
-        # # self.__network.add(Conv2D(filters=128, kernel_size=(5, 5), strides=(1, 1), padding="same", activation="relu",
-        # #                           input_shape=input_shape))
-        # self.__network.add(MaxPooling2D())
-        # self.__network.add(Dropout(self.__dropout))
-
-        # self.__network.add(Conv2D(filters=16, kernel_size=(10, 10), strides=(1, 1), padding="same", activation="relu"))
-        # self.__network.add(MaxPooling2D())
-        # self.__network.add(Dropout(self.__dropout))
-        #
-        # self.__network.add(Conv2D(filters=256, kernel_size=(32, 32), strides=(1, 1), padding="same", activation="relu"))
-        # self.__network.add(MaxPooling2D())
-        # self.__network.add(Dropout(self.__dropout))
 
 
         self.__network.add(Flatten())
 
-        # self_network.add(MaxPooling1D(pool_size=(5), strides=(1)))
 
-        # if self.__activation[0] == "LeakyReLU":
-        #     self.__network.add(LeakyReLU(alpha=0.2))
-        # else:
-        #     self.__network.add(Activation(self.__activation[0]))
         ####################################################################################
 
 
@@ -168,6 +136,18 @@ class Model_Generator():
         result["train_loss"] = self.__history.history['loss']
         # print("\nmodel summary:\n--------------")
         print(self.__network.summary())
+
+
+        # serialize model to JSON
+        model_json = self.__network.to_json()
+
+        with open(self.__csv_log_path + "_model.json", "w") as json_file:
+            json_file.write(model_json)
+
+        # serialize weights to HDF5
+        self.__network.save_weights(self.__csv_log_path + "_model.h5")
+
+        print("Saved model to disk")
 
         return result
 
