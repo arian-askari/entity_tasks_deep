@@ -423,6 +423,9 @@ dropout_rates = [0]
 #                                ,["relu", "linear"], ["relu","relu","linear"], ["relu","relu","relu","linear"]]
 # dropout_rates = [0, 0.1, 0.2, 0.3, 0.4, 0.5]
 
+
+
+
 categories = ["regression"]
 layers_for_evaluates = [layers_for_evaluate_reg]
 activation_for_evaluates = [activation_for_evaluate_reg]
@@ -431,7 +434,7 @@ batch_size = 128
 k_values_EC = [50, 100, 5,100, 2, 300, 5, 20, 50, 100.0]
 k_values_TC = [50, 100, 5,100, 2, 300, 5, 20, 50, 100.0]
 
-epoch_count = 400
+epoch_count = 300
 optimizer = "adam"
 learning_rate = 0.0001
 q_token_cnt = 14

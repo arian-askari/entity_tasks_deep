@@ -2,6 +2,7 @@ import os, json, random, sys
 # os.environ['CUDA_VISIBLE_DE VICES'] = '-1'
 
 from keras.layers import *
+from termcolor import colored
 
 from utils import trec_output as trec
 from utils import file_utils
@@ -155,6 +156,7 @@ def nested_cross_fold_validation():
                             result_validation = model.predict(test_X, test_Y)
                             predict_values = result_validation["predict"]
                             trec_output_validation += trec.get_trec_output_regression(q_id_test_list, test_TYPES, test_Y, predict_values)
+                            tmp_trec = trec.get_trec_output_regression(q_id_test_list, test_TYPES, test_Y, predict_values)
                         else:
                             result_validation = model.predict(test_X, test_Y_one_hot)
                             predict_values = result_validation["predict"]
@@ -169,6 +171,15 @@ def nested_cross_fold_validation():
 
                         loss_validation_total = np.append(loss_validation_total, float(loss_validation))
                         acc_validation_total = np.append(acc_validation_total, float(acc_validation))
+
+
+                        n5_until_this_fold = report.get_n5_tmp(trec_output_validation)
+                        text = "\nNDCG@5 on Validation until this fold : " + str(n5_until_this_fold)
+                        print(colored(text, "green"))
+                        n5_on_this_fold = report.get_n5_tmp(tmp_trec)
+                        text = "\nNDCG@5 on Validation on this fold : " + str(n5_on_this_fold)
+                        print(colored(text, "green"))
+
 
                         models_during_validation.append((model, loss_train,
                                                          acc_train, loss_validation, acc_validation, abs(loss_train-loss_validation)))
@@ -225,10 +236,10 @@ def nested_cross_fold_validation():
             models_sorted = sorted(models_during_validation, key=lambda x: x[3])  # ascending sort
             # models_sorted = sorted(models_during_validation, key=lambda x: x[5])  # sort by train loss - validation loss (abs value :))
 
-            best_model, loss_train, acc_train, loss_validation, acc_validation, difference_loss_train_loss_validation = models_sorted[0]
+            best_model, loss_train, acc_train, loss_validation, acc_validation, difference_loss_train_loss_validation = models_sorted[2]
             print(best_model, loss_train, acc_train, loss_validation, acc_validation, difference_loss_train_loss_validation)
 
-            if_bigger = 7
+            if_bigger = 9
             if loss_train>if_bigger:
                 print("loss_train>10, step 1")
                 best_model, loss_train, acc_train, loss_validation, acc_validation, difference_loss_train_loss_validation = models_sorted[1]
@@ -372,9 +383,9 @@ def nested_cross_fold_validation():
 # activation_for_evaluate_reg = [["relu","relu","linear"]]
 
 # layers_for_evaluate_reg = [[500, 1]]
-layers_for_evaluate_reg = [[100,1]]
+layers_for_evaluate_reg = [[1000, 1]]
 # activation_for_evaluate_reg = [["relu", "linear"]]
-activation_for_evaluate_reg = [["relu","linear"]]
+activation_for_evaluate_reg = [["relu", "linear"]]
 
 dropout_rates = [0]
 

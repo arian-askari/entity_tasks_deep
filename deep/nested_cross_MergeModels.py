@@ -1,5 +1,5 @@
 import os, json, random, sys
-# os.environ['CUDA_VISIBLE_DE VICES'] = '-1'
+os.environ['CUDA_VISIBLE_DE VICES'] = '-1'
 
 from keras.layers import *
 
@@ -10,7 +10,10 @@ from deep import train_set_generator_EC_IGNoreZeroRel as tsg_EC
 from termcolor import colored
 
 # from deep.model_generator_MergeModels import Model_Generator
-from deep.model_generator_MergeModels_TwoStep import Model_Generator
+from deep.model_generator_MergeModels_Dense import Model_Generator
+
+
+# from deep.model_generator_MergeModels_TwoStep import Model_Generator
 # from deep.model_generator_MergeModels_MultiInOut import Model_Generator
 # from deep.model_generator_MergeModels_TwoStep_Average import Model_Generator
 
@@ -397,7 +400,7 @@ batch_size = 128
 k_values_EC = [50, 100, 5,100, 2, 300, 5, 20, 50, 100.0]
 k_values_TC = [50, 100, 5,100, 2, 300, 5, 20, 50, 100.0]
 
-epoch_count = 300
+epoch_count = 1
 optimizer = "adam"
 learning_rate = 0.0001
 q_token_cnt = 14

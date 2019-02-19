@@ -15,7 +15,7 @@ class TerminateOnBaseline(Callback):
         train_loss = logs.get(self.monitor_train)
 
         if val_loss is not None and train_loss is not None:
-            if epoch>=100: #amalan  in ro disable kardma intor felaan!
+            if epoch>=1000: #amalan  in ro disable kardma intor felaan!
                 if (val_loss > self.baseline_min and val_loss < self.baseline_max) and (train_loss > self.baseline_min and train_loss <  self.baseline_max ) :
                     # if abs(val_loss-train_loss)<=0.3:
                     print('Epoch %d: Reached baseline, terminating training' % (epoch))

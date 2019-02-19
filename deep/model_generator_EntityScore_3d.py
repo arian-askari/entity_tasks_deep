@@ -90,13 +90,13 @@ class Model_Generator():
 
         keras_backend.set_image_data_format("channels_last")  # channels_first
 
-        self.__network.add(Conv2D(filters=32, kernel_size= (14,5), strides=1, padding="same", activation="relu", input_shape = input_shape)) #1.2 know terms of entities importancy
-        self.__network.add(MaxPooling2D(pool_size=(1,5), strides = (1,5) ))  #2. get max important term five by five
-
-        self.__network.add(Conv2D(filters=64, kernel_size= (14,4), strides=1, padding="same", activation="relu", input_shape = input_shape)) #3 know entities importancy
-
-        self.__network.add(MaxPooling2D(pool_size=(1,4), strides = (1,4) )) #4. get entity iportancy by query phrace
-        self.__network.add(AveragePooling2D(pool_size=(14,1), strides = (14,1) )) #5 average of entity iportancy on total query
+        # self.__network.add(Conv2D(filters=32, kernel_size= (14,5), strides=1, padding="same", activation="relu", input_shape = input_shape)) #1.2 know terms of entities importancy
+        # self.__network.add(MaxPooling2D(pool_size=(1,5), strides = (1,5) ))  #2. get max important term five by five
+        #
+        # self.__network.add(Conv2D(filters=64, kernel_size= (14,4), strides=1, padding="same", activation="relu", input_shape = input_shape)) #3 know entities importancy
+        #
+        # self.__network.add(MaxPooling2D(pool_size=(1,4), strides = (1,4) )) #4. get entity iportancy by query phrace
+        # self.__network.add(AveragePooling2D(pool_size=(14,1), strides = (14,1) )) #5 average of entity iportancy on total query
 
         #just for merge is good enough :)
         #self.__network.add(Conv2D(filters=256, kernel_size= (5,5), strides=5, padding="same", activation="relu")) #3 feature reduction
@@ -128,7 +128,7 @@ class Model_Generator():
                 self.__network.add(Activation(self.__activation[i]))
             self.__network.add(Dropout(self.__dropout))
 
-        print(self.__network.summary())
+        # print(self.__network.summary())
 
 
         if (self.__optimizer == "adam"):

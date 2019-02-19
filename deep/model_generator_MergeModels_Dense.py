@@ -84,16 +84,18 @@ class Model_Generator():
 
 
         model_TC = Sequential()
-        model_TC.add(Conv2D(filters=64, kernel_size= (5,5),strides=(1,1), padding="same", activation="relu", input_shape=input_shape)) #0
-        model_TC.add(MaxPooling2D()) #1
+        model_TC.add(Flatten()) #0
+        model_TC.add(Dense(1000)) #0
+        model_TC.add(Activation("relu"))
+        model_TC.add(Dropout(0.3)) #0
 
-        model_TC.add(Conv2D(filters=16, kernel_size= (10,10),strides=(1,1), padding="same", activation="relu")) #2
-        model_TC.add(MaxPooling2D()) #3
+        model_TC.add(Dense(1000))  # 0
+        model_TC.add(Activation("relu"))
+        model_TC.add(Dropout(0.3))  # 0
 
-        model_TC.add(Conv2D(filters=256, kernel_size= (32,32),strides=(1,1), padding="same", activation="relu")) #4
-        model_TC.add(MaxPooling2D()) #5
-
-        model_TC.add(Flatten()) #6
+        model_TC.add(Dense(500))
+        model_TC.add(Activation("relu"))
+        model_TC.add(Dropout(0.3))  # 0
 
         # model_TC.add(Dense(100)) #7
         # model_TC.add(Activation('relu')) #8
@@ -105,7 +107,8 @@ class Model_Generator():
         # model_TC.add(shared_flatten)
 
         #shared dense 100 relu
-        model_TC.add(Dense(100, activation="relu")) #doesn't share!
+        # model_TC.add(Dense(2))
+        # model_TC.add(Activation("linear"))
 
         # model_TC.add(shared_dense_100) #its share!
 
@@ -119,8 +122,6 @@ class Model_Generator():
         train_x_ec, input_shape = self.__reshape_for_cnn(trainxEC)
         test_x_ec, _ = self.__reshape_for_cnn(test_x_EC)
 
-        model_EC = Sequential()
-
         ##########################################################
         # train_x_ec = np.array(train_x[1])
         # test_x_ec = np.array(test_x[1])
@@ -132,15 +133,12 @@ class Model_Generator():
 
 
         model_EC = Sequential()
-        model_EC.add(Conv2D(filters=32, kernel_size=(14, 5), strides=1, padding="same", activation="relu", input_shape=input_shape))  # 1.2 know terms of entities importancy #0
-        model_EC.add(MaxPooling2D(pool_size=(1, 5), strides=(1, 5)))  # 2. get max important term five by five #1
-        model_EC.add(Conv2D(filters=64, kernel_size=(14, 4), strides=1, padding="same", activation="relu", input_shape=input_shape))  # 3 know entities importancy #2
-        model_EC.add(MaxPooling2D(pool_size=(1, 4), strides=(1, 4)))  # 4. get entity iportancy by query phrace #3
-        model_EC.add(AveragePooling2D(pool_size=(14, 1), strides=(14, 1)))  # 5 average of entity iportancy on total query #4
-        # model_EC.add(Conv2D(filters=256, kernel_size=(5, 5), strides=5, padding="same",activation="relu"))  # 3 feature reduction #5
+        model_EC.add(Flatten())  # 0
+        model_EC.add(Dense(1000))  # 0
+        model_EC.add(Activation("relu"))
+        # model_EC.add(Dense(2))  # 7
+        # model_EC.add(Activation("linear"))
 
-        model_EC.add(Flatten())  # 6
-        model_EC.add(Dense(100))  # 7
         # # model_EC.add(Activation('relu'))  # 8
         # model_EC.add(Dense(1))  # 9
         # model_EC.add(Activation("linear"))  # 9
