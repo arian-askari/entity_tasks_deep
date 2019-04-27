@@ -100,8 +100,8 @@ from sklearn.neural_network import MLPRegressor, MLPClassifier
 from sklearn.preprocessing import StandardScaler
 from nordlys.core.ml.cross_validation import CrossValidation
 from nordlys.core.ml.feedforward import Feedforward
-# from nordlys.core.ml.plotting import LearningCurve
-# from nordlys.core.ml.train_test import TrainTest
+from nordlys.core.ml.plotting import LearningCurve
+from nordlys.core.ml.train_test import TrainTest
 from nordlys.core.utils.file_utils import FileUtils
 
 
@@ -287,15 +287,14 @@ class ML(object):
 
         # Learning curve plot
         if "learning_curve" in self.__config:
-            pass
-            # model = self.gen_model(x.shape[1])
-            # k = self.__config["learning_curve"]["k"]
-            # metric = self.__config["learning_curve"].get("metric", "r2")
-            # ylim = self.__config["learning_curve"].get("ylim", [0, 1])
-            # plot_file = self.__config["learning_curve"].get("plot_file", None)
-            # res = LearningCurve(k, train_data, features, target).plot(model, plot_file, group_by=group_by,
-            #                                                           ylim=(ylim[0], ylim[1]), metric=metric)
-            # if output_file: json.dump(res, open(output_file, "w"), indent=4)
+            model = self.gen_model(x.shape[1])
+            k = self.__config["learning_curve"]["k"]
+            metric = self.__config["learning_curve"].get("metric", "r2")
+            ylim = self.__config["learning_curve"].get("ylim", [0, 1])
+            plot_file = self.__config["learning_curve"].get("plot_file", None)
+            res = LearningCurve(k, train_data, features, target).plot(model, plot_file, group_by=group_by,
+                                                                      ylim=(ylim[0], ylim[1]), metric=metric)
+            if output_file: json.dump(res, open(output_file, "w"), indent=4)
 
         # Cross Validation
         elif "cross_validation" in self.__config:
@@ -309,17 +308,16 @@ class ML(object):
 
         # classic test-train split
         elif "train_test" in self.__config:
-            pass
-            # splits_file = self.__config["train_test"]["splits_file"]
-            # create_splits = self.__config["train_test"].get("create_splits", False)
-            # test_frac = self.__config["train_test"].get("test_frac", 0.2)
-            # val_frac = self.__config["train_test"].get("val_frac", 0)
-            # # pred_test = self.__config["train_test"].get("pred_test", True)
-            # # pred_val = self.__config["train_test"].get("pred_val", True)
-            # tt = TrainTest(train_data, features, target, self.train, callback_normalize=normalize)
-            # tt.get_splits(splits_file, test_frac, val_frac, group_by=group_by, create_splits=create_splits)
-            # res = tt.run(feature_imp)
-            # res["test_pred"].to_csv(output_file, index=False)
+            splits_file = self.__config["train_test"]["splits_file"]
+            create_splits = self.__config["train_test"].get("create_splits", False)
+            test_frac = self.__config["train_test"].get("test_frac", 0.2)
+            val_frac = self.__config["train_test"].get("val_frac", 0)
+            # pred_test = self.__config["train_test"].get("pred_test", True)
+            # pred_val = self.__config["train_test"].get("pred_val", True)
+            tt = TrainTest(train_data, features, target, self.train, callback_normalize=normalize)
+            tt.get_splits(splits_file, test_frac, val_frac, group_by=group_by, create_splits=create_splits)
+            res = tt.run(feature_imp)
+            res["test_pred"].to_csv(output_file, index=False)
 
         # writes feature importance if needed
         if "feature_imp_file" in self.__config:
@@ -340,5 +338,5 @@ def main(args):
     ml.run()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main(arg_parser())

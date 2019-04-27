@@ -98,6 +98,7 @@ class Model_Generator():
         # self.__network.add(MaxPooling2D(pool_size=(1,4), strides = (1,4) )) #4. get entity iportancy by query phrace
         # self.__network.add(AveragePooling2D(pool_size=(14,1), strides = (14,1) )) #5 average of entity iportancy on total query
 
+
         #just for merge is good enough :)
         #self.__network.add(Conv2D(filters=256, kernel_size= (5,5), strides=5, padding="same", activation="relu")) #3 feature reduction
 

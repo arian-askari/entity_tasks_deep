@@ -16,7 +16,7 @@ import pandas as pd
 from sklearn import metrics, model_selection
 from sklearn.utils import shuffle
 
-# from ovlpred.ml.train_test import TrainTest
+from ovlpred.ml.train_test import TrainTest
 
 
 class CrossValidation(object):
@@ -115,10 +115,10 @@ class CrossValidation(object):
             if imp:
                 imp_df = pd.DataFrame([list(model.feature_importances_)], columns=self.__x.columns)
                 importance = importance.append(imp_df, ignore_index=True)
-            # mse_fold, r2_fold = TrainTest.get_performance(self.__y.iloc[test_ind], y_pred.iloc[test_ind])
-            # mse.append(mse_fold)
-            # r2.append(r2_fold)
-            # print("R2: ", np.round(r2_fold, 4))
+            mse_fold, r2_fold = TrainTest.get_performance(self.__y.iloc[test_ind], y_pred.iloc[test_ind])
+            mse.append(mse_fold)
+            r2.append(r2_fold)
+            print("R2: ", np.round(r2_fold, 4))
         print("=======================================")
         r2, mse = np.vstack(r2), np.vstack(mse)
         print("R2-mean: ", np.round(np.mean(r2, axis=0), 4), "\nR2-std: ", np.round(np.std(r2, axis=0), 4))

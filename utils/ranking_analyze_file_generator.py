@@ -3,8 +3,8 @@ import csv
 
 dirname = os.path.dirname(__file__)
 train_set_row_path = os.path.join(dirname, '../data/analyze/quries_rel.csv')
-run_file_path =  os.path.join(dirname, '../data/analyze/baseline.run')
-analyze_file_path =  os.path.join(dirname, '../data/analyze/analyze.csv')
+run_file_path =  os.path.join(dirname, '../data/analyze/baseline_sig17.run')
+analyze_file_path =  os.path.join(dirname, '../data/analyze/baseline_sig17_analyze.csv')
 
 def atoi(text):
     return int(text) if text.isdigit() else text
@@ -49,6 +49,10 @@ for q_id, q_rel_types in q_t_rel_dict.items():
     for rel_type, rel_class in q_rel_types.items():
         print(rel_type)
         print(rel_class)
+        if q_id not in q_dict_run: #'<NONETYPE>' queries
+            continue
+        if rel_type not in q_dict_run[q_id]: #'<NONETYPE>' queries
+            continue
         rank_in_run  = q_dict_run[q_id][rel_type]
         tmp = str(rank_in_run) + "-" + str(rel_type) + " label: " + str(rel_class)
         rel_ranked_list.append(tmp)
