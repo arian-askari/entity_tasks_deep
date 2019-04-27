@@ -13,7 +13,7 @@ from keras.callbacks import CSVLogger
 
 
 # from elasticsearch import Elasticsearch
-base_path = '/content/gdrive/My Drive/Colab Notebooks/'
+base_path = '/content/gdrive/My Drive/Colab/'
 # base_path = 'C:\\Users\\PerLab\\Desktop\\Arian'
 # base_path = ''
 

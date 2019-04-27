@@ -9,6 +9,8 @@ class TerminateOnBaseline(Callback):
         self.monitor_train = monitor_train
         self.baseline_min = baseline_min
         self.baseline_max = baseline_max
+
+    #def on_epoch_begin(self, epoch, logs=None):
     def on_epoch_end(self, epoch, logs=None):
         logs = logs or {}
         val_loss = logs.get(self.monitor_val)

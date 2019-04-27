@@ -1,15 +1,14 @@
 import os, json, random, sys
+
 # os.environ['CUDA_VISIBLE_DE VICES'] = '-1'
 
 from keras.layers import *
-from termcolor import colored
 
 from utils import trec_output as trec
 from utils import file_utils
-# from deep import train_set_generator as tsg
-from deep import train_set_generator_EC_IGNoreZeroRel as tsg
+from deep import train_set_generator as tsg
 # from deep.model_generator import Model_Generator
-from deep.model_generator_EntityScore_3d import Model_Generator
+from deep.model_generator_cnn import Model_Generator
 from utils.report_generator import Report_Generator
 report = Report_Generator()
 
@@ -47,17 +46,9 @@ epoch_count = 1
 layers_for_evaluate = [[1, 8], [4, 8],[2, 8]]
 # activation_for_evaluate = [["relu",  "linear"], ["relu", "linear"], ["relu", "linear"]]
 activation_for_evaluate = [["relu",  "softmax"], ["relu", "softmax"], ["relu", "softmax"]]
+dropout_rates = [0.1]
 batch_size = 100
 loss_function = "mse"
-
-def flat_input(list_data):
-    list_data = list_data.tolist()
-    list_data_flat = []
-    for lst in list_data:
-        list_data_flat.append(np.array(lst).flatten())
-
-    return np.array(list_data_flat)
-
 
 def nested_cross_fold_validation():
     loss_train_best_models_total = np.array([])
@@ -120,13 +111,8 @@ def nested_cross_fold_validation():
                         queries_for_select_validation_set = substrac_dicts(queries_for_select_validation_set, queries_validation_set)
 
                         queries_train_set = substrac_dicts(queries_for_train, queries_validation_set)
-                        # train_X, train_Y, test_X, test_Y_one_hot, q_id_test_list, test_TYPES, test_Y = tsg.get_train_test_data_translation_matric_entity_centric(queries_train_set, queries_validation_set, type_matrixEntityScore, k)
-                        # train_X, train_Y, test_X, test_Y_one_hot, q_id_test_list, test_TYPES, test_Y = tsg.get_train_test_data_translation_matric_entity_centric_qavg(queries_train_set, queries_validation_set, type_matrixEntityScore, k)
-                        train_X, train_Y, test_X, test_Y_one_hot, q_id_test_list, test_TYPES, test_Y = tsg.get_train_test_data_translation_matrix_3d(queries_train_set, queries_validation_set, top_entities=top_entities, top_k_term_per_entity=top_k_term_per_entity, use_tfidf=use_tfidf)
-
-                        if set_input_flat==True:
-                            train_X = flat_input(train_X)
-                            test_X = flat_input(test_X)
+                        train_X, train_Y, test_X, test_Y_one_hot, q_id_test_list, test_TYPES, test_Y = tsg.get_train_test_data_translation_matric_type_centric(
+                            queries_train_set, queries_validation_set, k=k)
 
                         if category == "regression":
                             train_Y = np.argmax(train_Y, axis=1)
@@ -156,7 +142,6 @@ def nested_cross_fold_validation():
                             result_validation = model.predict(test_X, test_Y)
                             predict_values = result_validation["predict"]
                             trec_output_validation += trec.get_trec_output_regression(q_id_test_list, test_TYPES, test_Y, predict_values)
-                            tmp_trec = trec.get_trec_output_regression(q_id_test_list, test_TYPES, test_Y, predict_values)
                         else:
                             result_validation = model.predict(test_X, test_Y_one_hot)
                             predict_values = result_validation["predict"]
@@ -172,17 +157,8 @@ def nested_cross_fold_validation():
                         loss_validation_total = np.append(loss_validation_total, float(loss_validation))
                         acc_validation_total = np.append(acc_validation_total, float(acc_validation))
 
-
-                        n5_until_this_fold = report.get_n5_tmp(trec_output_validation)
-                        text = "\nNDCG@5 on Validation until this fold : " + str(n5_until_this_fold)
-                        print(colored(text, "green"))
-                        n5_on_this_fold = report.get_n5_tmp(tmp_trec)
-                        text = "\nNDCG@5 on Validation on this fold : " + str(n5_on_this_fold)
-                        print(colored(text, "green"))
-
-
                         models_during_validation.append((model, loss_train,
-                                                         acc_train, loss_validation, acc_validation, abs(loss_train-loss_validation)))
+                                                         acc_train, loss_validation, acc_validation))
 
                         #inja mishe yek record baraye config rooye in Ti , V, ba in config ha, ezafe konim dar csv e report :) !
                         print("\n-----------------------------------------------\n\n\n")
@@ -224,53 +200,13 @@ def nested_cross_fold_validation():
                     )
 
             ''' Evaluate best model on Test (unseen data :) ) '''
-
-            # _, __, test_X, test_Y_one_hot, q_id_test_list, test_TYPES, test_Y = tsg.get_train_test_data_translation_matric_entity_centric(queries_for_train, queries_for_test_set, type_matrixEntityScore, k)
-            _, __, test_X, test_Y_one_hot, q_id_test_list, test_TYPES, test_Y = tsg.get_train_test_data_translation_matrix_3d(queries_for_train, queries_for_test_set, top_entities=top_entities, top_k_term_per_entity=top_k_term_per_entity, use_tfidf = use_tfidf)
-
-            if set_input_flat == True:
-                test_X = flat_input(test_X)
-
-
+            _, __, test_X, test_Y_one_hot, q_id_test_list, test_TYPES, test_Y = tsg.get_train_test_data_translation_matric_type_centric(queries_for_train, queries_for_test_set, k=k)
 
             models_sorted = sorted(models_during_validation, key=lambda x: x[3])  # ascending sort
-            # models_sorted = sorted(models_during_validation, key=lambda x: x[5])  # sort by train loss - validation loss (abs value :))
-
-            best_model, loss_train, acc_train, loss_validation, acc_validation, difference_loss_train_loss_validation = models_sorted[2]
-            print(best_model, loss_train, acc_train, loss_validation, acc_validation, difference_loss_train_loss_validation)
-
-            if_bigger = 9
-            if loss_train>if_bigger:
-                print("loss_train>10, step 1")
-                best_model, loss_train, acc_train, loss_validation, acc_validation, difference_loss_train_loss_validation = models_sorted[1]
-                print(best_model, loss_train, acc_train, loss_validation, acc_validation, difference_loss_train_loss_validation)
-                if loss_train>if_bigger:
-                    print("loss_train>10 - step 2")
-                    best_model, loss_train, acc_train, loss_validation, acc_validation, difference_loss_train_loss_validation = models_sorted[2]
-                    print(best_model, loss_train, acc_train, loss_validation, acc_validation, difference_loss_train_loss_validation)
-                    if loss_train>if_bigger:
-                        print("loss_train>10 - step 3")
-                        best_model, loss_train, acc_train, loss_validation, acc_validation, difference_loss_train_loss_validation = models_sorted[3]
-                        print(best_model, loss_train, acc_train, loss_validation, acc_validation, difference_loss_train_loss_validation)
-
-                        if loss_train > if_bigger:
-                            print("shit all models train have loss bigger" , if_bigger, " ?!")
-                            sys.exit(1)
-
-
-            # if loss_validation<=baseline_min or loss_validation >= baseline_max: #bara vaghti ke maslan tu 300 epoch roo yeki az rand haye validation ham tarin loss bala bude ham validaiton loss va dar nahayat 300 epoch ham tamom shode!
-            #     best_model, loss_train, acc_train, loss_validation, acc_validation, difference_loss_train_loss_validation = models_sorted[1]
-            #
-            #     if loss_validation <= baseline_min or loss_validation >= baseline_max:
-            #         best_model, loss_train, acc_train, loss_validation, acc_validation, difference_loss_train_loss_validation = models_sorted[2]
-            #
-            #         if loss_validation <= baseline_min or loss_validation >= baseline_max:
-            #             best_model, loss_train, acc_train, loss_validation, acc_validation, difference_loss_train_loss_validation = models_sorted[0]
-            #             print("\n***************************************************\t\tshittt validation aslan natunest beyne max o min peyda she ! vase hamin nazdik tarin ro bardashtam !\n****************************")
 
 
 
-
+            best_model, loss_train, acc_train, loss_validation, acc_validation = models_sorted[0]
             best_model_name = best_model.get_model_name()
 
             model_test_fold_run_path = models_path + input_name + "_T" + str(i+1) + "(bestModel)_" + best_model_name + ".run"
@@ -376,55 +312,27 @@ def nested_cross_fold_validation():
 # activation_for_evaluate_reg = [["relu","linear"],["relu","linear"],["relu","linear"],["relu", "relu", "linear"],["relu", "relu","relu", "linear"],["relu", "relu","relu", "linear"],["relu", "relu","relu", "linear"]]
 
 
-# layers_for_evaluate_reg = [[10, 1]]
-# activation_for_evaluate_reg = [["relu", "linear"]]
-
-# layers_for_evaluate_reg = [[1000,100,1]]
-# activation_for_evaluate_reg = [["relu","relu","linear"]]
-
-# layers_for_evaluate_reg = [[500, 1]]
-layers_for_evaluate_reg = [[1000, 1]]
-# activation_for_evaluate_reg = [["relu", "linear"]]
+layers_for_evaluate_reg = [[100, 1]]
 activation_for_evaluate_reg = [["relu", "linear"]]
-
-dropout_rates = [0]
 
 categories = ["regression"]
 layers_for_evaluates = [layers_for_evaluate_reg]
 activation_for_evaluates = [activation_for_evaluate_reg]
-batch_size = 128 #100 ham khoob bud
+dropout_rates = [0]
+# dropout_rates = [0.0]
+batch_size = 128
 
-k_values = [20, 5, 100, 2, 300, 5, 20, 50, 100.0]
-epoch_count = 1 #100 ba batch e 512 o lr 0.00001
-optimizer = "adam" #hame testam ba rms bud ! :(
-learning_rate = 0.0001  # 0.0001
-# q_token_cnt = 5
+k_values = [50, 100, 5,100, 2, 300, 5, 20, 50, 100.0]
+epoch_count = 200
+optimizer = "adam"
+learning_rate = 0.0001
 q_token_cnt = 14
 
-top_entities= 20 # 50, age ok bood code jadid, 100 esh konam bebinam chi mishe !
-top_k_term_per_entity = 20
-
-# type_matrixEntityScore = "detail"
-# type_matrixEntityScore = "e_score"
-
-# type_matrixEntityScore = "detail_normal"
-# type_matrixEntityScore = "e_score_normal"
-
-type_matrixEntityScore = "cosine_detail"
-# type_matrixEntityScore = "cosine_detail_normal"
-
-set_input_flat = False
-use_tfidf = False
-baseline_min = 4
-baseline_max = 5
 for cat, act, layers, k_v in zip(categories, activation_for_evaluates, layers_for_evaluates, k_values):
     k = k_v
-    input_dim = None
-    if set_input_flat:
-        input_dim = (q_token_cnt * k,)
-    else:
-        input_dim = (q_token_cnt, k)
-    input_name = "input(" + type_matrixEntityScore + str(k) + "dim)_"
+    # input_dim = (q_token_cnt * k,)
+    input_dim = (q_token_cnt, k)
+    input_name = "input(cosine_sim_" + str(k) + "dim)_"
 
     category = cat
     activation_for_evaluate = act

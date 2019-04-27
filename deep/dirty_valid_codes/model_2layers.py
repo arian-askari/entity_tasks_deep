@@ -10,7 +10,42 @@ from keras import optimizers
 from keras.callbacks import CSVLogger
 
 
+#http://localhost:9200/dbpedia_2015_10_types/doc/%3Cdbo:Food%3E/_termvectors?term_statistics=true?max_doc_freq=5
+#http://localhost:9200/dbpedia_2015_10_types/doc/%3Cdbo:Food%3E/_termvectors?term_statistics=true?/filter?max_doc_freq=5
+'''
 
+
+curl -X GET "localhost:9200/dbpedia_2015_10_types/doc/<dbo:Food>/_termvectors" -H 'Content-Type: application/json' -d'
+{
+    "term_statistics" : true,
+    "field_statistics" : true,
+    "positions": false,
+    "offsets": false,
+    "filter" : {
+      "max_doc_freq" : 20
+    }
+}
+'
+
+
+
+'''
+
+'''
+
+curl -X GET "localhost:9200/dbpedia_2015_10_types/doc/<dbo:Ambassador>/_termvectors" -H 'Content-Type: application/json' -d'
+{
+    "term_statistics" : true,
+    "field_statistics" : true,
+    "positions": false,
+    "offsets": false,
+    "filter" : {
+      "max_doc_freq" : 5,
+      "min_term_freq" : 5
+    }
+}
+'••••••••
+'''
 
 # from elasticsearch import Elasticsearch
 # base_path = '/content/gdrive/My Drive/Colab Notebooks/'

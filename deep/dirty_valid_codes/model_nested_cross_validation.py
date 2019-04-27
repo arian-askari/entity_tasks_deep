@@ -14,6 +14,7 @@ from sklearn.model_selection import KFold
 from keras.wrappers.scikit_learn import KerasClassifier
 from keras.wrappers.scikit_learn import KerasRegressor
 
+
 # base_path = '/content/gdrive/My Drive/Colab Notebooks/'
 # base_path = 'C:\\Users\\PerLab\\Desktop\\Arian'
 base_path = ''
@@ -66,11 +67,11 @@ mv5_l1_dropout = 0
 mv5_l2_dropout = 0
 
 epoch_count = 10000
-
+dropout_rate=0.0
 extra_name_path = ""
 current_fold = ""
 
-def get_model():
+def get_model(dropout_rate=0.0):
     activation = 'relu'  # or linear
     dropout_rate = 0.1  # or 0.2
 
@@ -96,14 +97,14 @@ def get_model():
 
 def grid_search_sample():
     # model = get_model()
-    model = KerasClassifier(build_fn=get_model(), batch_size=100, epochs=1)
+    model = KerasRegressor(build_fn=get_model, batch_size=100, epochs=1)
 
     '''
     cv_results_ : dict of numpy (masked) ndarrays
     '''
     ########################################################
     # Use scikit-learn to grid search
-    activation = ['relu']  # tanh softmax, softplus, softsign
+    # activation = ['relu']  # tanh softmax, softplus, softsign
     learn_rate = [0.0001] #[0.0001, 0.001]
     dropout_rate = [0.2, 0.3]#[0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
     neurons = [10]
@@ -115,9 +116,10 @@ def grid_search_sample():
     batch_size = [100]  # add 5, 10, 20, 40, 60, 80, 100 etc
 
 
-    param_grid = dict(epochs=epochs, batch_size=batch_size, activation=activation, learn_rate=learn_rate,neurons=neurons, dropout_rate = dropout_rate, optimizer=optimizer)
+    param_grid = dict(epochs=epochs, batch_size=batch_size, dropout_rate = dropout_rate)
+    # param_grid = dict(epochs=epochs, batch_size=batch_size, learn_rate=learn_rate,neurons=neurons, dropout_rate = dropout_rate, optimizer=optimizer)
 
-    grid = GridSearchCV(cv=KFold(n_splits=3), estimator=model, param_grid=param_grid, n_jobs=8,verbose=10, scoring="neg_mean_squared_error")
+    grid = GridSearchCV(cv=KFold(n_splits=5), estimator=model, param_grid=param_grid, n_jobs=1,verbose=2, scoring="neg_mean_squared_error")
 
     X_fold1 = np.random.rand(6, 600)
     Y_fold1 = np.random.rand(6, 1)
@@ -134,8 +136,8 @@ def grid_search_sample():
     X_fold5 = np.random.rand(6,600)
     Y_fold5 = np.random.rand(6, 1)
 
-    X_Train = np.random.rand(3,600)
-    Y_Train =  np.random.rand(3,1)
+    X_Train = np.random.rand(20,600)
+    Y_Train =  np.random.rand(20)
 
     grid_result = grid.fit(X_Train, Y_Train)
     results = grid.cv_results_

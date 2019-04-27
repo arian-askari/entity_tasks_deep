@@ -51,7 +51,8 @@ def substrac_dicts(dict1, dict2):
 
 def model_type_retrieval_v4(train_X, train_Y, test_X, test_Y): #one_layer, count of neuron is count of types!
     model_type_retrieva_v1 = Sequential()
-    model_type_retrieva_v1.add(Dense(419, input_shape=(14, 100)))
+    model_type_retrieva_v1.add(Dense(1000, input_shape=(14, 100)))
+    model_type_retrieva_v1.add(Dense(1000))
 
     model_type_retrieva_v1.add(MaxPooling1D())
     model_type_retrieva_v1.add(Dropout(0.3))
@@ -74,7 +75,7 @@ def model_type_retrieval_v4(train_X, train_Y, test_X, test_Y): #one_layer, count
     # optimizers.
     model_type_retrieva_v1.compile(optimizer=sgd, loss='categorical_crossentropy', metrics=["accuracy"])
 
-    model_type_retrieva_v1.fit(train_X, train_Y, epochs=200, batch_size=1, verbose = 2)
+    model_type_retrieva_v1.fit(train_X, train_Y, epochs=1000, batch_size=100, verbose = 2)
 
     predict_classes = model_type_retrieva_v1.predict_classes(test_X)
     predicted_prob = model_type_retrieva_v1.predict_proba(test_X)
@@ -464,7 +465,7 @@ with open(queries_path, 'r') as ff:
     # modelv2_path = models_path + "2.run"
     # modelv1_path = models_path + "1.run"
     # modelv3_path = models_path + "3.run"
-    modelv4_path = models_path + "4_200epoch_maxpool_dropout.run"
+    modelv4_path = models_path + "4_1000epoch_maxpool_dropout.run"
 
     # create_file(modelv2_path, trec_output_modelv2)
     # create_file(modelv1_path, trec_output_modelv1)
