@@ -1,4 +1,8 @@
-import seaborn as sns
+import os, json, random, sys
+from keras.layers import *
+from termcolor import colored
+
+
 import numpy as np
 import keras_metrics
 import sys
@@ -8,6 +12,22 @@ from keras.optimizers import Adagrad
 from keras.utils import np_utils
 from keras.layers import *
 from keras.models import *
+
+
+import os, subprocess
+import json,ast
+import ast, sys, re, random, csv, json, math
+
+from deep import train_set_generator as tsg
+# import utils.file_utils as file_utils
+# import utils.list_utils as list_utils
+
+import numpy as np
+import pandas as pd
+
+# from scipy import spatial
+#
+
 
 # sentences = [
 # 	q1 = "what is the best mountain",

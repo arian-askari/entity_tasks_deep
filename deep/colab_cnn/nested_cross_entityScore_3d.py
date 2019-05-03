@@ -143,7 +143,7 @@ def is_exist_whole_word(word, text, case_sensitive=True):
 
 #########train set generator
 import os, subprocess, json, ast, sys, re, random, csv, json, math
-import seaborn as sns
+
 import numpy as np
 import pandas as pd
 from scipy import spatial

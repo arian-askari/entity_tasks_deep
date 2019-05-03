@@ -4,7 +4,7 @@ from config import config
 from utils import utf8_helper
 import numpy as np
 import matplotlib as mpl
-import matplotlib.pyplot as plt
+
 from PyPDF2 import PdfFileMerger
 
 dirname = os.path.dirname(__file__)

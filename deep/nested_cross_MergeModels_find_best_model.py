@@ -2,7 +2,6 @@ import os, json, random, sys
 # os.environ['CUDA_VISIBLE_DE VICES'] = '-1'
 
 from keras.layers import *
-
 from utils import trec_output as trec
 from utils import file_utils
 from deep import train_set_generator as tsg

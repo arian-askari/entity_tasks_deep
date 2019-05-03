@@ -1,5 +1,5 @@
 import os, subprocess, json, ast, sys, re, random, csv
-import seaborn as sns
+
 
 def retrieve_types(query, k=10):  # retrieve top k type for query, with nordlys :)
     query = query.replace("'", "")
