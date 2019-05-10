@@ -17,9 +17,7 @@ def isfloat(value):
 
 dirname = os.path.dirname(__file__)
 
-trainset_average_w2v_path = os.path.join(dirname, '../data/types/sig17/trainset_average_w2v_sig17.txt')
-trainset_translation_matrix_type_tfidf_terms_path = os.path.join(dirname,'../data/types/sig17/trainset_translation_matrix_tfidf_terms')
-
+trainset_average_w2v_path = tc_input_path = os.path.join(dirname, '../data/types/sig17/trainset_translation_matrix_tfidf_terms')
 
 def get_trainset_average_w2v():
     print("trainset_average_w2v_path",trainset_average_w2v_path)
@@ -105,7 +103,7 @@ def get_split_data_type_centric(queries_for_train, queries_for_test_set, k):
     global trainset_TC
     global trainset_average_w2v_path
 
-    tmp = trainset_translation_matrix_type_tfidf_terms_path + "_" + str(k) + ".json"
+    tmp = tc_input_path + "_" + str(k) + ".json"
     if trainset_average_w2v_path != tmp:
         global trainset_average_w2v
         trainset_average_w2v = None  # in merge model cause bug :)
