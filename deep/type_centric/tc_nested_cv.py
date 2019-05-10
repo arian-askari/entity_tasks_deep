@@ -10,11 +10,11 @@ from deep.model_generator_cnn import Model_Generator
 from utils.report_generator import Report_Generator
 report = Report_Generator()
 
-queries_path = os.path.join("../data", "dbpedia-v1", "queries_type_retrieval.json")
-models_path = os.path.join("../data", "runs", "")
+queries_path = os.path.join("../../data", "dbpedia-v1", "queries_type_retrieval.json")
+models_path = os.path.join("../../data", "runs", "")
 models_path_from_root = os.path.join("./data", "runs", "")
 results_path_from_root = os.path.join("./data", "results", "")
-results_path = os.path.join("../data", "results", "")
+results_path = os.path.join("../../data", "results", "")
 
 
 
