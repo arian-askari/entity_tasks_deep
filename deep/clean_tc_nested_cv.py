@@ -5,7 +5,7 @@ from keras.layers import *
 
 from utils import trec_output as trec
 from utils import file_utils
-from deep import tc_trainset as tsg
+from deep import clean_tc_trainset as tsg
 from deep.model_generator_cnn import Model_Generator
 from utils.report_generator import Report_Generator
 report = Report_Generator()
