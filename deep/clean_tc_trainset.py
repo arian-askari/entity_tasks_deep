@@ -25,7 +25,7 @@ def get_trainset_average_w2v():
     return train_set_average_dict
 
 
-def load_trainset_average_w2v():
+def load_tc_input():
     global trainset_average_w2v
     if trainset_average_w2v is None:
         print("trainset_average_w2v loading...")
@@ -110,7 +110,7 @@ def get_split_data_type_centric(queries_for_train, queries_for_test_set, k):
         trainset_average_w2v_path = tmp
 
         if trainset_TC is None:
-            load_trainset_average_w2v()
+            load_tc_input()
             trainset_TC = trainset_average_w2v
         else:
             trainset_average_w2v = trainset_TC
