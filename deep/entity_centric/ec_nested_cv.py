@@ -2,24 +2,31 @@ import os, json, random, sys
 # os.environ['CUDA_VISIBLE_DE VICES'] = '-1'
 
 from keras.layers import *
+from termcolor import colored
 
 from utils import trec_output as trec
 from utils import file_utils
-from deep.type_centric import tc_trainset as tsg
-from deep.type_centric.tc_model import Model_Generator
+from deep.entity_centric import ec_trainset as tsg
+from deep.entity_centric.ec_model import Model_Generator
 from utils.report_generator import Report_Generator
 report = Report_Generator()
 
 queries_path = os.path.join("../../data", "dbpedia-v1", "queries_type_retrieval.json")
 models_path = os.path.join("../../data", "runs", "")
-models_path_from_root = os.path.join("./data", "runs", "")
-results_path_from_root = os.path.join("./data", "results", "")
-results_path = os.path.join("../../data", "results", "")
-
-
+models_path_from_root = os.path.join("./../data", "runs", "")
+results_path_from_root = os.path.join("./../data", "results", "")
+results_path= os.path.join("../../data", "results", "")
 
 def substrac_dicts(dict1, dict2):
     return dict(set(dict1.items()) - set((dict(dict2)).items()))
+
+def flat_input(list_data):
+    list_data = list_data.tolist()
+    list_data_flat = []
+    for lst in list_data:
+        list_data_flat.append(np.array(lst).flatten())
+
+    return np.array(list_data_flat)
 
 
 def nested_cross_fold_validation():
@@ -63,19 +70,16 @@ def nested_cross_fold_validation():
 
             for layers, activation in zip(layers_for_evaluate, activation_for_evaluate):
                 for dropout_rate in dropout_rates:
-
                     queries_for_select_validation_set = dict(queries_for_train)
                     fold_size = int(len(queries_for_train) / (k_fold - 1))
-
-
-                    loss_train_total = np.array([])
-                    acc_validation_total = np.array([])
-                    loss_validation_total = np.array([])
-                    acc_train_total = np.array([])
-
                     trec_output_validation = ""
                     model_name = ""
 
+                    loss_train_total = np.array([])
+                    acc_validation_total = np.array([])
+
+                    loss_validation_total = np.array([])
+                    acc_train_total = np.array([]) #  np.append(number, np_array)
                     for j in range(k_fold - 1):
                         #################### (K-1) nested cross fold validation #####################
 
@@ -88,21 +92,23 @@ def nested_cross_fold_validation():
                         queries_for_select_validation_set = substrac_dicts(queries_for_select_validation_set, queries_validation_set)
 
                         queries_train_set = substrac_dicts(queries_for_train, queries_validation_set)
+                        train_X, train_Y, test_X, test_Y_one_hot, q_id_test_list, test_TYPES, test_Y = tsg.get_split_data_entity_centric(queries_train_set, queries_validation_set, top_entities=top_entities, top_k_term_per_entity=top_k_term_per_entity)
 
-                        train_X, train_Y, test_X, test_Y_one_hot, q_id_test_list, test_TYPES, test_Y = tsg.get_split_data_type_centric(
-                            queries_train_set, queries_validation_set, k=k)
+                        if set_input_flat==True:
+                            train_X = flat_input(train_X)
+                            test_X = flat_input(test_X)
 
                         if category == "regression":
                             train_Y = np.argmax(train_Y, axis=1)
 
-
                         #################### generate model base on config #####################
                         model = Model_Generator(layers=layers, activation=activation, epochs=epoch_count, dropout=dropout_rate,
                                                 category=category, learning_rate=learning_rate, loss=loss_function, batch_size=batch_size,
-                                                optimizer=optimizer, top_k = k)
+                                                optimizer=optimizer, top_k = k)  # regression sample
                         #################### generate model base on config #####################
 
                         model_name = model.get_model_name()
+
                         log_path = models_path + input_name + "T" + str(i+1) + "_V" + str(j+1) + model_name + ".log"
 
                         model.set_csv_log_path(log_path)
@@ -117,16 +123,17 @@ def nested_cross_fold_validation():
                         predict_values = None
                         predict_values = None
                         predict_probs = None
-
                         if category == "regression":
                             result_validation = model.predict(test_X, test_Y)
                             predict_values = result_validation["predict"]
                             trec_output_validation += trec.get_trec_output_regression(q_id_test_list, test_TYPES, test_Y, predict_values)
+                            # tmp_trec = trec.get_trec_output_regression(q_id_test_list, test_TYPES, test_Y, predict_values)
                         else:
                             result_validation = model.predict(test_X, test_Y_one_hot)
                             predict_values = result_validation["predict"]
                             predict_probs = result_validation["predict_prob"]
                             trec_output_validation += trec.get_trec_output_classification(q_id_test_list, test_TYPES, test_Y, predict_values, predict_probs)
+                            # tmp_trec = trec.get_trec_output_classification(q_id_test_list, test_TYPES, test_Y, predict_values, predict_probs)
 
                         loss_train, acc_train = ressult_train["train_loss_latest"], ressult_train["train_acc_mean"]
                         loss_validation, acc_validation = result_validation["loss_mean"], result_validation["acc_mean"]
@@ -137,9 +144,17 @@ def nested_cross_fold_validation():
                         loss_validation_total = np.append(loss_validation_total, float(loss_validation))
                         acc_validation_total = np.append(acc_validation_total, float(acc_validation))
 
+
+                        # n5_until_this_fold = report.get_n5_tmp(trec_output_validation)
+                        # text = "\nNDCG@5 on Validation until this fold : " + str(n5_until_this_fold)
+                        # print(colored(text, "green"))
+                        # n5_on_this_fold = report.get_n5_tmp(tmp_trec)
+                        # text = "\nNDCG@5 on Validation on this fold : " + str(n5_on_this_fold)
+                        # print(colored(text, "green"))
+
+
                         models_during_validation.append((model, loss_train,
                                                          acc_train, loss_validation, acc_validation, abs(loss_train-loss_validation)))
-
                         print("\n-----------------------------------------------\n\n\n")
 
                     loss_train_avg = np.mean(loss_train_total)
@@ -178,16 +193,12 @@ def nested_cross_fold_validation():
                     )
                     ###############################generate report for nested cv###############################
 
-
             ###################################select best model from nested cv#############################################
-            models_sorted = sorted(models_during_validation, key=lambda x: x[3])  # ascending sort, by validation loss
-
-            best_model, loss_train, acc_train, loss_validation, acc_validation, difference_loss_train_loss_validation = models_sorted[0]
+            models_sorted = sorted(models_during_validation, key=lambda x: x[3])  # ascending sort
+            best_model, loss_train, acc_train, loss_validation, acc_validation, difference_loss_train_loss_validation = models_sorted[2]
             best_model_name = best_model.get_model_name()
-
             model_test_fold_run_path = models_path + input_name + "_T" + str(i+1) + "(bestModel)_" + best_model_name + ".run"
             ###################################select best model from nested cv#############################################
-
 
             #################################evaluate best model of nested cv, on test set#################################
             result_validation = None
@@ -196,9 +207,11 @@ def nested_cross_fold_validation():
             predict_probs = None
             result_test = None
 
+
             ''' Evaluate best model on Test (unseen data :) ) '''
-            _, __, test_X, test_Y_one_hot, q_id_test_list, test_TYPES, test_Y = tsg.get_split_data_type_centric(
-                queries_for_train, queries_for_test_set, k=k)
+            _, __, test_X, test_Y_one_hot, q_id_test_list, test_TYPES, test_Y = tsg.get_split_data_entity_centric(queries_for_train, queries_for_test_set, top_entities=top_entities, top_k_term_per_entity=top_k_term_per_entity)
+            if set_input_flat == True:
+                test_X = flat_input(test_X)
 
             if category == "regression":
                 result_test = best_model.predict(test_X, test_Y)
@@ -212,17 +225,18 @@ def nested_cross_fold_validation():
                 predict_probs = result_test["predict_prob"]
                 trec_output_test_per_fold = trec.get_trec_output_classification(q_id_test_list, test_TYPES, test_Y, predict_values, predict_probs)
                 trec_output_test += trec_output_test_per_fold
+                ######################################################################################################
 
             loss_test, acc_test = result_test["loss_mean"], result_test["acc_mean"]
             temp = trec_output_test_per_fold.rstrip('\n')
             file_utils.create_file(model_test_fold_run_path, temp)
-
 
             ###############################generate report for performance of best model on unseen data###############################
             """ Generate_report test fold"""
             model_test_fold_run_from_root_path = models_path + input_name + "_T" + str(i + 1) + "(bestModel)_" + best_model_name + ".run"
             model_test_fold_result_from_root_path = results_path + input_name + "_T" + str(i + 1) + "(bestModel)_" + best_model_name + ".result"
             model_validation_result_from_root_path = results_path + input_name + "T" + str(i + 1) + "_V(all)_" + best_model_name + ".result"
+
             report.append_test(
                 run_path_test=model_test_fold_run_from_root_path
                 , result_path_test=model_test_fold_result_from_root_path
@@ -247,15 +261,17 @@ def nested_cross_fold_validation():
             )
             loss_train_best_models_total = np.append(loss_train_best_models_total, float(loss_train))
             acc_train_best_models_total = np.append(acc_train_best_models_total, float(acc_train))
-            loss_validation_best_models_total = np.append(loss_validation_best_models_total, float(loss_validation))
-            acc_validation_best_models_total = np.append(acc_validation_best_models_total, float(acc_validation))
-            loss_test_total = np.append(loss_test_total, float(loss_test))
-            acc_test_total = np.append(acc_test_total, float(acc_test))
+
+            loss_validation_best_models_total= np.append(loss_validation_best_models_total, float(loss_validation))
+            acc_validation_best_models_total= np.append(acc_validation_best_models_total, float(acc_validation))
+
+            loss_test_total= np.append(loss_test_total, float(loss_test))
+            acc_test_total= np.append(acc_test_total, float(acc_test))
+            print("\n-----------------------------------------------\n")
             ###############################generate report for performance of best model on unseen data###############################
 
 
             #################################evaluate best model of nested cv, on test set#################################
-
 
         model_test_all_run_path = models_path + input_name + "_T(all)" + "_" + category + ".run"
         trec_output_test = trec_output_test.rstrip('\n')
@@ -291,28 +307,34 @@ def nested_cross_fold_validation():
         )
         ###############################generate report for performance of all best models on un seen datas###############################
 
-
-
-######################################Config################################
-layers_for_evaluate_reg = [[100,1]]
+layers_for_evaluate_reg = [[100, 1]]
 activation_for_evaluate_reg = [["relu", "linear"]]
+dropout_rates = [0]
 categories = ["regression"]
 layers_for_evaluates = [layers_for_evaluate_reg]
 activation_for_evaluates = [activation_for_evaluate_reg]
-dropout_rates = [0]
-batch_size = 128
-k_values = [50]
-epoch_count = 100
-optimizer = "adam"
-learning_rate = 0.0001
+batch_size = 128 #100 ham khoob bud
+k_values = [20]
+epoch_count = 100 #100 ba batch e 512 o lr 0.00001
+optimizer = "adam" #hame testam ba rms bud ! :(
+learning_rate = 0.0001  # 0.0001
 q_token_cnt = 14
+top_entities= 20 #top e retrieved per query
+top_k_term_per_entity = 20 # top term, selected from entity, sorted by tf idf
+type_matrixEntityScore = "cosine_detail"
+set_input_flat = False
+use_tfidf = False
 loss_function = "mse"
-######################################Config################################
 
 for cat, act, layers, k_v in zip(categories, activation_for_evaluates, layers_for_evaluates, k_values):
     k = k_v
-    input_dim = (q_token_cnt, k)
-    input_name = "input(cosine_sim_" + str(k) + "dim)_"
+    input_dim = None
+
+    if set_input_flat:
+        input_dim = (q_token_cnt * k,)
+    else:
+        input_dim = (q_token_cnt, k)
+    input_name = "input(" + type_matrixEntityScore + str(k) + "dim)_"
 
     category = cat
     activation_for_evaluate = act

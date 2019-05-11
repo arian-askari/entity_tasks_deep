@@ -8,7 +8,6 @@ from keras.callbacks import CSVLogger
 from keras.layers import LeakyReLU
 import numpy as np
 import keras.backend as keras_backend
-from utils.terminate_on_baseline import TerminateOnBaseline
 
 class Model_Generator():
     def __init__(self, layers, activation=[], optimizer="adam", loss="mse", learning_rate=0.0001,
@@ -43,35 +42,44 @@ class Model_Generator():
     def set_csv_log_path(self, csv_log_path):
         self.__csv_log_path = csv_log_path
 
-    def __reshape_for_cnn(self, data, channels_cnt = 1):
-        keras_backend.set_image_data_format("channels_last")
-
+    def  __reshape_for_cnn(self, data, channels_cnt = 1):
+        # data = np.rollaxis(data, 1, 4) # roll the axis 1 to position 3,  change channels_first to channels_last ! #https://github.com/keras-team/keras/issues/6598#issuecomment-304615741
         rows = data.shape[1]
         columns = data.shape[2]
-        samples = len(data)
         channels_cnt = 1
 
+        samples = len(data)
         data = data.reshape(samples, rows, columns, channels_cnt)
-        input_shape = (rows, columns, channels_cnt)
+        print("data.shape", data.shape)
 
+        keras_backend.set_image_data_format("channels_last")
+        input_shape = (rows, columns, channels_cnt)
         return data, input_shape
+
+
     def fit(self, train_x, train_y, input_dim, test_x =None, test_y = None): #input_dim example: (600,)
         """ Performs training on train_x instances"""
 
         self.__network = Sequential()
 
+        ###################################################################################
+
         ################################### CNN Part ###################################
         train_x, input_shape = self.__reshape_for_cnn(train_x)
         test_x , _ = self.__reshape_for_cnn(test_x)
+        print(input_shape)
 
-        self.__network.add(Conv2D(filters=64, kernel_size= (5,5),strides=(1,1), padding="same", activation="relu", input_shape=input_shape))
-        self.__network.add(MaxPooling2D())
+        keras_backend.set_image_data_format("channels_last")  # channels_first
 
-        self.__network.add(Conv2D(filters=16, kernel_size= (10,10),strides=(1,1), padding="same", activation="relu"))
-        self.__network.add(MaxPooling2D())
+        self.__network.add(Conv2D(filters=32, kernel_size= (14,5), strides=1, padding="same", activation="relu", input_shape = input_shape)) #1.2 know terms of entities importancy
+        self.__network.add(MaxPooling2D(pool_size=(1,5), strides = (1,5) ))  #2. get max important term five by five
 
-        self.__network.add(Conv2D(filters=256, kernel_size= (32,32),strides=(1,1), padding="same", activation="relu"))
-        self.__network.add(MaxPooling2D())
+        self.__network.add(Conv2D(filters=64, kernel_size= (14,4), strides=1, padding="same", activation="relu", input_shape = input_shape)) #3 know entities importancy
+
+        self.__network.add(MaxPooling2D(pool_size=(1,4), strides = (1,4) )) #4. get entity iportancy by query phrace
+        self.__network.add(AveragePooling2D(pool_size=(14,1), strides = (14,1) )) #5 average of entity iportancy on total query
+
+        self.__network.add(Conv2D(filters=256, kernel_size= (5,5), strides=5, padding="same", activation="relu")) #3 feature reduction
         ################################### CNN Part ###################################
 
         ################################### Flatt CNN for fed to Dense Layer###################################
@@ -102,6 +110,7 @@ class Model_Generator():
             self.__network.add(Dropout(self.__dropout))
 
         if (self.__optimizer == "adam"):
+            # adam = optimizers.Adam(lr=self.__learning_rate, decay=0.5)
             adam = optimizers.Adam(lr=self.__learning_rate)
             self.__network.compile(optimizer=adam, loss=self.__loss, metrics=["accuracy"])
         elif(self.__optimizer == "rms"):
@@ -110,14 +119,14 @@ class Model_Generator():
         else:
             self.__network.compile(optimizer=self.__optimizer, loss=self.__loss, metrics=["accuracy"])
 
-
         if len(self.__csv_log_path) > 0:
             csv_logger = CSVLogger(self.__csv_log_path, append=False, separator=',')
-            # calbacks = [csv_logger, TerminateOnBaseline(monitor_val='val_loss', monitor_train='loss', baseline_min=3.1, baseline_max=3.4)]
+
             calbacks = [csv_logger]
+            # calbacks = [csv_logger, TerminateOnBaseline(monitor_val='val_loss', monitor_train = 'loss', baseline_min=4.99, baseline_max =5.51)]
 
             if test_x is not None:
-                self.__history = self.__network.fit(train_x, train_y, validation_data=(test_x, test_y),  epochs=self.__epochs, batch_size=self.__batch_size, verbose=self.__verbose, callbacks=calbacks)
+                self.__history = self.__network.fit(train_x, train_y, validation_data=(test_x, test_y),  epochs=self.__epochs, batch_size=self.__batch_size, verbose=self.__verbose, callbacks= calbacks)
             else:
 
                 self.__history = self.__network.fit(train_x, train_y, epochs=self.__epochs, batch_size=self.__batch_size, verbose=self.__verbose, callbacks=calbacks)
@@ -135,8 +144,8 @@ class Model_Generator():
         result["train_acc_mean"] = float(np.mean(self.__history.history['acc']))
 
         result["train_loss"] = self.__history.history['loss']
-        print(self.__network.summary())
 
+        print(self.__network.summary())
 
         # serialize model to JSON
         model_json = self.__network.to_json()
