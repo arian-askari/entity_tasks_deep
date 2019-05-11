@@ -68,8 +68,6 @@ class Model_Generator():
         train_x_tc, input_shape = self.__reshape_for_cnn(train_xTC)
         test_x_tc , _ = self.__reshape_for_cnn(test_x_TC)
 
-        ''' fucked example '''
-
         tc_input = Input(shape=input_shape, dtype='float32', name='tc_input')
 
         tc_model = Conv2D(64, kernel_size=(5, 5), strides=(1, 1), padding="same", activation="relu")(tc_input)
@@ -136,8 +134,6 @@ class Model_Generator():
                   {'main_output': train_y, 'tc_auxiliary_output': train_y, 'ec_auxiliary_output': train_y},
                   epochs=self.__epochs, batch_size=self.__batch_size,
                         verbose=self.__verbose,validation_data=(text_x, test_y), callbacks=calbacks)
-
-        ''' fucked example '''
 
 
         result = dict()
