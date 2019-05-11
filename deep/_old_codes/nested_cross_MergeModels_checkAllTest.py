@@ -9,7 +9,7 @@ from deep import train_set_generator as tsg
 from deep import train_set_generator_EC_IGNoreZeroRel as tsg_EC
 # from deep.model_generator_MergeModels import Model_Generator
 # from deep.model_generator_MergeModels_TwoStep import Model_Generator
-from deep.tmp_files.model_generator_MergeModels_MultiInOut import Model_Generator
+from deep._old_codes.model_generator_MergeModels_MultiInOut import Model_Generator
 from utils import file_utils
 from utils import trec_output as trec
 # from deep.model_generator_MergeModels_ConCateInputs import Model_Generator

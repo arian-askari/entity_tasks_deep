@@ -9,7 +9,7 @@ from termcolor import colored
 # from deep import train_set_generator as tsg
 from deep import train_set_generator_EC_IGNoreZeroRel as tsg
 # from deep.model_generator import Model_Generator
-from deep.tmp_files.model_generator_EntityScore_3d import Model_Generator
+from deep._old_codes.model_generator_EntityScore_3d import Model_Generator
 from utils import file_utils
 from utils import trec_output as trec
 from utils.report_generator import Report_Generator

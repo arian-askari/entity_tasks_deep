@@ -9,11 +9,11 @@ from keras.layers import *
 from utils import trec_output as trec
 from utils import file_utils
 from deep import train_set_generator as tsg
-from deep.tmp_files import train_set_generator_EC_IGNoreZeroRel as tsg_EC
+from deep._old_codes import train_set_generator_EC_IGNoreZeroRel as tsg_EC
 from termcolor import colored
 
 # from deep.model_generator_MergeModels import Model_Generator
-from deep.tmp_files.model_generator_MergeModels_Dense import Model_Generator
+from deep._old_codes.model_generator_MergeModels_Dense import Model_Generator
 
 
 # from deep.model_generator_MergeModels_TwoStep import Model_Generator

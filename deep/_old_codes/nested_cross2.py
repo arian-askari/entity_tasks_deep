@@ -5,7 +5,7 @@ import random
 from deep.model_generator import Model_Generator
 from keras.layers import *
 
-from deep.tmp_files import train_set_generator_qvec_is_avg as tsg
+from deep._old_codes import train_set_generator_qvec_is_avg as tsg
 from utils import file_utils
 from utils import trec_output as trec
 from utils.report_generator import Report_Generator
