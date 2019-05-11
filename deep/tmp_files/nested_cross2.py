@@ -1,14 +1,16 @@
-import os, json, random, sys
+import json
+import os
+import random
 
-# os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
-
+from deep.model_generator import Model_Generator
 from keras.layers import *
 
-from utils import trec_output as trec
+from deep.tmp_files import train_set_generator_qvec_is_avg as tsg
 from utils import file_utils
-from deep import train_set_generator_qvec_is_avg as tsg
-from deep.model_generator import Model_Generator
+from utils import trec_output as trec
 from utils.report_generator import Report_Generator
+
+# os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 report = Report_Generator()
 
 queries_path = os.path.join("../data", "dbpedia-v1", "queries_type_retrieval.json")

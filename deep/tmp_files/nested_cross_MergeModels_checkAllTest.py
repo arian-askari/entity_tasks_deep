@@ -1,22 +1,22 @@
-import os, json, random, sys
-# os.environ['CUDA_VISIBLE_DE VICES'] = '-1'
+import json
+import os
+import random
 
 from keras.layers import *
-
-from utils import trec_output as trec
-from utils import file_utils
-from deep import train_set_generator as tsg
-from deep import train_set_generator_EC_IGNoreZeroRel as tsg_EC
 from termcolor import colored
 
+from deep import train_set_generator as tsg
+from deep import train_set_generator_EC_IGNoreZeroRel as tsg_EC
 # from deep.model_generator_MergeModels import Model_Generator
 # from deep.model_generator_MergeModels_TwoStep import Model_Generator
-from deep.model_generator_MergeModels_MultiInOut import Model_Generator
-
-
+from deep.tmp_files.model_generator_MergeModels_MultiInOut import Model_Generator
+from utils import file_utils
+from utils import trec_output as trec
 # from deep.model_generator_MergeModels_ConCateInputs import Model_Generator
 # from deep.model_generator_MergeModels_FULLCNN import Model_Generator
 from utils.report_generator import Report_Generator
+
+# os.environ['CUDA_VISIBLE_DE VICES'] = '-1'
 report = Report_Generator()
 
 queries_path = os.path.join("../data", "dbpedia-v1", "queries_type_retrieval.json")
