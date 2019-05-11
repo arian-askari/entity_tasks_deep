@@ -17,7 +17,7 @@ def isfloat(value):
 
 dirname = os.path.dirname(__file__)
 
-trainset_average_w2v_path = tc_input_path = os.path.join(dirname, '../data/types/sig17/trainset_translation_matrix_tfidf_terms')
+trainset_average_w2v_path = tc_input_path = os.path.join(dirname, '../../data/types/sig17/trainset_translation_matrix_tfidf_terms')
 
 def get_trainset_average_w2v():
     print("trainset_average_w2v_path",trainset_average_w2v_path)
